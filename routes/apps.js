@@ -3,7 +3,6 @@ var router = express.Router();
 var _ = require('lodash');
 var middleware = require('../core/middleware');
 var validator = require('validator');
-var Q = require('q');
 var accountManager = require('../core/services/account-manager')();
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');

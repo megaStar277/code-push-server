@@ -1,6 +1,5 @@
 'use strict';
-var Q = require('q');
-var Promise = Q.Promise;
+var Promise = require('bluebird');
 var models = require('../../models');
 var security = require('../utils/security');
 var _ = require('lodash');
@@ -23,7 +22,7 @@ var proto = module.exports = function (){
 };
 
 proto.parseReqFile = function (req) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var form = new formidable.IncomingForm();
     form.parse(req, function(err, fields, files) {
       if (err) {
@@ -145,7 +144,7 @@ proto.downloadPackageAndExtract = function (workDirectoryPath, packageHash, blob
 }
 
 proto.zipDiffPackage = function (fileName, files, baseDirectoryPath, hotCodePushFile) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var zipFile = new yazl.ZipFile();
     var writeStream = fs.createWriteStream(fileName);
     writeStream.on('error', function (error) {
@@ -236,7 +235,7 @@ proto.createDiffPackages = function (packageId, num) {
       common.createEmptyFolderSync(workDirectoryPath);
       return self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url)
       .then(function (dataCenter) {
-        return Q.allSettled(
+        return Promise.all(
           _.map(lastNumsPackages, function (v) {
             return self.generateOneDiffPackage(workDirectoryPath, packageId, dataCenter, v.package_hash, v.manifest_blob_url);
           })
@@ -292,7 +291,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
           })
           .then(function () {
             return security.qetag(manifestFile).then(function (manifestHash) {
-              return Q.allSettled([
+              return Promise.all([
                 common.uploadFileToQiniu(manifestHash, manifestFile),
                 common.uploadFileToQiniu(blobHash, filePath)
               ]).spread(function (up1, up2) {

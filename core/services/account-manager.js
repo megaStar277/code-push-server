@@ -1,6 +1,5 @@
 'use strict';
-var Q = require('q');
-var Promise = Q.Promise;
+var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
 var validator = require('validator');

@@ -1,5 +1,4 @@
 'use strict';
-var Q = require('q');
 var models = require('../../models');
 var _ = require('lodash');
 var security = require('../../core/utils/security');
@@ -42,7 +41,7 @@ proto.addApp = function (uid, appName, identical) {
         label_id: 0,
         deployment_key: deploymentKey
       });
-      return Q.allSettled([
+      return Promise.all([
         models.Collaborators.create({appid: appId, uid: uid, roles: "Owner"}, {transaction: t}),
         models.Deployments.bulkCreate(deployments, {transaction: t})
       ]);
@@ -52,7 +51,7 @@ proto.addApp = function (uid, appName, identical) {
 
 proto.deleteApp = function (appId) {
   return models.sequelize.transaction(function (t) {
-    return Q.allSettled([
+    return Promise.all([
       models.Apps.destroy({where: {id: appId}, transaction: t}),
       models.Collaborators.destroy({where: {appid: appId}, transaction: t}),
       models.Deployments.destroy({where: {appid: appId}, transaction: t})
@@ -72,7 +71,7 @@ proto.modifyApp = function (appId, params) {
 
 proto.transferApp = function (appId, fromUid, toUid) {
   return models.sequelize.transaction(function (t) {
-    return Q.allSettled([
+    return Promise.all([
       models.Apps.update({uid: toUid}, {where: {id: appId}, transaction: t}),
       models.Collaborators.destroy({where: {appid: appId, uid: fromUid}, transaction: t}),
       models.Collaborators.destroy({where: {appid: appId, uid: toUid}, transaction: t}),

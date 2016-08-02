@@ -1,6 +1,5 @@
 'use strict';
-var Q = require('q');
-var Promise = Q.Promise;
+var Promise = require('bluebird');
 var fs = require("fs");
 var fsextra = require("fs.extra");
 var unzip = require('node-unzip-2');
@@ -11,7 +10,7 @@ var common = {};
 module.exports = common;
 
 common.createFileFromRequest = function (url, filePath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     fs.exists(filePath, function (exists) {
       if (!exists) {
         var request = require('request');
@@ -39,7 +38,7 @@ common.createFileFromRequest = function (url, filePath) {
 }
 
 common.move = function (sourceDst, targertDst) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var ncp = require('ncp').ncp;
     ncp.limit = 16;
     ncp.clobber = true;
@@ -54,7 +53,7 @@ common.move = function (sourceDst, targertDst) {
 };
 
 common.deleteFolder = function (folderPath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     fsextra.rmrf(folderPath, function (err) {
       if (err) {
         reject(err);
@@ -70,7 +69,7 @@ common.deleteFolderSync = function (folderPath) {
 };
 
 common.createEmptyFolder = function (folderPath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     common.deleteFolder(folderPath).then(function (data) {
       fsextra.mkdirp(folderPath, function (err) {
         if (err) {
@@ -89,7 +88,7 @@ common.createEmptyFolderSync = function (folderPath) {
 };
 
 common.unzipFile = function (zipFile, outputPath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     try {
       fs.exists(zipFile, function(exists){
         if (!exists) {
@@ -114,7 +113,7 @@ common.uptoken = function (bucket, key) {
 }
 
 common.uploadFileToQiniu = function (key, filePath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     try {
       qiniu.conf.ACCESS_KEY = _.get(config, "accessKey");
       qiniu.conf.SECRET_KEY = _.get(config, "secretKey");

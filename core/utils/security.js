@@ -2,8 +2,7 @@
 var bcrypt = require('bcrypt');
 var crypto = require('crypto');
 var fs = require('fs');
-var Q = require('q');
-var Promise = Q.Promise;
+var Promise = require('bluebird');
 var qetag = require('../utils/qetag');
 var _ = require('lodash');
 
@@ -31,7 +30,7 @@ security.parseToken = function(token) {
 }
 
 security.fileSha256 = function (file) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var rs = fs.createReadStream(file);
     var hash = crypto.createHash('sha256');
     rs.on('data', hash.update.bind(hash));
@@ -59,13 +58,13 @@ security.packageHashSync = function (jsonData) {
 
 //参数为buffer或者readableStream或者文件路径
 security.qetag = function (buffer) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     qetag(buffer, resolve);
   });
 }
 
 security.qetagString = function (contents) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var Readable = require('stream').Readable
     var buffer = new Readable
     buffer.push(contents)
@@ -75,7 +74,7 @@ security.qetagString = function (contents) {
 }
 
 security.sha256AllFiles = function (files) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var results = {};
     var length = files.length;
     var count = 0;
@@ -93,7 +92,7 @@ security.sha256AllFiles = function (files) {
 }
 
 security.isAndroidPackage = function (directoryPath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
@@ -119,7 +118,7 @@ security.isAndroidPackage = function (directoryPath) {
 }
 
 security.calcAllFileSha256 = function (directoryPath) {
-  return Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject, notify) {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
