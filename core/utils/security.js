@@ -13,6 +13,13 @@ var randToken = require('rand-token').generator({
 var security = {};
 module.exports = security;
 
+security.md5 = function (str) {
+  var md5sum = crypto.createHash('md5');
+  md5sum.update(str);
+  str = md5sum.digest('hex');
+  return str;
+}
+
 security.passwordHashSync = function(password){
   return bcrypt.hashSync(password, bcrypt.genSaltSync(12));
 }

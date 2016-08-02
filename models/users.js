@@ -12,6 +12,7 @@ module.exports = function(sequelize, DataTypes) {
     password: DataTypes.STRING,
     email: DataTypes.STRING,
     identical: DataTypes.STRING,
+    ack_code: DataTypes.STRING,
     created_at: DataTypes.TIME,
     updated_at: DataTypes.TIME,
   }, {

@@ -5,6 +5,8 @@ var _ = require('lodash');
 var bcrypt = require('bcrypt');
 var security = require('../core/utils/security');
 var accountManager = require('../core/services/account-manager')();
+var middleware = require('../core/middleware');
+
 
 router.get('/login', function(req, res, next) {
   res.render('auth/login', { title: 'CodePushServer' });
@@ -20,17 +22,15 @@ router.post('/logout', function (req, res, next) {
 
 router.post('/login', function(req, res, next) {
   var account = _.trim(req.body.account);
-  var createdBy = _.trim(req.query.hostname);
   var password = _.trim(req.body.password);
+  var config = require('../core/config');
+  var loginSecret = _.get(config, 'common.loginSecret');
   accountManager.login(account, password)
   .then(function (users) {
-    if (_.isEmpty(createdBy)){
-      createdBy = users.username;
-    }
-    var newAccessKey = security.randToken(28).concat(users.identical);
-    return accountManager.createAccessKey(users.id, newAccessKey, createdBy, 'Login')
-  }).then(function (tokens) {
-    res.send({status:'OK',results: {tokens: tokens.tokens}});
+    var jwt = require('jsonwebtoken');
+    return jwt.sign({ uid: users.id, hash: security.md5(users.ack_code), expiredIn: 7200 }, loginSecret);
+  }).then(function (token) {
+    res.send({status:'OK', results: {tokens: token}});
   }).catch(function (e) {
     res.send({status:'ERROR', errorMessage: e.message});
   });
