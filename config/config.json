@@ -1,0 +1,59 @@
+{
+  "development": {
+    "db": {
+      "username": "root",
+      "password": null,
+      "database": "codepush",
+      "host": "127.0.0.1",
+      "dialect": "mysql"
+    },
+    "qiniu": {
+      "accessKey": "",
+      "secretKey": "",
+      "bucketName": "",
+      "downloadUrl": ""
+    },
+    "common": {
+      "diffNums": 3,
+      "dataDir": ""
+    }
+  },
+  "test": {
+    "db": {
+      "username": "root",
+      "password": null,
+      "database": "codepush",
+      "host": "127.0.0.1",
+      "dialect": "mysql"
+    },
+    "qiniu": {
+      "accessKey": "",
+      "secretKey": "",
+      "bucketName": "",
+      "downloadUrl": ""
+    },
+    "common": {
+      "diffNums": 3,
+      "dataDir": ""
+    }
+  },
+  "production": {
+    "db": {
+      "username": "root",
+      "password": null,
+      "database": "codepush",
+      "host": "127.0.0.1",
+      "dialect": "mysql"
+    },
+    "qiniu": {
+      "accessKey": "",
+      "secretKey": "",
+      "bucketName": "",
+      "downloadUrl": ""
+    },
+    "common": {
+      "diffNums": 3,
+      "dataDir": ""
+    }
+  }
+}
