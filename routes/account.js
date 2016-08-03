@@ -9,7 +9,8 @@ router.get('/', middleware.checkToken, function(req, res, next) {
   var userInfo = {
     email:req.users.email,
     id:req.users.identical,
-    name:req.users.username
+    linkedProviders: [],
+    name:req.users.username,
   };
   res.send({account:userInfo});
 });
