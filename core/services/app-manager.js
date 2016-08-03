@@ -22,7 +22,8 @@ proto.addApp = function (uid, appName, identical) {
       uid: uid
     },{
       transaction: t
-    }).then(function (apps) {
+    })
+    .then(function (apps) {
       var appId = apps.id;
       var deployments = [];
       var deploymentKey = security.randToken(28) + identical;
@@ -81,14 +82,17 @@ proto.transferApp = function (appId, fromUid, toUid) {
 };
 
 proto.listApps = function (uid) {
-  return models.Collaborators.findAll({where : {uid: uid}}).then(function(data){
+  return models.Collaborators.findAll({where : {uid: uid}})
+  .then(function(data){
     if (_.isEmpty(data)){
       throw new Error('You are not Collaborator in any apps.');
     }else {
       return [data, data.map(function(v){ return v.appid })];
     }
-  }).spread(function (collaboratorInfos, appids) {
-    return models.Apps.findAll({where: {id: {in: appids}}}).then(function(appInfos) {
+  })
+  .spread(function (collaboratorInfos, appids) {
+    return models.Apps.findAll({where: {id: {in: appids}}})
+    .then(function(appInfos) {
       if (_.isEmpty(appInfos)) {
         throw new Error('can\'t find apps info.');
       }else {
@@ -99,17 +103,20 @@ proto.listApps = function (uid) {
         return [collaboratorInfos, appInfos];
       }
     });
-  }).spread(function (collaboratorInfos, appInfos) {
+  })
+  .spread(function (collaboratorInfos, appInfos) {
     var ownerIds = _.map(appInfos, function (v) {
       return v.uid;
     });
-    return models.Users.findAll({where: {id: {in: ownerIds}}}).then(function (data) {
+    return models.Users.findAll({where: {id: {in: ownerIds}}})
+    .then(function (data) {
       var userInfos = _.reduce(data, function(result, value, key) {
         result[value.id] = value;
         return result;
       }, {});
       return userInfos;
-    }).then(function (userInfos) {
+    })
+    .then(function (userInfos) {
       var rs = _.map(appInfos, function(v, key){
         var collaborators = {};
         if (_.eq(v.uid, uid)) {

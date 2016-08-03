@@ -13,7 +13,8 @@ var proto = module.exports = function (){
 };
 
 proto.promote = function (sourceDeploymentId, destDeploymentId, promoteUid) {
-  return models.Deployments.findById(sourceDeploymentId).then(function (sourceDeployment) {
+  return models.Deployments.findById(sourceDeploymentId)
+  .then(function (sourceDeployment) {
     var lastDeploymentVersionId = _.get(sourceDeployment, 'last_deployment_version_id', 0);
     if (_.lte(lastDeploymentVersionId, 0)) {
       throw new Error('does not exist last_deployment_version_id.');
@@ -45,7 +46,8 @@ proto.promote = function (sourceDeploymentId, destDeploymentId, promoteUid) {
         });
       });
     });
-  }).spread(function (sourceDeployment, deploymentsVersions, packages) {
+  })
+  .spread(function (sourceDeployment, deploymentsVersions, packages) {
     var params = {
       releaseMethod: 'Promote',
       releaseUid: promoteUid,
@@ -61,7 +63,8 @@ proto.promote = function (sourceDeploymentId, destDeploymentId, promoteUid) {
 };
 
 proto.existDeloymentName = function (appId, name) {
-  return models.Deployments.findOne({where: {appid: appId, name: name}}).then(function (data) {
+  return models.Deployments.findOne({where: {appid: appId, name: name}})
+  .then(function (data) {
     if (!_.isEmpty(data)){
       throw new Error(name + " name does Exist!")
     } else {
@@ -72,7 +75,8 @@ proto.existDeloymentName = function (appId, name) {
 
 proto.addDeloyment = function (name, appId, uid) {
   var _this = this;
-  return models.Users.findById(uid).then(function (user) {
+  return models.Users.findById(uid)
+  .then(function (user) {
     if (_.isEmpty(user)) {
       throw new Error('can\'t find user');
     }
@@ -92,11 +96,13 @@ proto.addDeloyment = function (name, appId, uid) {
 };
 
 proto.renameDeloymentByName = function (deploymentName, appId, newName) {
-  return this.existDeloymentName(appId, newName).then(function () {
+  return this.existDeloymentName(appId, newName)
+  .then(function () {
     return models.Deployments.update(
       {name: newName},
       {where: {name: deploymentName,appid: appId}
-    }).then(function (deployment) {
+    })
+    .then(function (deployment) {
       if (_.gt(deployment[0], 0)) {
         return {name: newName};
       } else {
@@ -109,7 +115,8 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
 proto.deleteDeloymentByName = function (deploymentName, appId) {
   return models.Deployments.destroy({
     where: {name: deploymentName,appid: appId}
-  }).then(function (rowNum) {
+  })
+  .then(function (rowNum) {
     if (_.gt(rowNum, 0)) {
       return {name: deploymentName + ""};
     } else {
@@ -127,7 +134,8 @@ proto.findDeloymentByName = function (deploymentName, appId) {
 proto.findPackagesAndUserInfos = function (packageIds) {
   return models.Packages.findAll({
     where: {id: {in: packageIds}}
-  }).then(function (packageInfos) {
+  })
+  .then(function (packageInfos) {
     var uids =  _.reduce(packageInfos, function(result, value, key) {
       if (_.gt(value.released_by, 0)){
         result.push(value.released_by);
@@ -136,14 +144,16 @@ proto.findPackagesAndUserInfos = function (packageIds) {
     }, []);
     return models.PackagesDiff.findAll({
       where: {package_id: {in: packageIds}}
-    }).then(function (packagesDiffInfos) {
+    })
+    .then(function (packagesDiffInfos) {
       var tmpDiff = _.reduce(packagesDiffInfos, function(result, value, key) {
         result[value.package_id] = value;
         return result;
       }, {});
       return models.Users.findAll({
         where: {id: {in: uids}}
-      }).then(function (userInfos) {
+      })
+      .then(function (userInfos) {
         var tmp = _.reduce(userInfos, function(result, value, key) {
           result[value.id] = value;
           return result;
@@ -173,7 +183,8 @@ proto.findDeloymentsPackages = function (ids) {
       return result;
     }, []);
 
-    return _this.findPackagesAndUserInfos(currentPackageIds).then(function (data) {
+    return _this.findPackagesAndUserInfos(currentPackageIds)
+    .then(function (data) {
       return _.reduce(deploymentsVersionsInfo, function(result, value, key) {
         if (_.gt(value.id, 0)){
           _.set(result, value.id + ".deploymentsVersions", value);

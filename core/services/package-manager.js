@@ -45,7 +45,8 @@ proto.getDeploymentsVersions = function (deploymentId, appVersion) {
 };
 
 proto.existPackageHash = function (deploymentId, appVersion, packageHash) {
-  return this.getDeploymentsVersions(deploymentId, appVersion).then(function (data) {
+  return this.getDeploymentsVersions(deploymentId, appVersion)
+  .then(function (data) {
     if (_.isEmpty(data)){
       return models.DeploymentsVersions.create({
         deployment_id: deploymentId,
@@ -81,7 +82,8 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
   var description = params.description || "";
   var originalLabel = params.originalLabel || "";
   var originalDeployment = params.originalDeployment || "";
-  return models.Deployments.generateLabelId(deploymentId).then(function (labelId) {
+  return models.Deployments.generateLabelId(deploymentId)
+  .then(function (labelId) {
     return models.sequelize.transaction(function (t) {
       return models.Packages.create({
         deployment_id: deploymentId,
@@ -96,7 +98,8 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
         original_label: originalLabel,
         original_deployment: originalDeployment
       },{transaction: t
-      }).then(function (packages) {
+      })
+      .then(function (packages) {
         return models.DeploymentsVersions.findOne({where: {deployment_id: deploymentId, app_version: appVersion}})
         .then(function (deploymentsVersions) {
           if (_.isEmpty(deploymentsVersions)) {
@@ -112,11 +115,13 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
             deploymentsVersions.set('current_package_id', packages.id);
             return deploymentsVersions.save({transaction: t});
           }
-        }).then(function (deploymentsVersions) {
+        })
+        .then(function (deploymentsVersions) {
           return models.Deployments.update({
             last_deployment_version_id: deploymentsVersions.id
           },{where: {id: deploymentId}, transaction: t});
-        }).then(function () {
+        })
+        .then(function () {
           return packages;
         });
       });
@@ -158,8 +163,8 @@ proto.zipDiffPackage = function (fileName, files, baseDirectoryPath, hotCodePush
       resolve({ isTemporary: true, path: fileName });
     });
     for (var i = 0; i < files.length; ++i) {
-        var file = files[i];
-        zipFile.addFile(`${baseDirectoryPath}/${file}`, slash(file));
+      var file = files[i];
+      zipFile.addFile(`${baseDirectoryPath}/${file}`, slash(file));
     }
     zipFile.addFile(hotCodePushFile, 'hotcodepush.json');
     zipFile.end();
@@ -213,7 +218,8 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
 
 proto.createDiffPackages = function (packageId, num) {
   var self = this;
-  return models.Packages.findById(packageId).then(function (data) {
+  return models.Packages.findById(packageId)
+  .then(function (data) {
     if (_.isEmpty(data)) {
       throw Error('can\'t find Package');
     }
@@ -294,7 +300,8 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
               return Promise.all([
                 common.uploadFileToQiniu(manifestHash, manifestFile),
                 common.uploadFileToQiniu(blobHash, filePath)
-              ]).spread(function (up1, up2) {
+              ])
+              .spread(function (up1, up2) {
                 return [packageHash, manifestHash, blobHash];
               });
             });
@@ -302,7 +309,8 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
         });
       });
 
-    }).spread(function (packageHash, manifestHash, blobHash) {
+    })
+    .spread(function (packageHash, manifestHash, blobHash) {
       var stats = fs.statSync(filePath);
       var params = {
         releaseMethod: 'Upload',
@@ -312,7 +320,8 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
         description: description
       }
       return self.createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params);
-    }).finally(function () {
+    })
+    .finally(function () {
       common.deleteFolderSync(directoryPath);
     });
   });

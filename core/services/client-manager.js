@@ -28,17 +28,20 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
   if (_.isEmpty(deploymentKey) || _.isEmpty(appVersion)) {
     return Promise.reject(new Error("please input deploymentKey and appVersion"))
   }
-  return models.Deployments.findOne({where: {deployment_key: deploymentKey}}).then(function (data) {
+  return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
+  .then(function (data) {
     if (_.isEmpty(data)) {
       throw new Error('does not found deployment');
     }
     return models.DeploymentsVersions.findOne({where: {deployment_id:data.id, app_version: appVersion}});
-  }).then(function (deploymentsVersions) {
+  })
+  .then(function (deploymentsVersions) {
     var packageId = _.get(deploymentsVersions, 'current_package_id', 0);
     if (_.eq(packageId, 0) ) {
       return;
     }
-    return models.Packages.findById(packageId).then(function (packages) {
+    return models.Packages.findById(packageId)
+    .then(function (packages) {
       if (!_.isEmpty(packages) && !_.eq(_.get(packages, 'package_hash', ""), packageHash)) {
         return models.PackagesDiff.findOne({where: {package_id:packages.id, diff_against_package_hash: packageHash}}).then(function (diffPackage) {
           rs.downloadURL = _.get(config, 'downloadUrl') + '/' + _.get(packages,'blob_url');
@@ -60,7 +63,8 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
         return;
       }
     });
-  }).then(function () {
+  })
+  .then(function () {
     return rs;
   });
 };
@@ -69,12 +73,14 @@ proto.getPackagesInfo = function (deploymentKey, label) {
   if (_.isEmpty(deploymentKey) || _.isEmpty(label)) {
     return Promise.reject(new Error("please input deploymentKey and appVersion"))
   }
-  return models.Deployments.findOne({where: {deployment_key: deploymentKey}}).then(function (data) {
+  return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
+  .then(function (data) {
     if (_.isEmpty(data)) {
       throw new Error('does not found deployment');
     }
     return models.Packages.findOne({where: {deployment_id:data.id, label: label}});
-  }).then(function (packages) {
+  })
+  .then(function (packages) {
     if (_.isEmpty(packages)) {
       throw new Error('does not found packages');
     }
@@ -83,7 +89,8 @@ proto.getPackagesInfo = function (deploymentKey, label) {
 };
 
 proto.reportStatusDownload = function(deploymentKey, label, clientUniqueId) {
-  return this.getPackagesInfo(deploymentKey, label).then(function (packages) {
+  return this.getPackagesInfo(deploymentKey, label)
+  .then(function (packages) {
     return models.PackagesMetrics.addOneOnDownloadById(packages.id);
   });
 };
@@ -98,7 +105,8 @@ proto.reportStatusDownload = function(deploymentKey, label, clientUniqueId) {
 //   "previousDeploymentKey": "V7WEMbiAUsXSyxIiACvinfSnz3Lu4ksvOXqog"
 // }
 proto.reportStatusDeploy = function (deploymentKey, label, clientUniqueId, others) {
-  return this.getPackagesInfo(deploymentKey, label).then(function (packages) {
+  return this.getPackagesInfo(deploymentKey, label)
+  .then(function (packages) {
     var status =  _.get(others, "status");
     if (_.eq(status, "DeploymentSucceeded")) {
       return models.PackagesMetrics.addOneOnInstalledById(packages.id);
