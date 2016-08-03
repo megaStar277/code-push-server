@@ -13,10 +13,15 @@
       "bucketName": "",
       "downloadUrl": ""
     },
+    "local": {
+      "storageDir": "",
+      "downloadUrl": "http://localhost:3000"
+    },
     "common": {
       "loginSecret": "CodePushServer",
       "diffNums": 3,
-      "dataDir": ""
+      "dataDir": "",
+      "storageType": "qiniu"
     }
   },
   "production": {
@@ -33,10 +38,15 @@
       "bucketName": "",
       "downloadUrl": ""
     },
+    "local": {
+      "storageDir": "",
+      "downloadUrl": "http://localhost:3000"
+    },
     "common": {
       "loginSecret": "CodePushServer",
       "diffNums": 3,
-      "dataDir": ""
+      "dataDir": "",
+      "storageType": "qiniu"
     }
   }
 }

@@ -200,7 +200,7 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
       .then(function (data) {
         return security.qetag(data.path)
         .then(function (diffHash) {
-          return common.uploadFileToQiniu(diffHash, fileName)
+          return common.uploadFileToStorage(diffHash, fileName)
           .then(function () {
               var stats = fs.statSync(fileName);
               return models.PackagesDiff.create({
@@ -296,10 +296,11 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
             }
           })
           .then(function () {
-            return security.qetag(manifestFile).then(function (manifestHash) {
+            return security.qetag(manifestFile)
+            .then(function (manifestHash) {
               return Promise.all([
-                common.uploadFileToQiniu(manifestHash, manifestFile),
-                common.uploadFileToQiniu(blobHash, filePath)
+                common.uploadFileToStorage(manifestHash, manifestFile),
+                common.uploadFileToStorage(blobHash, filePath)
               ])
               .spread(function (up1, up2) {
                 return [packageHash, manifestHash, blobHash];

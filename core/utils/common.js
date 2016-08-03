@@ -3,9 +3,9 @@ var Promise = require('bluebird');
 var fs = require("fs");
 var fsextra = require("fs.extra");
 var unzip = require('node-unzip-2');
-var qiniu = require("qiniu");
+var config    = require('../config');
 var _ = require('lodash');
-var config    = _.get(require('../config'), 'qiniu', {});
+var qiniu = require("qiniu");
 var common = {};
 module.exports = common;
 
@@ -110,35 +110,55 @@ common.unzipFile = function (zipFile, outputPath) {
 common.uptoken = function (bucket, key) {
   var putPolicy = new qiniu.rs.PutPolicy(bucket+":"+key);
   return putPolicy.token();
+};
+
+common.uploadFileToStorage = function (key, filePath) {
+  if (_.get(config, 'common.storageType') == 'local') {
+    return common.uploadFileToLocal(key, filePath);
+  }
+  return common.uploadFileToQiniu(key, filePath);
+};
+
+common.uploadFileToLocal = function (key, filePath) {
+  return new Promise(function (resolve, reject, notify) {
+    resolve(filePath);
+  });
+};
+
+common.getDownloadUrl = function () {
+  if (_.get(config, 'common.storageType') == 'local') {
+    return _.get(config, 'local.downloadUrl');
+  }
+  return _.get(config, 'qiniu.downloadUrl');
 }
 
 common.uploadFileToQiniu = function (key, filePath) {
   return new Promise(function (resolve, reject, notify) {
-    try {
-      qiniu.conf.ACCESS_KEY = _.get(config, "accessKey");
-      qiniu.conf.SECRET_KEY = _.get(config, "secretKey");
-      var bucket = _.get(config, "bucketName", "jukang");
-      var client = new qiniu.rs.Client();
-      client.stat(bucket, key, function(err, ret) {
-        if (!err) {
-          resolve(ret.hash);
-        } else {
+    qiniu.conf.ACCESS_KEY = _.get(config, "qiniu.accessKey");
+    qiniu.conf.SECRET_KEY = _.get(config, "qiniu.secretKey");
+    var bucket = _.get(config, "qiniu.bucketName", "jukang");
+    var client = new qiniu.rs.Client();
+    client.stat(bucket, key, function(err, ret) {
+      if (!err) {
+        resolve(ret.hash);
+      } else {
+        try {
           var uptoken = common.uptoken(bucket, key);
-          var extra = new qiniu.io.PutExtra();
-          qiniu.io.putFile(uptoken, key, filePath, extra, function(err, ret) {
-            if(!err) {
-              // 上传成功， 处理返回值
-              resolve(ret.hash);
-            } else {
-              // 上传失败， 处理返回代码
-              reject({message: JSON.stringify(err)});
-            }
-          });
+        } catch (e) {
+          reject({message: e.message});
         }
-      });
-    } catch(e) {
-      reject(e)
-    }
+        var extra = new qiniu.io.PutExtra();
+        qiniu.io.putFile(uptoken, key, filePath, extra, function(err, ret) {
+          if(!err) {
+            // 上传成功， 处理返回值
+            resolve(ret.hash);
+          } else {
+            // 上传失败， 处理返回代码
+            reject({message: JSON.stringify(err)});
+          }
+        });
+      }
+    });
   });
 };
 

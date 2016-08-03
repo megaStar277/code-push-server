@@ -2,7 +2,7 @@
 var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
-var config  = _.get(require('../config'), 'qiniu', {});
+var common = require('../utils/common');
 
 var proto = module.exports = function (){
   function ClientManager() {
@@ -42,9 +42,10 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     }
     return models.Packages.findById(packageId)
     .then(function (packages) {
+      var downloadURL = common.getDownloadUrl();
       if (!_.isEmpty(packages) && !_.eq(_.get(packages, 'package_hash', ""), packageHash)) {
         return models.PackagesDiff.findOne({where: {package_id:packages.id, diff_against_package_hash: packageHash}}).then(function (diffPackage) {
-          rs.downloadURL = _.get(config, 'downloadUrl') + '/' + _.get(packages,'blob_url');
+          rs.downloadURL = `${downloadURL}/${_.get(packages, 'blob_url')}`;
           rs.description = _.get(packages, 'description', '');
           rs.isAvailable = true;
           rs.isMandatory = _.eq(deploymentsVersions.is_mandatory, 1) ? true : false;
@@ -54,7 +55,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
           rs.packageSize = _.get(packages, 'size', 0);
           rs.shouldRunBinaryVersion = false;
           if (!_.isEmpty(diffPackage)) {
-            rs.downloadURL = _.get(config, 'downloadUrl') + '/' + _.get(diffPackage, 'diff_blob_url');
+            rs.downloadURL = `${downloadURL}/${_.get(diffPackage, 'diff_blob_url')}`;
             rs.packageSize = _.get(diffPackage, 'diff_size', 0);
           }
           return;
