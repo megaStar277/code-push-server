@@ -7,7 +7,8 @@ CodePushServer is a CodePush progam server! microsoft CodePush cloud is slow in 
 ```shell
 $ cd /path/to/code-push-server
 $ mysql -uroot -e"create database codepush default charset utf8;"
-$ mysql -uroot codepush < ./codepush.sql
+$ mysql -uroot codepush < ./sql/codepush.sql
+$ mysql -uroot codepush < ./sql/codepush-v0.1.1.sql
 $ npm install
 ```
 
