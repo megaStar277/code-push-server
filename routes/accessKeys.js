@@ -29,15 +29,17 @@ router.post('/', middleware.checkToken, function(req, res, next) {
   accountManager.isExsitAccessKeyName(uid, friendlyName)
   .then(function (data) {
     if (!_.isEmpty(data)) {
-      throw Error(`The access key ${friendlyName}  already exists.`);
+      throw Error(`The access key "${friendlyName}"  already exists.`);
     }
     return accountManager.createAccessKey(uid, newAccessKey, isSession, ttl, friendlyName, createdBy, description);
   })
   .then(function(newToken){
+    var moment = require("moment");
     var info = {
       name : newToken.tokens,
-      createdTime : newToken.created_at,
+      createdTime : parseInt(moment(newToken.created_at).format('x')),
       createdBy : newToken.created_by,
+      expires : parseInt(moment(newToken.expires_at).format('x')),
       description : newToken.description,
       friendlyName: newToken.name,
     };
@@ -54,6 +56,53 @@ router.delete('/:name', middleware.checkToken, function(req, res, next){
   models.UserTokens.destroy({where: {name:name, uid: uid}})
   .then(function(rowNum){
     res.send("");
+  })
+  .catch(function (e) {
+    res.status(406).send(e.message);
+  });
+});
+
+router.patch('/:name', middleware.checkToken, function(req, res, next){
+  var name = _.trim(decodeURI(req.params.name));
+  var friendlyName = _.trim(req.body.friendlyName);
+  var ttl = _.trim(req.body.ttl);
+  var uid = req.users.id;
+
+  models.UserTokens.findOne({where: {name:name, uid: uid}})
+  .then(function(token){
+    if (_.isEmpty(token)) {
+      throw new Error(`The access key "${name}" does not exist.`);
+    }
+    return accountManager.isExsitAccessKeyName(uid, friendlyName)
+    .then(function (data) {
+      if (!_.isEmpty(data)) {
+        throw Error(`The access key "${friendlyName}"  already exists.`);
+      }
+    })
+    .then(function () {
+      var moment = require('moment');
+      if (ttl > 0) {
+        var newExp = moment(token.get('expires_at'))
+          .utc().add(ttl/1000, 'seconds').format('YYYY-MM-DD hh:mm:ss')
+        token.set('expires_at', newExp)
+      }
+      if (friendlyName.length > 0) {
+        token.set('name', friendlyName);
+      }
+      return token.save();
+    });
+  })
+  .then(function (token) {
+    var info = {
+      name : token.tokens,
+      createdTime : token.created_at,
+      createdBy : token.created_by,
+      description : token.description,
+      expires : token.expires_at,
+      friendlyName: token.name,
+      id: token.id + ""
+    };
+    res.send({accessKey: info});
   })
   .catch(function (e) {
     res.status(406).send(e.message);
