@@ -6,7 +6,11 @@ var security = require('../core/utils/security');
 var middleware = require('../core/middleware');
 
 router.get('/', middleware.checkToken, function(req, res, next) {
-  var userInfo = {email:req.users.email, id:req.users.identical, name:req.users.username};
+  var userInfo = {
+    email:req.users.email,
+    id:req.users.identical,
+    name:req.users.username
+  };
   res.send({account:userInfo});
 });
 

@@ -18,7 +18,8 @@ router.get('/',
   appManager.listApps(uid)
   .then(function (data) {
     res.send({apps: data});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -31,9 +32,11 @@ router.get('/:appName/deployments',
   accountManager.collaboratorCan(uid, appName)
   .then(function (col) {
     return deployments.listDeloyments(col.appid);
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send({deployments: data});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -46,10 +49,12 @@ router.post('/:appName/deployments',
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName).then(function (col) {
     return deployments.addDeloyment(name, col.appid, uid);
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.location('/apps/' + data.appid + '/deployments/' + data.id);
     res.send({deployment: {name: data.name, id: data.id + ""}});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -73,9 +78,11 @@ router.patch('/:appName/deployments/:deploymentName',
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName).then(function (col) {
     return deployments.renameDeloymentByName(deploymentName, col.appid, name);
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send({deployment: data});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -88,9 +95,11 @@ router.delete('/:appName/deployments/:deploymentName',
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName).then(function (col) {
     return deployments.deleteDeloymentByName(deploymentName, col.appid);
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send({deployment: data});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -132,9 +141,11 @@ router.post('/:appName/deployments/:deploymentName/release',
         return null;
       });
     });
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send("");
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -152,7 +163,8 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
     return Q.allSettled([
       deployments.findDeloymentByName(sourceDeploymentName, appId),
       deployments.findDeloymentByName(destDeploymentName, appId)
-    ]).spread(function (sourceDeploymentInfo, destDeploymentInfo) {
+    ])
+    .spread(function (sourceDeploymentInfo, destDeploymentInfo) {
       if (_.isEmpty(sourceDeploymentInfo.value)) {
         throw new Error(sourceDeploymentName + " does not exist.");
       }
@@ -160,19 +172,23 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
         throw new Error(destDeploymentName + " does not exist.");
       }
       return [sourceDeploymentInfo.value.id, destDeploymentInfo.value.id];
-    }).spread(function (sourceDeploymentId, destDeploymentId) {
+    })
+    .spread(function (sourceDeploymentId, destDeploymentId) {
       return deployments.promote(sourceDeploymentId, destDeploymentId, uid);
     });
-  }).then(function (packages) {
+  })
+  .then(function (packages) {
     if (!_.isEmpty(packages)) {
       setTimeout(function () {
         packageManager.createDiffPackages(packages.id, _.get(config, 'diffNums', 1));
       }, 2000)
     }
     return null;
-  }).then(function () {
+  })
+  .then(function () {
      res.send('ok');
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -194,7 +210,8 @@ router.get('/:appName/collaborators',
   var collaborators = new Collaborators();
   accountManager.collaboratorCan(uid, appName).then(function (col) {
     return collaborators.listCollaborators(col.appid);
-  }).then(function (data) {
+  })
+  .then(function (data) {
     rs = _.reduce(data, function (result, value, key) {
       if (_.eq(key, req.users.email)) {
         value.isCurrentAccount = true;
@@ -205,7 +222,8 @@ router.get('/:appName/collaborators',
       return result;
     },{});
     res.send({collaborators: rs});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -223,9 +241,11 @@ router.post('/:appName/collaborators/:email',
     return accountManager.findUserByEmail(email).then(function (data) {
       return collaborators.addCollaborator(col.appid, data.id);
     });
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send(data);
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -247,9 +267,11 @@ router.delete('/:appName/collaborators/:email',
         return collaborators.deleteCollaborator(col.appid, data.id);
       }
     });
-  }).then(function () {
+  })
+  .then(function () {
     res.send("");
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -261,9 +283,11 @@ router.delete('/:appName',
   var appManager = new AppManager();
   accountManager.ownerCan(uid, appName).then(function (col) {
     return appManager.deleteApp(col.appid);
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send(data);
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -286,9 +310,11 @@ router.patch('/:appName',
         }
         return appManager.modifyApp(col.appid, {name: newAppName});
       });
-    }).then(function () {
+    })
+    .then(function () {
       res.send("");
-    }).catch(function (e) {
+    })
+    .catch(function (e) {
       res.status(406).send(e.message);
     });
   }
@@ -312,9 +338,11 @@ router.post('/:appName/transfer/:email',
       var appManager = new AppManager();
       return appManager.transferApp(col.appid, uid, data.id);
     });
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send(data);
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -341,9 +369,11 @@ router.post('/', middleware.checkToken, function (req, res, next) {
       collaborators[req.users.email + ""] = {permission: "Owner"};
       return {name: appName, collaborators: collaborators};
     });
-  }).then(function (data) {
+  })
+  .then(function (data) {
     res.send({app: data});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });

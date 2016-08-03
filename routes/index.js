@@ -3,7 +3,6 @@ var router = express.Router();
 var middleware = require('../core/middleware');
 var ClientManager = require('../core/services/client-manager');
 var _ = require('lodash');
-var security = require('../core/utils/security');
 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'CodePushServer' });
@@ -22,7 +21,8 @@ router.get('/updateCheck', function(req, res, next){
   clientManager.updateCheck(deploymentKey, appVersion, label, packageHash)
   .then(function (rs) {
     res.send({"updateInfo":rs});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(404).send(e.message);
   });
 });

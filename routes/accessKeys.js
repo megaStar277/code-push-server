@@ -11,7 +11,8 @@ router.get('/', middleware.checkToken, function(req, res, next) {
   accountManager.getAllAccessKeyByUid(uid)
   .then(function(accessKeys){
     res.send({accessKeys:accessKeys});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -25,7 +26,8 @@ router.post('/', middleware.checkToken, function(req, res, next) {
   var ttl = parseInt(req.body.ttl);
   var description = _.trim(req.body.description);
   var newAccessKey = security.randToken(28).concat(identical);
-  accountManager.isExsitAccessKeyName(uid, friendlyName).then(function (data) {
+  accountManager.isExsitAccessKeyName(uid, friendlyName)
+  .then(function (data) {
     if (!_.isEmpty(data)) {
       throw Error(`The access key ${friendlyName}  already exists.`);
     }
@@ -40,7 +42,8 @@ router.post('/', middleware.checkToken, function(req, res, next) {
       friendlyName: newToken.name,
     };
     res.send({accessKey:info});
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
@@ -51,7 +54,8 @@ router.delete('/:name', middleware.checkToken, function(req, res, next){
   models.UserTokens.destroy({where: {name:name, uid: uid}})
   .then(function(rowNum){
     res.send("");
-  }).catch(function (e) {
+  })
+  .catch(function (e) {
     res.status(406).send(e.message);
   });
 });
