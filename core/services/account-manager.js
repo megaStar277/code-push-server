@@ -4,6 +4,7 @@ var models = require('../../models');
 var _ = require('lodash');
 var validator = require('validator');
 var security = require('../utils/security');
+var moment = require('moment');
 
 var proto = module.exports = function (){
   function AccountManager() {
@@ -50,24 +51,38 @@ proto.findUserByEmail = function (email) {
 
 proto.getAllAccessKeyByUid = function (uid) {
   return models.UserTokens.findAll({where: {uid: uid}})
-  .then(function (token) {
-    return _.map(token, function(v){
+  .then(function (tokens) {
+    return _.map(tokens, function(v){
       return {
-        name: v.tokens,
-        createdTime: v.created_at,
+        id: v.id + "",
+        name: '(hidden)',
+        createdTime: parseInt(moment(v.created_at).format('x')),
         createdBy: v.created_by,
+        expires: parseInt(moment(v.expires_at).format('x')),
+        friendlyName: v.name,
+        isSession: v.is_session == 0 ? false : true,
         description: v.description,
       };
     });
   });
 };
 
-proto.createAccessKey = function (uid, newAccessKey,  createdBy, description) {
+proto.isExsitAccessKeyName = function (uid, friendlyName) {
+  return models.UserTokens.findOne({
+    where: {uid: uid, name: friendlyName}
+  });
+};
+
+proto.createAccessKey = function (uid, newAccessKey, isSession, ttl, friendlyName, createdBy, description) {
   return models.UserTokens.create({
     uid: uid,
+    name: friendlyName,
     tokens: newAccessKey,
     description: description,
-    created_by: createdBy
+    is_session: isSession ? true : false,
+    created_by: createdBy,
+    expires_at: moment().utc().add(ttl/1000, 'seconds').format('YYYY-MM-DD hh:mm:ss'),
+    created_at: moment().utc().format('YYYY-MM-DD hh:mm:ss'),
   });
 };
 

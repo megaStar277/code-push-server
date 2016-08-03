@@ -9,10 +9,12 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     uid: DataTypes.BIGINT(20),
+    name: DataTypes.STRING,
     tokens: DataTypes.STRING,
     description: DataTypes.STRING,
-    created_by:DataTypes.STRING,
-    created_at:DataTypes.TIME,
+    is_session: DataTypes.INTEGER(3),
+    created_by: DataTypes.STRING,
+    created_at: DataTypes.TIME,
     expires_at : DataTypes.TIME
   }, {
     updatedAt: false,

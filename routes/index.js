@@ -9,6 +9,10 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'CodePushServer' });
 });
 
+router.get('/tokens', function(req, res, next) {
+  res.render('tokens', { title: '获取token' });
+});
+
 router.get('/updateCheck', function(req, res, next){
   var deploymentKey = _.get(req, "query.deploymentKey");
   var appVersion = _.get(req, "query.appVersion");

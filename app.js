@@ -9,6 +9,7 @@ var helmet = require('helmet');
 var routes = require('./routes/index');
 var auth = require('./routes/auth');
 var accessKeys = require('./routes/accessKeys');
+var sessions = require('./routes/sessions');
 var account = require('./routes/account');
 var apps = require('./routes/apps');
 var app = express();
@@ -35,6 +36,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/auth', auth);
 app.use('/accessKeys', accessKeys);
+app.use('/sessions', sessions);
 app.use('/account', account);
 app.use('/apps', apps);
 

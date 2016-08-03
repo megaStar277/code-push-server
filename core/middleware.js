@@ -3,6 +3,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var security = require('../core/utils/security');
 var models = require('../models');
+var moment = require('moment');
 
 var middleware = module.exports
 
@@ -15,7 +16,7 @@ var checkAuthToken = function (authToken) {
       throw new Error('401 Unauthorized');
     }
     return models.UserTokens.findOne({
-      where: {tokens: authToken, uid: users.id}
+      where: {tokens: authToken, uid: users.id, expires_at: { gt: moment().utc().format('YYYY-MM-DD hh:mm:ss') }}
     })
     .then(function(tokenInfo){
       if (_.isEmpty(tokenInfo)){
@@ -78,6 +79,6 @@ middleware.checkToken = function(req, res, next) {
       res.status(401).send(e.message);
     });
   } else {
-    res.status(401).send(e.message);
+    res.status(401).send('401 Unauthorized');
   }
 };
