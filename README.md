@@ -1,6 +1,6 @@
 # CodePushServer
 
-CodePushServer is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because of it simple and quick! Just thanks microsoft
+CodePushServer is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because of it simple and quick! Or you can use local storage, just modify config.json file, it's simple configure.
 
 ## INSTALL
 
@@ -17,6 +17,8 @@ $ npm install
 $ vim config/config.json
 ```
 
+## Storage mode [local/qiniu]
+
 ## RUN
 
 ```shell
@@ -27,6 +29,13 @@ or point config file and ENV
 
 ```shell
 $ CONFIG_FILE=/path/to/config.json NODE_ENV=production node ./bin/www
+```
+
+## Default listen Host/Port  127.0.0.1/3000 
+you can change like this.
+
+```shell
+$ PORT=3000 HOST=127.0.0.1 NODE_ENV=production node ./bin/www
 ```
 
 ## code-push-cli 
