@@ -14,8 +14,8 @@
       "downloadUrl": ""
     },
     "local": {
-      "storageDir": "",
-      "downloadUrl": "http://localhost:3000"
+      "storageDir": "/Users/tablee/workspaces/storage",
+      "downloadUrl": "http://localhost:3000/download"
     },
     "common": {
       "loginSecret": "CodePushServer",
@@ -39,8 +39,8 @@
       "downloadUrl": ""
     },
     "local": {
-      "storageDir": "",
-      "downloadUrl": "http://localhost:3000"
+      "storageDir": "/Users/tablee/workspaces/storage",
+      "downloadUrl": "http://localhost:3000/download"
     },
     "common": {
       "loginSecret": "CodePushServer",

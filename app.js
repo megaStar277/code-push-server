@@ -5,6 +5,9 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var helmet = require('helmet');
+var config = require('./core/config');
+var _ = require('lodash');
+var fs = require('fs');
 
 var routes = require('./routes/index');
 var auth = require('./routes/auth');
@@ -32,6 +35,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+if (_.get(config, 'common.storageType') == 'local'
+  && _.get(config, 'local.storageDir')
+  && fs.existsSync(_.get(config, 'local.storageDir'))
+  ) {
+  app.use('/download', express.static(_.get(config, 'local.storageDir')));
+}
 
 app.use('/', routes);
 app.use('/auth', auth);
