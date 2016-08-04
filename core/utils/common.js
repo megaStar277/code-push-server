@@ -10,13 +10,14 @@ var common = {};
 module.exports = common;
 
 common.createFileFromRequest = function (url, filePath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     fs.exists(filePath, function (exists) {
       if (!exists) {
         var request = require('request');
         request(url).on('error', function (error) {
           reject(error);
-        }).on('response', function (response) {
+        })
+        .on('response', function (response) {
           if (response.statusCode == 200) {
             let stream = fs.createWriteStream(filePath);
             response.pipe(stream);
@@ -120,8 +121,33 @@ common.uploadFileToStorage = function (key, filePath) {
 };
 
 common.uploadFileToLocal = function (key, filePath) {
-  return new Promise(function (resolve, reject, notify) {
-    resolve(filePath);
+  return new Promise(function (resolve, reject) {
+    var storageDir = _.get(config, 'local.storageDir');
+    if (!storageDir) {
+      throw new Error('please set config local storageDir');
+    }
+    if (!fs.existsSync(storageDir)) {
+      throw new Error(`please create dir ${storageDir}`);
+    }
+    fs.accessSync(storageDir, fs.W_OK);
+    var stats = fs.statSync(storageDir);
+    if (!stats.isDirectory()) {
+      throw new Error(`${storageDir} must be directory`);
+    }
+    fs.accessSync(filePath, fs.R_OK);
+    stats = fs.statSync(filePath);
+    if (!stats.isFile()) {
+      throw new Error(`${filePath} must be file`);
+    }
+    var ncp = require('ncp').ncp;
+    ncp.limit = 16;
+    ncp.clobber = true;
+    ncp(filePath, `${storageDir}/${key}`, function (err) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(key);
+    });
   });
 };
 
@@ -133,7 +159,7 @@ common.getDownloadUrl = function () {
 }
 
 common.uploadFileToQiniu = function (key, filePath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     qiniu.conf.ACCESS_KEY = _.get(config, "qiniu.accessKey");
     qiniu.conf.SECRET_KEY = _.get(config, "qiniu.secretKey");
     var bucket = _.get(config, "qiniu.bucketName", "jukang");

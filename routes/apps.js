@@ -135,7 +135,7 @@ router.post('/:appName/deployments/:deploymentName/release',
       .then(function (packages) {
         if (!_.isEmpty(packages)) {
           setTimeout(function () {
-            packageManager.createDiffPackages(packages.id, _.get(config, 'diffNums', 1));
+            packageManager.createDiffPackages(packages.id, _.get(config, 'diffNums', 1))
           }, 2000)
         }
         return null;
