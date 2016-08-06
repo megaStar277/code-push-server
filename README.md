@@ -100,4 +100,7 @@ $ vim /path/to/production/process.yml #configure your env.
 $ pm2 start /path/to/production/process.yml
 ```
 
+## License
+MIT License [read](./LICENSE)
+
 
