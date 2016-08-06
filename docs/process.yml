@@ -1,0 +1,8 @@
+apps:
+  - script : /path/to/code-push-server/bin/www
+    name   : code-push-server
+    watch  : false
+    env    :
+      NODE_ENV: production
+      PORT: 3001
+      CONFIG_FILE: /path/to/production/config.json

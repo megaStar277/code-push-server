@@ -88,3 +88,16 @@ protected List<ReactPackage> getPackages() {
 [react-native-code-push source](https://github.com/Microsoft/react-native-code-push)
 
 
+## Production Manage
+use [pm2](http://pm2.keymetrics.io/) to manage process.
+
+```shell
+$ npm install pm2 -g
+$ cp docs/process.yml /path/to/production/process.yml
+$ vim /path/to/production/process.yml #configure your env.
+$ cp config/config.json /path/to/production/config.json
+$ vim /path/to/production/config.json #configure your env.
+$ pm2 start /path/to/production/process.yml
+```
+
+
