@@ -102,10 +102,10 @@ proto.login = function (account, password) {
   return models.Users.findOne({where: where})
   .then(function(users) {
     if (_.isEmpty(users)) {
-      throw new Error("Account or Password ERROR.");
+      throw new Error("account or password error.");
     } else {
       if (!security.passwordVerifySync(password, users.password)) {
-        throw new Error("Account or Password ERROR.");
+        throw new Error("account or password error.");
       }else {
         return users;
       }

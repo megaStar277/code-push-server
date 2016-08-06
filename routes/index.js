@@ -1,11 +1,29 @@
 var express = require('express');
 var router = express.Router();
+var Promise = require('bluebird');
 var middleware = require('../core/middleware');
 var ClientManager = require('../core/services/client-manager');
 var _ = require('lodash');
 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'CodePushServer' });
+});
+
+router.get('/README.md', function(req, res, next) {
+  var MarkdownIt = require('markdown-it');
+  const path = require('path');
+  const fs = require('fs');
+  const readFile = Promise.promisify(fs.readFile);
+  const README = path.join(__dirname, '../README.md');
+  readFile(README, { encoding: 'utf8' })
+  .then(source=>{
+    var md = new MarkdownIt();
+    res.send(md.render(source));
+  })
+  .catch(e=>{
+    res.send(e.message);
+  });
+
 });
 
 router.get('/tokens', function(req, res, next) {

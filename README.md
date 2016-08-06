@@ -1,6 +1,6 @@
-# CodePushServer
+# CodePush Server [source](https://github.com/lisong/code-push-server)
 
-CodePushServer is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because of it simple and quick! Or you can use local storage, just modify config.json file, it's simple configure.
+CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because of it simple and quick! Or you can use local storage, just modify config.json file, it's simple configure.
 
 ## INSTALL
 
@@ -101,6 +101,6 @@ $ pm2 start /path/to/production/process.yml
 ```
 
 ## License
-MIT License [read](./LICENSE)
+MIT License [read](https://github.com/lisong/code-push-server/blob/master/LICENSE)
 
 

@@ -28,6 +28,7 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^7.1.7",
     "lodash": "^4.5.1",
+    "markdown-it": "^7.0.0",
     "moment": "^2.14.1",
     "morgan": "~1.6.1",
     "mysql": "^2.10.2",
