@@ -55,7 +55,35 @@ npm i react-native-code-push@lastest -g
 ```
 
 ## config react-native project
-Follow the react-native-code-push docs, addition iOS add a new entry named CodePushServerURL, whose value is the key of ourself CodePushServer URL. Andriod change com.microsoft.codepush.react.CodePush serverUrl to ourself.
+Follow the react-native-code-push docs, addition iOS add a new entry named CodePushServerURL, whose value is the key of ourself CodePushServer URL. Andriod use the new CodePush constructor in MainApplication point CodePushServerUrl
+
+iOS eg. in file Info.plist
+
+```xml
+...
+<key>CodePushDeploymentKey</key>
+<string>YourCodePushKey</string>
+<key>CodePushServerURL</key>
+<string>YourCodePushServerUrl</string>
+...
+```
+
+Android eg. in file MainApplication.java
+
+```java
+@Override
+protected List<ReactPackage> getPackages() {
+  return Arrays.<ReactPackage>asList(
+      new MainReactPackage(),
+      new CodePush(
+         "YourKey",
+         MainApplication.this,
+         BuildConfig.DEBUG,
+         "YourCodePushServerUrl" 
+      )
+  );
+}
+```
 
 [react-native-code-push source](https://github.com/Microsoft/react-native-code-push)
 
