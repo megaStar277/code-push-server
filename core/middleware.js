@@ -56,9 +56,22 @@ var checkAccessToken = function (accessToken) {
 }
 
 middleware.checkToken = function(req, res, next) {
-  var authToken = _.trim(_.trimStart(req.get('Authorization'), "Bearer"));
-  var authStr = _.trim(_.trimStart(_.get(req, 'query.access_token', null)));
-  if (!_.isEmpty(authToken) && authToken.length == 37) {
+  var authArr = _.split(req.get('Authorization'), ' ');
+  var authType = 1;
+  var authToken = null;
+  if (_.eq(authArr[0], 'Bearer')) {
+    authType = 1;
+    authToken = authArr[1]; //Bearer
+  } else if(_.eq(authArr[0], 'Basic')) {
+    authType = 2;
+    var b = new Buffer(authArr[1], 'base64');
+    var user = _.split(b.toString(), ':');
+    authToken = _.get(user, '1');
+  } else {
+    authType = 2;
+    authToken = _.trim(_.trimStart(_.get(req, 'query.access_token', null)));
+  }
+  if (authType == 1) {
     checkAuthToken(authToken)
     .then(function(users) {
       req.users = users;
@@ -68,8 +81,8 @@ middleware.checkToken = function(req, res, next) {
     .catch(function (e) {
       res.status(401).send(e.message);
     });
-  } else if (!_.isEmpty(authStr)) {
-    checkAccessToken(authStr)
+  } else if (authType == 2) {
+    checkAccessToken(authToken)
     .then(function(users) {
       req.users = users;
       next();

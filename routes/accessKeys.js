@@ -55,7 +55,7 @@ router.delete('/:name', middleware.checkToken, function(req, res, next){
   var uid = req.users.id;
   models.UserTokens.destroy({where: {name:name, uid: uid}})
   .then(function(rowNum){
-    res.send("");
+    res.send({friendlyName:name});
   })
   .catch(function (e) {
     res.status(406).send(e.message);
@@ -94,7 +94,8 @@ router.patch('/:name', middleware.checkToken, function(req, res, next){
   })
   .then(function (token) {
     var info = {
-      name : token.tokens,
+      name : '(hidden)',
+      isSession: token.is_session == 1 ? true :false,
       createdTime : token.created_at,
       createdBy : token.created_by,
       description : token.description,
