@@ -1,4 +1,5 @@
 'use strict';
+var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
 var security = require('../../core/utils/security');
@@ -94,7 +95,7 @@ proto.listApps = function (uid) {
     return models.Apps.findAll({where: {id: {in: appids}}})
     .then(function(appInfos) {
       if (_.isEmpty(appInfos)) {
-        throw new Error('can\'t find apps info.');
+        throw new Error(`can't find apps info.`);
       }else {
         var appInfos = _.reduce(appInfos, function(result, value, key) {
           result[value.id] = value;
@@ -117,18 +118,25 @@ proto.listApps = function (uid) {
       return userInfos;
     })
     .then(function (userInfos) {
-      var rs = _.map(appInfos, function(v, key){
-        var collaborators = {};
-        if (_.eq(v.uid, uid)) {
-           var bo = {permission: 'Owner', isCurrentAccount: true};
-        } else {
-           var bo = {permission: 'Owner', isCurrentAccount: false};
-        }
+      var rs = Promise.map(_.values(appInfos), function(v){
+        var appId = v.get('id');
         var email = userInfos[v.uid] ? userInfos[v.uid].email : req.users.email;
-        collaborators[email + ""] = bo;
-        return {collaborators: collaborators, name: v.name};
+        var isCurrentAccount = false;
+        if (_.eq(v.uid, uid)) {
+          isCurrentAccount = true;
+        }
+        return models.Deployments.findAll({where: {appid: appId}})
+        .then(function (deploymentInfos) {
+          return {
+            collaborators: {[email]: {permission: 'Owner', isCurrentAccount: isCurrentAccount}},
+            deployments: _.map(deploymentInfos, function (item) {
+              return _.get(item, 'name');
+            }),
+            name: v.name
+          };
+        });
       });
       return rs;
-    });
+    })
   });
 };
