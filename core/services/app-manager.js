@@ -83,60 +83,52 @@ proto.transferApp = function (appId, fromUid, toUid) {
 };
 
 proto.listApps = function (uid) {
+  let self = this;
   return models.Collaborators.findAll({where : {uid: uid}})
   .then(function(data){
     if (_.isEmpty(data)){
-      throw new Error('You are not Collaborator in any apps.');
-    }else {
-      return [data, data.map(function(v){ return v.appid })];
+      return [];
+    } else {
+      var appIds = _.map(data, function(v){ return v.appid });
+      return models.Apps.findAll({where: {id: {in: appIds}}});
     }
   })
-  .spread(function (collaboratorInfos, appids) {
-    return models.Apps.findAll({where: {id: {in: appids}}})
-    .then(function(appInfos) {
-      if (_.isEmpty(appInfos)) {
-        throw new Error(`can't find apps info.`);
-      }else {
-        var appInfos = _.reduce(appInfos, function(result, value, key) {
-          result[value.id] = value;
-          return result;
-        }, {});
-        return [collaboratorInfos, appInfos];
-      }
-    });
-  })
-  .spread(function (collaboratorInfos, appInfos) {
-    var ownerIds = _.map(appInfos, function (v) {
-      return v.uid;
-    });
-    return models.Users.findAll({where: {id: {in: ownerIds}}})
-    .then(function (data) {
-      var userInfos = _.reduce(data, function(result, value, key) {
-        result[value.id] = value;
-        return result;
-      }, {});
-      return userInfos;
-    })
-    .then(function (userInfos) {
-      var rs = Promise.map(_.values(appInfos), function(v){
-        var appId = v.get('id');
-        var email = userInfos[v.uid] ? userInfos[v.uid].email : req.users.email;
-        var isCurrentAccount = false;
-        if (_.eq(v.uid, uid)) {
-          isCurrentAccount = true;
-        }
-        return models.Deployments.findAll({where: {appid: appId}})
-        .then(function (deploymentInfos) {
-          return {
-            collaborators: {[email]: {permission: 'Owner', isCurrentAccount: isCurrentAccount}},
-            deployments: _.map(deploymentInfos, function (item) {
-              return _.get(item, 'name');
-            }),
-            name: v.name
-          };
-        });
+  .then(function (appInfos) {
+    var rs = Promise.map(_.values(appInfos), function(v){
+      return self.getAppDetailInfo(v, uid)
+      .then(function (info) {
+        return info;
       });
-      return rs;
-    })
+    });
+    return rs;
+  });
+};
+
+proto.getAppDetailInfo  = function (appInfo, currentUid) {
+  var appId = appInfo.get('id');
+  return Promise.all([
+      models.Deployments.findAll({where: {appid: appId}}),
+      models.Collaborators.findAll({where: {appid: appId}}),
+  ])
+  .spread(function (deploymentInfos, collaboratorInfos) {
+    return Promise.props({
+      collaborators: Promise.reduce(collaboratorInfos, function (allCol, collaborator) {
+        return models.Users.findOne({where: {id: collaborator.get('uid')}})
+        .then(function (u) {
+          var isCurrentAccount = false;
+          if (_.eq(u.get('id'), currentUid)) {
+            isCurrentAccount = true;
+          }
+          allCol[u.get('email')] = {permission: collaborator.get('roles'), isCurrentAccount: isCurrentAccount};
+          return allCol;
+        });
+      }, {}),
+
+      deployments: _.map(deploymentInfos, function (item) {
+        return _.get(item, 'name');
+      }),
+
+      name: appInfo.get('name')
+    });
   });
 };
