@@ -5,7 +5,20 @@ var security = require('../core/utils/security');
 var accountManager = require('../core/services/account-manager')();
 
 router.get('/login', function(req, res, next) {
-  res.render('auth/login', { title: 'CodePushServer' });
+  var config = require('../core/config');
+  var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
+  var isRedirect = false;
+  if (codePushWebUrl) {
+    var validator = require('validator');
+    if (validator.isUrl(codePushWebUrl)){
+      isRedirect = true;
+    }
+  }
+  if (isRedirect) {
+    res.redirect(codePushWebUrl);
+  } else {
+    res.render('auth/login', { title: 'CodePushServer' });
+  }
 });
 
 router.post('/logout', function (req, res, next) {

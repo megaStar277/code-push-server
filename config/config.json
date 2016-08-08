@@ -19,9 +19,10 @@
     },
     "common": {
       "loginSecret": "CodePushServer",
+      "codePushWebUrl": "",
       "diffNums": 3,
       "dataDir": "",
-      "storageType": "qiniu"
+      "storageType": "local",
     }
   },
   "production": {
@@ -44,9 +45,10 @@
     },
     "common": {
       "loginSecret": "CodePushServer",
+      "codePushWebUrl": "",
       "diffNums": 3,
       "dataDir": "",
-      "storageType": "qiniu"
+      "storageType": "local"
     }
   }
 }

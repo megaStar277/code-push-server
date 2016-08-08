@@ -17,6 +17,9 @@ $ npm install
 $ vim config/config.json
 ```
 
+read [config.md](https://github.com/lisong/code-push-server/blob/master/docs/config.md)
+
+
 ## Storage mode [local/qiniu]
 
 ## RUN
@@ -30,6 +33,8 @@ or point config file and ENV
 ```shell
 $ CONFIG_FILE=/path/to/config.json NODE_ENV=production node ./bin/www
 ```
+
+notice. you have to change `loginSecret` in config
 
 ## Default listen Host/Port  127.0.0.1/3000 
 you can change like this.
@@ -98,6 +103,21 @@ $ vim /path/to/production/config.json #configure your env.
 $ cp docs/process.yml /path/to/production/process.yml
 $ vim /path/to/production/process.yml #configure your env.
 $ pm2 start /path/to/production/process.yml
+```
+
+## Use [CodePush Web](https://github.com/lisong/code-push-web) manage apps
+
+add codePushWebUrl config in ./config/config.json
+
+eg.
+
+```json
+...
+"common": {
+    "loginSecret": "CodePushServer",
+    "codePushWebUrl": "Your CodePush Web address",
+}
+...
 ```
 
 ## License
