@@ -107,8 +107,8 @@ proto.listApps = function (uid) {
 proto.getAppDetailInfo  = function (appInfo, currentUid) {
   var appId = appInfo.get('id');
   return Promise.all([
-      models.Deployments.findAll({where: {appid: appId}}),
-      models.Collaborators.findAll({where: {appid: appId}}),
+    models.Deployments.findAll({where: {appid: appId}}),
+    models.Collaborators.findAll({where: {appid: appId}}),
   ])
   .spread(function (deploymentInfos, collaboratorInfos) {
     return Promise.props({
