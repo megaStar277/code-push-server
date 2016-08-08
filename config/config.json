@@ -22,7 +22,7 @@
       "codePushWebUrl": "",
       "diffNums": 3,
       "dataDir": "",
-      "storageType": "local",
+      "storageType": "local"
     }
   },
   "production": {
