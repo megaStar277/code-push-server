@@ -10,8 +10,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     name: DataTypes.STRING,
     uid: DataTypes.BIGINT(20),
-    created_at: DataTypes.TIME,
-    updated_at: DataTypes.TIME,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     tableName: 'apps',
     underscored: true,

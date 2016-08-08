@@ -50,7 +50,7 @@ proto.findUserByEmail = function (email) {
 };
 
 proto.getAllAccessKeyByUid = function (uid) {
-  return models.UserTokens.findAll({where: {uid: uid}})
+  return models.UserTokens.findAll({where: {uid: uid}, order:[['id', 'DESC']]})
   .then(function (tokens) {
     return _.map(tokens, function(v){
       return {
@@ -81,8 +81,8 @@ proto.createAccessKey = function (uid, newAccessKey, isSession, ttl, friendlyNam
     description: description,
     is_session: isSession ? true : false,
     created_by: createdBy,
-    expires_at: moment().utc().add(ttl/1000, 'seconds').format('YYYY-MM-DD hh:mm:ss'),
-    created_at: moment().utc().format('YYYY-MM-DD hh:mm:ss'),
+    expires_at: moment().add(ttl/1000, 'seconds').format('YYYY-MM-DD hh:mm:ss'),
+    created_at: moment().format('YYYY-MM-DD hh:mm:ss'),
   });
 };
 

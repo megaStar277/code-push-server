@@ -19,8 +19,8 @@ module.exports = function(sequelize, DataTypes) {
     original_label: DataTypes.STRING,
     original_deployment: DataTypes.STRING,
     released_by: DataTypes.STRING,
-    created_at: DataTypes.TIME,
-    updated_at: DataTypes.TIME,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     tableName: 'packages',
     underscored: true,

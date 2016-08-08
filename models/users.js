@@ -13,8 +13,8 @@ module.exports = function(sequelize, DataTypes) {
     email: DataTypes.STRING,
     identical: DataTypes.STRING,
     ack_code: DataTypes.STRING,
-    created_at: DataTypes.TIME,
-    updated_at: DataTypes.TIME,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     tableName: 'users',
     underscored: true

@@ -11,8 +11,8 @@ module.exports = function(sequelize, DataTypes) {
     appid: DataTypes.INTEGER(10),
     uid: DataTypes.BIGINT(20),
     roles : DataTypes.STRING,
-    created_at: DataTypes.TIME,
-    updated_at: DataTypes.TIME,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     tableName: 'collaborators',
     underscored: true,

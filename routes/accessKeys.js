@@ -40,6 +40,7 @@ router.post('/', middleware.checkToken, function(req, res, next) {
       createdTime : parseInt(moment(newToken.created_at).format('x')),
       createdBy : newToken.created_by,
       expires : parseInt(moment(newToken.expires_at).format('x')),
+      isSession: newToken.is_session == 1 ? true :false,
       description : newToken.description,
       friendlyName: newToken.name,
     };
@@ -82,8 +83,7 @@ router.patch('/:name', middleware.checkToken, function(req, res, next){
     .then(function () {
       var moment = require('moment');
       if (ttl > 0) {
-        var newExp = moment(token.get('expires_at'))
-          .utc().add(ttl/1000, 'seconds').format('YYYY-MM-DD hh:mm:ss')
+        var newExp = moment(token.get('expires_at')).add(ttl/1000, 'seconds').format('YYYY-MM-DD hh:mm:ss')
         token.set('expires_at', newExp)
       }
       if (friendlyName.length > 0) {

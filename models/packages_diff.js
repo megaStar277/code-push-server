@@ -12,8 +12,8 @@ module.exports = function(sequelize, DataTypes) {
     diff_against_package_hash: DataTypes.STRING,
     diff_blob_url: DataTypes.STRING,
     diff_size: DataTypes.INTEGER(10),
-    created_at: DataTypes.TIME,
-    updated_at: DataTypes.TIME,
+    created_at: DataTypes.DATE,
+    updated_at: DataTypes.DATE,
   }, {
     tableName: 'packages_diff',
     underscored: true,

@@ -14,8 +14,8 @@ module.exports = function(sequelize, DataTypes) {
     description: DataTypes.STRING,
     is_session: DataTypes.INTEGER(3),
     created_by: DataTypes.STRING,
-    created_at: DataTypes.TIME,
-    expires_at : DataTypes.TIME
+    created_at: DataTypes.DATE,
+    expires_at : DataTypes.DATE
   }, {
     updatedAt: false,
     tableName: 'user_tokens',
