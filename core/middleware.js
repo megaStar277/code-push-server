@@ -16,7 +16,7 @@ var checkAuthToken = function (authToken) {
       throw new Error('401 Unauthorized');
     }
     return models.UserTokens.findOne({
-      where: {tokens: authToken, uid: users.id, expires_at: { gt: moment().format('YYYY-MM-DD hh:mm:ss') }}
+      where: {tokens: authToken, uid: users.id, expires_at: { gt: moment().format('YYYY-MM-DD HH:mm:ss') }}
     })
     .then(function(tokenInfo){
       if (_.isEmpty(tokenInfo)){
