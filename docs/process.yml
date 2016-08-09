@@ -5,4 +5,4 @@ apps:
     env    :
       NODE_ENV: production
       PORT: 3001
-      CONFIG_FILE: /path/to/production/config.json
+      CONFIG_FILE: /path/to/production/config.js

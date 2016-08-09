@@ -14,10 +14,10 @@ $ npm install
 
 ## CONFIG
 ```shell
-$ vim config/config.json
+$ vim config/config.js
 ```
 
-read [config.md](https://github.com/lisong/code-push-server/blob/master/docs/config.md)
+read [config.js](https://github.com/lisong/code-push-server/blob/master/config/config.js)
 
 
 ## Storage mode [local/qiniu]
@@ -31,10 +31,10 @@ $ node ./bin/www
 or point config file and ENV
 
 ```shell
-$ CONFIG_FILE=/path/to/config.json NODE_ENV=production node ./bin/www
+$ CONFIG_FILE=/path/to/config.js NODE_ENV=production node ./bin/www
 ```
 
-notice. you have to change `loginSecret` in config.json for security.
+notice. you have to change `loginSecret` in config.js for security.
 
 ## Default listen Host/Port  127.0.0.1/3000 
 you can change like this.
@@ -98,8 +98,8 @@ use [pm2](http://pm2.keymetrics.io/) to manage process.
 
 ```shell
 $ npm install pm2 -g
-$ cp config/config.json /path/to/production/config.json
-$ vim /path/to/production/config.json #configure your env.
+$ cp config/config.js /path/to/production/config.js
+$ vim /path/to/production/config.js #configure your env.
 $ cp docs/process.yml /path/to/production/process.yml
 $ vim /path/to/production/process.yml #configure your env.
 $ pm2 start /path/to/production/process.yml
@@ -107,7 +107,7 @@ $ pm2 start /path/to/production/process.yml
 
 ## Use [CodePush Web](https://github.com/lisong/code-push-web) manage apps
 
-add codePushWebUrl config in ./config/config.json
+add codePushWebUrl config in ./config/config.js
 
 eg.
 
