@@ -34,6 +34,7 @@
     "mysql": "^2.10.2",
     "ncp": "^2.0.0",
     "node-unzip-2": "^0.2.1",
+    "nodemailer": "^2.5.0",
     "qiniu": "^6.1.10",
     "rand-token": "^0.2.1",
     "recursive-fs": "^0.1.4",

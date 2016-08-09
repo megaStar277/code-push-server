@@ -11,7 +11,6 @@ var slash = require("slash");
 var common = require('../utils/common');
 var os = require('os');
 var path = require('path');
-var config    = _.get(require('../config'), 'qiniu', {});
 
 var proto = module.exports = function (){
   function PackageManager() {

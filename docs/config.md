@@ -26,10 +26,20 @@
     },
     "common": {
       "loginSecret": "CodePushServer", //登录jwt签名密钥，必须更改，否则有安全隐患，可以随机生成字符串
-      "codePushWebUrl": "", //CodePush Web部署地址，也可以配置成CodePush登录地址
+      "codePushWebUrl": "", //CodePush Web部署地址，也可以配置成CodePush Web登录地址
       "diffNums": 3, //差异化更新版本生成数目 默认为3
       "dataDir": "", //数据目录，优化选项
       "storageType": "local" //选择存储类型，目前支持local和qiniu配置
+    },
+    //邮件配置，注册模块验证邮箱需要使用 参考https://github.com/nodemailer/nodemailer
+    "smtpConfig":{
+      "host": "smtp.mxhichina.com",
+      "port": 465,
+      "secure": true, //http or https
+      "auth": {
+        "user": "Your Email Account",
+        "pass": "Your Email Password"
+      }
     }
   },
   "production": {

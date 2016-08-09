@@ -23,6 +23,15 @@
       "diffNums": 3,
       "dataDir": "",
       "storageType": "local"
+    },
+    "smtpConfig":{
+      "host": "smtp.mxhichina.com",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "Your Email Account",
+        "pass": "Your Email Password"
+      }
     }
   },
   "production": {
@@ -49,6 +58,15 @@
       "diffNums": 3,
       "dataDir": "",
       "storageType": "local"
+    },
+    "smtpConfig":{
+      "host": "smtp.mxhichina.com",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "Your Email Account",
+        "pass": "Your Email Password"
+      }
     }
   }
 }

@@ -34,7 +34,7 @@ or point config file and ENV
 $ CONFIG_FILE=/path/to/config.json NODE_ENV=production node ./bin/www
 ```
 
-notice. you have to change `loginSecret` in config
+notice. you have to change `loginSecret` in config.json for security.
 
 ## Default listen Host/Port  127.0.0.1/3000 
 you can change like this.
@@ -114,8 +114,8 @@ eg.
 ```json
 ...
 "common": {
-    "loginSecret": "CodePushServer",
-    "codePushWebUrl": "Your CodePush Web address",
+  "loginSecret": "CodePushServer",
+  "codePushWebUrl": "Your CodePush Web address",
 }
 ...
 ```
