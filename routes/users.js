@@ -35,10 +35,10 @@ router.get('/exists', function (req, res, next) {
   var email = _.get(req, 'query.email');
   models.Users.findOne({where: {email: email}})
   .then(function (u) {
-    res.send({exists: u ? true : false});
+    res.send({status: "OK", exists: u ? true : false});
   })
   .catch(function (e) {
-    res.status(503).send(e.message);
+    res.send({status: "ERROR", message: e.message});
   });
 });
 

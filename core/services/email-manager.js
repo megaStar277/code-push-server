@@ -43,7 +43,7 @@ proto.sendMail = function (options) {
 proto.sendRegisterCode = function (email, code) {
   return proto.sendMail({
     to: email,
-    html: `<div>您接收的验证码为: ${code}</div>`
+    html: `<div>您接收的验证码为: <em style="color:red;">${code}</em>  十分钟内有效</div>`
   });
 };
 
