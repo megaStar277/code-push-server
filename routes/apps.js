@@ -9,7 +9,7 @@ var Collaborators = require('../core/services/collaborators');
 var AppManager = require('../core/services/app-manager');
 var PackageManager = require('../core/services/package-manager');
 var common = require('../core/utils/common');
-var config    = _.get(require('../core/config'), 'common', {});
+var config    = require('../core/config');
 
 router.get('/',
   middleware.checkToken, function(req, res, next) {
@@ -135,7 +135,7 @@ router.post('/:appName/deployments/:deploymentName/release',
       .then(function (packages) {
         if (!_.isEmpty(packages)) {
           setTimeout(function () {
-            packageManager.createDiffPackages(packages.id, _.get(config, 'diffNums', 1))
+            packageManager.createDiffPackages(packages.id, _.get(config, 'common.diffNums', 1))
           }, 2000)
         }
         return null;
@@ -180,7 +180,7 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   .then(function (packages) {
     if (!_.isEmpty(packages)) {
       setTimeout(function () {
-        packageManager.createDiffPackages(packages.id, _.get(config, 'diffNums', 1));
+        packageManager.createDiffPackages(packages.id, _.get(config, 'common.diffNums', 1));
       }, 2000)
     }
     return null;

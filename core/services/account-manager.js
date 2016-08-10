@@ -4,7 +4,9 @@ var models = require('../../models');
 var _ = require('lodash');
 var validator = require('validator');
 var security = require('../utils/security');
+var factory = require('../utils/factory');
 var moment = require('moment');
+var EmailManager = require('./email-manager');
 
 var proto = module.exports = function (){
   function AccountManager() {
@@ -112,3 +114,79 @@ proto.login = function (account, password) {
     }
   });
 };
+
+const REGISTER_CODE = "REGISTER_CODE_";
+const EXPIRED = 600;
+const EXPIRED_SPEED = 10;
+
+proto.sendRegisterCode = function (email) {
+  if (_.isEmpty(email)) {
+    return Promise.reject({message: 'please input email'});
+  }
+  return models.Users.findOne({where: {email: email}})
+  .then(function (u) {
+    if (u) {
+      throw new Error(`"${email}" already register`);
+    }
+  })
+  .then(function () {
+    //将token临时存储到redis
+    var token = security.randToken(40);
+    return factory.getRedisClient("default").setexAsync(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
+    .then(function () {
+      return token;
+    });
+  })
+  .then(function (token) {
+    //将token发送到用户邮箱
+    var emailManager = new EmailManager();
+    return emailManager.sendRegisterCode(email, token);
+  })
+};
+
+proto.checkRegisterCode = function (email, token) {
+  return models.Users.findOne({where: {email: email}})
+  .then(function (u) {
+    if (u) {
+      throw new Error(`"${email}" already register`);
+    }
+  })
+  .then(function () {
+    var registerKey = `${REGISTER_CODE}${security.md5(email)}`;
+    var client = factory.getRedisClient("default");
+    return client.getAsync(registerKey)
+    .then(function (storageToken) {
+      if (_.isEmpty(storageToken)) {
+        throw new Error(`token expired, please get new one`);
+      }
+      if (!_.eq(token, storageToken)) {
+        client.ttlAsync(registerKey)
+        .then(function (ttl) {
+          if (ttl > 0) {
+            return client.expireAsync(registerKey, ttl - EXPIRED_SPEED);
+          }
+          return ttl;
+        })
+        throw new Error(`token did not matches`);
+      }
+      return storageToken;
+    })
+  })
+}
+
+proto.register = function (email, password) {
+  return models.Users.findOne({where: {email: email}})
+  .then(function (u) {
+    if (u) {
+      throw new Error(`"${email}" already register`);
+    }
+  })
+  .then(function () {
+    var identical = security.randToken(9);
+    return models.Users.create({
+      email: email,
+      password: security.passwordHashSync(password),
+      identical: identical
+    });
+  })
+}

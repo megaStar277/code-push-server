@@ -14,6 +14,7 @@ var auth = require('./routes/auth');
 var accessKeys = require('./routes/accessKeys');
 var sessions = require('./routes/sessions');
 var account = require('./routes/account');
+var users = require('./routes/users');
 var apps = require('./routes/apps');
 var app = express();
 app.use(helmet());
@@ -55,6 +56,7 @@ app.use('/auth', auth);
 app.use('/accessKeys', accessKeys);
 app.use('/sessions', sessions);
 app.use('/account', account);
+app.use('/users', users);
 app.use('/apps', apps);
 
 // catch 404 and forward to error handler
