@@ -152,7 +152,7 @@ proto.login = function (account, password) {
 };
 
 const REGISTER_CODE = "REGISTER_CODE_";
-const EXPIRED = 600;
+const EXPIRED = 1200;
 const EXPIRED_SPEED = 10;
 
 proto.sendRegisterCode = function (email) {
