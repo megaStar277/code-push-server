@@ -7,6 +7,7 @@ var security = require('../utils/security');
 var factory = require('../utils/factory');
 var moment = require('moment');
 var EmailManager = require('./email-manager');
+var config = require('../config');
 
 var proto = module.exports = function (){
   function AccountManager() {
@@ -103,6 +104,7 @@ proto.login = function (account, password) {
   }else {
     where = {username: account};
   }
+  var tryLoginTimes = _.get(config, 'common.tryLoginTimes', 0);
   return models.Users.findOne({where: where})
   .then(function(users) {
     if (_.isEmpty(users)) {
@@ -111,30 +113,37 @@ proto.login = function (account, password) {
     return users;
   })
   .then(function (users) {
-    var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
-    return factory.getRedisClient("default").getAsync(loginKey)
-    .then(function (loginErrorTimes) {
-      if (loginErrorTimes > 10) {
-        throw new Error(`您输入密码错误次数超过限制，帐户已经锁定`);
-      }
+    if (tryLoginTimes > 0) {
+      var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
+      var client = factory.getRedisClient("default");
+      return client.getAsync(loginKey)
+      .then(function (loginErrorTimes) {
+        if (loginErrorTimes > tryLoginTimes) {
+          throw new Error(`您输入密码错误次数超过限制，帐户已经锁定`);
+        }
+        return users;
+      });
+    } else {
       return users;
-    });
+    }
   })
   .then(function (users) {
     if (!security.passwordVerifySync(password, users.password)) {
-      var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
-      var client = factory.getRedisClient("default");
-      client.existsAsync(loginKey)
-      .then(function (isExists) {
-        if (!isExists) {
-          var expires = moment().endOf('day').format('X') - moment().format('X');
-          return client.setexAsync(loginKey, expires, 0);
-        }
-        return isExists;
-      })
-      .then(function () {
-        return client.incrAsync(loginKey);
-      })
+      if (tryLoginTimes > 0) {
+        var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
+        var client = factory.getRedisClient("default");
+        client.existsAsync(loginKey)
+        .then(function (isExists) {
+          if (!isExists) {
+            var expires = moment().endOf('day').format('X') - moment().format('X');
+            return client.setexAsync(loginKey, expires, 0);
+          }
+          return isExists;
+        })
+        .then(function () {
+          return client.incrAsync(loginKey);
+        });
+      }
       throw new Error("account or password error.");
     } else {
       return users;
