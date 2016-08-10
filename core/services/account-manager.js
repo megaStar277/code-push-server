@@ -88,6 +88,8 @@ proto.createAccessKey = function (uid, newAccessKey, isSession, ttl, friendlyNam
   });
 };
 
+const LOGIN_LIMIT_PRE = 'LOGIN_LIMIT_PRE_';
+
 proto.login = function (account, password) {
   if (_.isEmpty(account)) {
     return Promise.reject(new Error("Please input Account."))
@@ -105,12 +107,37 @@ proto.login = function (account, password) {
   .then(function(users) {
     if (_.isEmpty(users)) {
       throw new Error("account or password error.");
-    } else {
-      if (!security.passwordVerifySync(password, users.password)) {
-        throw new Error("account or password error.");
-      }else {
-        return users;
+    }
+    return users;
+  })
+  .then(function (users) {
+    var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
+    return factory.getRedisClient("default").getAsync(loginKey)
+    .then(function (loginErrorTimes) {
+      if (loginErrorTimes > 10) {
+        throw new Error(`您输入密码错误次数超过限制，帐户已经锁定`);
       }
+      return users;
+    });
+  })
+  .then(function (users) {
+    if (!security.passwordVerifySync(password, users.password)) {
+      var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
+      var client = factory.getRedisClient("default");
+      client.existsAsync(loginKey)
+      .then(function (isExists) {
+        if (!isExists) {
+          var expires = moment().endOf('day').format('X') - moment().format('X');
+          return client.setexAsync(loginKey, expires, 0);
+        }
+        return isExists;
+      })
+      .then(function () {
+        return client.incrAsync(loginKey);
+      })
+      throw new Error("account or password error.");
+    } else {
+      return users;
     }
   });
 };

@@ -18,7 +18,7 @@ router.post('/', function (req, res, next) {
   return accountManager.checkRegisterCode(email, token)
   .then(function (u) {
     if (_.isString(password) && password.length < 6) {
-      throw new ERROR('password length must gt ');6
+      throw new ERROR('password length must gt ');
     }
     return accountManager.register(email, password);
   })
