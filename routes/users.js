@@ -17,8 +17,9 @@ router.post('/', function (req, res, next) {
   var accountManager = new AccountManager();
   return accountManager.checkRegisterCode(email, token)
   .then(function (u) {
+    console.log(password);
     if (_.isString(password) && password.length < 6) {
-      throw new ERROR('password length must gt ');
+      throw new Error('密码长度至少为6位');
     }
     return accountManager.register(email, password);
   })
@@ -26,6 +27,7 @@ router.post('/', function (req, res, next) {
     res.send({status: "OK"});
   })
   .catch(function (e) {
+    console.log(e);
     res.send({status: "ERROR", message: e.message});
   });
 

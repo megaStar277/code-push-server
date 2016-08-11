@@ -93,10 +93,10 @@ const LOGIN_LIMIT_PRE = 'LOGIN_LIMIT_PRE_';
 
 proto.login = function (account, password) {
   if (_.isEmpty(account)) {
-    return Promise.reject(new Error("Please input Account."))
+    return Promise.reject(new Error("请您输入邮箱地址"))
   }
   if (_.isEmpty(password)) {
-    return Promise.reject(new Error("Please input Password."))
+    return Promise.reject(new Error("请您输入密码"))
   }
   var where = {};
   if (validator.isEmail(account)) {
@@ -108,7 +108,7 @@ proto.login = function (account, password) {
   return models.Users.findOne({where: where})
   .then(function(users) {
     if (_.isEmpty(users)) {
-      throw new Error("account or password error.");
+      throw new Error("您输入的邮箱或密码有误");
     }
     return users;
   })
@@ -144,7 +144,7 @@ proto.login = function (account, password) {
           return client.incrAsync(loginKey);
         });
       }
-      throw new Error("account or password error.");
+      throw new Error("您输入的邮箱或密码有误");
     } else {
       return users;
     }
@@ -157,12 +157,12 @@ const EXPIRED_SPEED = 10;
 
 proto.sendRegisterCode = function (email) {
   if (_.isEmpty(email)) {
-    return Promise.reject({message: 'please input email'});
+    return Promise.reject({message: '请您输入邮箱地址'});
   }
   return models.Users.findOne({where: {email: email}})
   .then(function (u) {
     if (u) {
-      throw new Error(`"${email}" already register`);
+      throw new Error(`"${email}" 已经注册，请跟换邮箱注册`);
     }
   })
   .then(function () {
@@ -184,7 +184,7 @@ proto.checkRegisterCode = function (email, token) {
   return models.Users.findOne({where: {email: email}})
   .then(function (u) {
     if (u) {
-      throw new Error(`"${email}" already register`);
+      throw new Error(`"${email}" 已经注册过，请更换邮箱注册`);
     }
   })
   .then(function () {
@@ -193,7 +193,7 @@ proto.checkRegisterCode = function (email, token) {
     return client.getAsync(registerKey)
     .then(function (storageToken) {
       if (_.isEmpty(storageToken)) {
-        throw new Error(`token expired, please get new one`);
+        throw new Error(`验证码已经失效，请您重新获取`);
       }
       if (!_.eq(token, storageToken)) {
         client.ttlAsync(registerKey)
@@ -203,7 +203,7 @@ proto.checkRegisterCode = function (email, token) {
           }
           return ttl;
         })
-        throw new Error(`token did not matches`);
+        throw new Error(`您输入的验证码不正确，请重新输入`);
       }
       return storageToken;
     })
@@ -214,7 +214,7 @@ proto.register = function (email, password) {
   return models.Users.findOne({where: {email: email}})
   .then(function (u) {
     if (u) {
-      throw new Error(`"${email}" already register`);
+      throw new Error(`"${email}" 已经注册过，请更换邮箱注册`);
     }
   })
   .then(function () {
