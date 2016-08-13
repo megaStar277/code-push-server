@@ -11,7 +11,8 @@ var checkAuthToken = function (authToken) {
   var objToken = security.parseToken(authToken);
   return models.Users.findOne({
     where: {identical: objToken.identical}
-  }).then(function(users) {
+  })
+  .then(function(users) {
     if (_.isEmpty(users)) {
       throw new Error('401 Unauthorized');
     }
@@ -39,6 +40,7 @@ var checkAccessToken = function (accessToken) {
     var jwt = require('jsonwebtoken');
     var authData = jwt.verify(accessToken, loginSecret);
     var uid = _.get(authData, 'uid', null);
+    var hash = _.get(authData, 'hash', null);
     if (parseInt(uid) > 0) {
       return models.Users.findOne({
         where: {id: uid}
@@ -47,7 +49,13 @@ var checkAccessToken = function (accessToken) {
         if (_.isEmpty(users)) {
           throw new Error('401 Unauthorized');
         }
+        if (!_.eq(hash, security.md5(users.get('ack_code')))){
+          throw new Error('401 Unauthorized');
+        }
         resolve(users);
+      })
+      .catch(function (e) {
+        reject(e);
       });
     } else {
       throw new Error('401 Unauthorized');

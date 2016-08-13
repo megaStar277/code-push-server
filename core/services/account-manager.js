@@ -226,3 +226,26 @@ proto.register = function (email, password) {
     });
   })
 }
+
+proto.changePassword = function (uid, oldPassword, newPassword) {
+  if (!_.isString(newPassword) || newPassword.length < 6) {
+    return Promise.reject({message: '请您输入6～20位长度的新密码'})
+  }
+  return models.Users.findOne({where: {id: uid}})
+  .then(function (u) {
+    if (!u) {
+      throw new Error(`未找到用户信息`);
+    }
+    return u;
+  })
+  .then(function (u) {
+    var isEq = security.passwordVerifySync(oldPassword, u.get('password'));
+    if (!isEq) {
+      throw new Error(`您输入的旧密码不正确，请重新输入`);
+    }
+    u.set('password', security.passwordHashSync(newPassword));
+    u.set('ack_code', security.randToken(5));
+    return u.save();
+  });
+};
+
