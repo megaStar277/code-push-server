@@ -15,7 +15,24 @@ router.get('/login', function(req, res, next) {
     }
   }
   if (isRedirect) {
-    res.redirect(codePushWebUrl);
+    res.redirect(`${codePushWebUrl}/login`);
+  } else {
+    res.render('auth/login', { title: 'CodePushServer' });
+  }
+});
+
+router.get('/register', function(req, res, next) {
+  var config = require('../core/config');
+  var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
+  var isRedirect = false;
+  if (codePushWebUrl) {
+    var validator = require('validator');
+    if (validator.isUrl(codePushWebUrl)){
+      isRedirect = true;
+    }
+  }
+  if (isRedirect) {
+    res.redirect(`${codePushWebUrl}/register`);
   } else {
     res.render('auth/login', { title: 'CodePushServer' });
   }

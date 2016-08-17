@@ -26,8 +26,8 @@ config.development = {
     loginSecret: "CodePushServer",
     //当天登录密码错误尝试次数，超过次数帐户将会锁定。0:表示无限制，可能会出现暴力破解。 大于0:必须开启redis服务。
     tryLoginTimes: 0,
-    //CodePush Web部署地址，也可以配置成CodePush Web登录地址
-    codePushWebUrl: "http://localhost:3001/login",
+    //CodePush Web部署地址，也可以配置成CodePush Web地址
+    codePushWebUrl: "http://localhost:3001",
     //差异化更新版本生成数目 默认为3
     diffNums: 3,
     //数据目录，优化选项
