@@ -10,7 +10,7 @@ cli
 $ code-push login http://codepush.19910225.com:8080
 ```
 
-[web](http://codepush-managerment.19910225.com:8080)
+[web](http://codepush-managerment.19910225.com:8080) http://codepush-managerment.19910225.com:8080
 
 ## INSTALL
 
