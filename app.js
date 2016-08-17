@@ -37,12 +37,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.all('*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3001");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
-    next();
-});
+//use nginx
+// app.all('*', function(req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "http://localhost:3001");
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+//     res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
+//     next();
+// });
 
 
 if (_.get(config, 'common.storageType') == 'local'
