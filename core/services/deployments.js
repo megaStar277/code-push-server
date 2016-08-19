@@ -1,4 +1,5 @@
 'use strict';
+var Promise = require('bluebird');
 var models = require('../../models');
 var security = require('../../core/utils/security');
 var PackageManager = require('./package-manager');
@@ -131,101 +132,56 @@ proto.findDeloymentByName = function (deploymentName, appId) {
   });
 };
 
-proto.findPackagesAndUserInfos = function (packageIds) {
-  return models.Packages.findAll({
-    where: {id: {in: packageIds}}
+proto.findPackagesAndUserInfos = function (packageId) {
+  return models.Packages.findOne({
+    where: {id: packageId}
   })
-  .then(function (packageInfos) {
-    var uids =  _.reduce(packageInfos, function(result, value, key) {
-      if (_.gt(value.released_by, 0)){
-        result.push(value.released_by);
-      }
-      return result;
-    }, []);
-    return models.PackagesDiff.findAll({
-      where: {package_id: {in: packageIds}}
-    })
-    .then(function (packagesDiffInfos) {
-      var tmpDiff = _.reduce(packagesDiffInfos, function(result, value, key) {
-        result[value.package_id] = value;
-        return result;
-      }, {});
-      return models.Users.findAll({
-        where: {id: {in: uids}}
-      })
-      .then(function (userInfos) {
-        var tmp = _.reduce(userInfos, function(result, value, key) {
-          result[value.id] = value;
-          return result;
-        }, {});
-        return _.reduce(packageInfos, function(result, value, key) {
-          if (_.gt(value.id, 0)){
-            _.set(result, value.id + ".packageInfo", value);
-            _.set(result, value.id + ".packageDiffInfo", _.get(tmpDiff, value.id));
-            _.set(result, value.id + ".userInfo", _.get(tmp, value.released_by));
-          }
-          return result;
-        }, {});
-      });
+  .then(function (packageInfo) {
+    if (!packageInfo) {
+      return null;
+    }
+    return Promise.props({
+      packageInfo: packageInfo,
+      packageDiffInfo: models.PackagesDiff.findOne({where: {package_id: packageId}}),
+      userInfo: models.Users.findOne({where: {id: packageInfo.released_by}}),
     });
   });
 };
 
-proto.findDeloymentsPackages = function (ids) {
-  var _this = this;
-  return models.DeploymentsVersions.findAll({where: {id: {in: ids}}})
+proto.findDeloymentsPackages = function (deploymentsVersionsId) {
+  var self = this;
+  return models.DeploymentsVersions.findOne({where: {id: deploymentsVersionsId}})
   .then(function(deploymentsVersionsInfo) {
-    var currentPackageIds =  _.reduce(deploymentsVersionsInfo, function(result, value, key) {
-      if (_.gt(value.current_package_id, 0)){
-        result.push(value.current_package_id);
-      }
-
-      return result;
-    }, []);
-
-    return _this.findPackagesAndUserInfos(currentPackageIds)
-    .then(function (data) {
-      return _.reduce(deploymentsVersionsInfo, function(result, value, key) {
-        if (_.gt(value.id, 0)){
-          _.set(result, value.id + ".deploymentsVersions", value);
-          _.set(result, value.id + ".packageInfo", _.get(data, value.current_package_id + ".packageInfo"));
-          _.set(result, value.id + ".packageDiffInfo", _.get(data, value.current_package_id + ".packageDiffInfo"));
-          _.set(result, value.id + ".userInfo", _.get(data, value.current_package_id + ".userInfo"));
+    if (deploymentsVersionsInfo) {
+      return self.findPackagesAndUserInfos(deploymentsVersionsInfo.current_package_id)
+      .then(function(rs) {
+        if (rs) {
+          rs.deploymentsVersions = deploymentsVersionsInfo;
         }
-
-        return result;
-      }, {});
-    });
+        return rs;
+      });
+    }
+    return null;
   });
 };
 
 proto.listDeloyments = function (appId) {
-  var _this = this;
+  var self = this;
   return models.Deployments.findAll({where: {appid: appId}})
   .then(function(deploymentsInfos){
     if (_.isEmpty(deploymentsInfos)) {
       return [];
     }
-
-    var deployVersionIds =  _.reduce(deploymentsInfos, function(result, value, key) {
-      if (_.gt(value.last_deployment_version_id, 0)){
-        result.push(value.last_deployment_version_id);
-      }
-      return result;
-    }, []);
-
-    return _this.findDeloymentsPackages(deployVersionIds)
-    .then(function (data1) {
-      var deployments = _.map(deploymentsInfos, function(v2) {
-        var packageInfo = null;
-        var rs = {
-          name: v2.name,
-          key: v2.deployment_key,
-          package: null
-        };
-        if (_.has(data1, v2.last_deployment_version_id)) {;
-          var packageVersion = _.get(data1, v2.last_deployment_version_id);
-          packageInfo = {
+    return Promise.map(deploymentsInfos, function (v) {
+      return Promise.props({
+        name: v.name,
+        key: v.deployment_key,
+        package: self.findDeloymentsPackages([v.last_deployment_version_id])
+        .then(function (packageVersion) {
+          if (!packageVersion) {
+            return null;
+          }
+          return {
             label: _.get(packageVersion, "packageInfo.label"),
             description: _.get(packageVersion, "packageInfo.description"),
             appVersion: _.get(packageVersion, "deploymentsVersions.app_version"),
@@ -241,14 +197,8 @@ proto.listDeloyments = function (appId) {
             uploadTime: _.get(packageVersion, "packageInfo.updated_at"),
             releasedBy: _.get(packageVersion, "userInfo.email"),
           };
-        }
-        rs.package = packageInfo;
-
-        return rs;
+        })
       });
-
-      return deployments;
-    });
-
+    })
   });
 };
