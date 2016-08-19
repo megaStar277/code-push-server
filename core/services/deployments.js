@@ -199,7 +199,7 @@ proto.listDeloyments = function (appId) {
           }
           return {
             description: _.get(packageVersion, "packageInfo.description"),
-            "isDisabled": false,
+            isDisabled: false,
             isMandatory: _.get(packageVersion, "deploymentsVersions.is_mandatory") == 2 ? true : false,
             rollout: 100,
             appVersion: _.get(packageVersion, "deploymentsVersions.app_version"),
