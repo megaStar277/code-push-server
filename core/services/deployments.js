@@ -15,6 +15,10 @@ var proto = module.exports = function (){
   return Deployments;
 };
 
+proto.getAllPackageIdsByDeploymentsId = function(deploymentsId) {
+  return models.Packages.findAll({where: {deployment_id: deploymentsId}});
+};
+
 proto.promote = function (sourceDeploymentId, destDeploymentId, promoteUid) {
   return models.Deployments.findById(sourceDeploymentId)
   .then(function (sourceDeployment) {
@@ -77,13 +81,13 @@ proto.existDeloymentName = function (appId, name) {
 };
 
 proto.addDeloyment = function (name, appId, uid) {
-  var _this = this;
+  var self = this;
   return models.Users.findById(uid)
   .then(function (user) {
     if (_.isEmpty(user)) {
       throw new Error('can\'t find user');
     }
-    return _this.existDeloymentName(appId, name)
+    return self.existDeloymentName(appId, name)
     .then(function () {
       var identical = user.identical;
       var deploymentKey = security.randToken(28) + identical;

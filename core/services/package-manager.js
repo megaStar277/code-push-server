@@ -20,6 +20,10 @@ var proto = module.exports = function (){
   return PackageManager;
 };
 
+proto.getMetricsbyPackageId= function(packageId) {
+  return models.PackagesMetrics.findOne({where: {package_id: packageId}});
+}
+
 proto.parseReqFile = function (req) {
   return new Promise(function (resolve, reject) {
     var form = new formidable.IncomingForm();

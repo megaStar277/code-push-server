@@ -103,23 +103,21 @@ proto.reportStatusDownload = function(deploymentKey, label, clientUniqueId) {
   });
 };
 
-// {
-//   "appVersion": "1.0.1",
-//   "deploymentKey": "V7WEMbiAUsXSyxIiACvinfSnz3Lu4ksvOXqog",
-//   "clientUniqueId": "5696269B-256B-4F18-8237-DEA9AF5C1662",
-//   "label": "v13",
-//   "status": "DeploymentSucceeded", //DeploymentFailed
-//   "previousLabelOrAppVersion": "1.0.1",
-//   "previousDeploymentKey": "V7WEMbiAUsXSyxIiACvinfSnz3Lu4ksvOXqog"
-// }
 proto.reportStatusDeploy = function (deploymentKey, label, clientUniqueId, others) {
   return this.getPackagesInfo(deploymentKey, label)
   .then(function (packages) {
     var status =  _.get(others, "status");
+    var packageId = packages.id;
     if (_.eq(status, "DeploymentSucceeded")) {
-      return models.PackagesMetrics.addOneOnInstalledById(packages.id);
+      return Promise.all([
+        models.PackagesMetrics.addOneOnInstalledById(packageId),
+        models.PackagesMetrics.addOneOnActiveById(packageId),
+      ]);
     } else if (_.eq(status, "DeploymentFailed")) {
-      return models.PackagesMetrics.addOneOnFailedById(packages.id);
+      return Promise.all([
+        models.PackagesMetrics.addOneOnInstalledById(packageId),
+        models.PackagesMetrics.addOneOnFailedById(packageId)
+      ]);
     }else {
       return;
     }

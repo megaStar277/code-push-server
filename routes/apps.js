@@ -1,4 +1,5 @@
 var express = require('express');
+var Promise = require('bluebird');
 var router = express.Router();
 var _ = require('lodash');
 var middleware = require('../core/middleware');
@@ -47,7 +48,8 @@ router.post('/:appName/deployments',
   var appName = _.trim(req.params.appName);
   var name = req.body.name;
   var deployments = new Deployments();
-  accountManager.ownerCan(uid, appName).then(function (col) {
+  accountManager.ownerCan(uid, appName)
+  .then(function (col) {
     return deployments.addDeloyment(name, col.appid, uid);
   })
   .then(function (data) {
@@ -60,10 +62,55 @@ router.post('/:appName/deployments',
 
 router.get('/:appName/deployments/:deploymentName/metrics',
   middleware.checkToken, function (req, res, next) {
-  res.send({"metrics":{"v1":{"active":0,"downloaded":3,"failed":0,"installed":3},"v4":{"active":0,"downloaded":1,"failed":0,"installed":1},"v5":{"active":0,"downloaded":1,"failed":0,"installed":1},"v7":{"active":0,"downloaded":1,"failed":0,"installed":1},"v10":{"active":0,"downloaded":1,"failed":0,"installed":1},"v12":{"active":1,"downloaded":1,"failed":0,"installed":1},"v13":{"active":1,"downloaded":1,"failed":0,"installed":1}}});
+  var uid = req.users.id;
+  var appName = _.trim(req.params.appName);
+  var deploymentName = _.trim(req.params.deploymentName);
+  var deployments = new Deployments();
+  var packageManager = new PackageManager();
+
+  accountManager.collaboratorCan(uid, appName)
+  .then(function(col) {
+    return deployments.findDeloymentByName(deploymentName, col.appid)
+    .then(function (deploymentInfo) {
+      if (_.isEmpty(deploymentInfo)) {
+        throw new Error("does not find the deployment");
+      }
+      return deploymentInfo;
+    })
+  })
+  .then(function(deploymentInfo) {
+    return deployments.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
+  })
+  .then(function(packagesInfos) {
+    return Promise.reduce(packagesInfos, function (result, v) {
+      return packageManager.getMetricsbyPackageId(v.get('id'))
+      .then(function (metrics) {
+        if (metrics) {
+          result[v.get('label')] = {
+            active: metrics.get('active'),
+            downloaded: metrics.get('downloaded'),
+            failed: metrics.get('failed'),
+            installed: metrics.get('installed'),
+          };
+        }
+        return result;
+      });
+    }, {});
+  })
+  .then(function(rs) {
+    res.send({"metrics":rs});
+  })
+  .catch(function(e){
+    res.send({"metrics": null});
+  });
 });
 
 router.get('/:appName/deployments/:deploymentName/history',
+  middleware.checkToken, function (req, res, next) {
+  res.send('ok');
+});
+
+router.delete('/:appName/deployments/:deploymentName/history',
   middleware.checkToken, function (req, res, next) {
   res.send('ok');
 });
@@ -159,7 +206,8 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   var uid = req.users.id;
   var packageManager = new PackageManager();
   var deployments = new Deployments();
-  accountManager.collaboratorCan(uid, appName).then(function (col) {
+  accountManager.collaboratorCan(uid, appName)
+  .then(function (col) {
     var appId = col.appid;
     return Q.allSettled([
       deployments.findDeloymentByName(sourceDeploymentName, appId),
@@ -238,7 +286,8 @@ router.post('/:appName/collaborators/:email',
     return res.status(406).send("Invalid Email!");
   }
   var collaborators = new Collaborators();
-  accountManager.ownerCan(uid, appName).then(function (col) {
+  accountManager.ownerCan(uid, appName)
+  .then(function (col) {
     return accountManager.findUserByEmail(email).then(function (data) {
       return collaborators.addCollaborator(col.appid, data.id);
     });
@@ -260,7 +309,8 @@ router.delete('/:appName/collaborators/:email',
     return res.status(406).send("Invalid Email!");
   }
   var collaborators = new Collaborators();
-  accountManager.ownerCan(uid, appName).then(function (col) {
+  accountManager.ownerCan(uid, appName)
+  .then(function (col) {
     return accountManager.findUserByEmail(email).then(function (data) {
       if (_.eq(data.id, uid)) {
         throw new Error("can't delete yourself!");
@@ -282,7 +332,8 @@ router.delete('/:appName',
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
   var appManager = new AppManager();
-  accountManager.ownerCan(uid, appName).then(function (col) {
+  accountManager.ownerCan(uid, appName)
+  .then(function (col) {
     return appManager.deleteApp(col.appid);
   })
   .then(function (data) {
