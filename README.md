@@ -1,16 +1,22 @@
 # CodePush Server [source](https://github.com/lisong/code-push-server)
 
-CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use local storage, just modify config.json file, it's simple configure.
+CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use local storage, just modify config.js file, it's simple configure.
 
 ## EXAMPLE
 
-cli
+### shell命令行端
 
 ```shell
 $ code-push login http://codepush.19910225.com:8080
 ```
 
-[web](http://codepush-managerment.19910225.com:8080) http://codepush-managerment.19910225.com:8080
+### [web](http://codepush-managerment.19910225.com:8080) 
+
+访问：http://codepush-managerment.19910225.com:8080
+
+### 客户端eg.
+
+[CodePushDemo](https://github.com/lisong/code-push-demo-app)
 
 ## INSTALL
 
