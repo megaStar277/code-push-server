@@ -51,8 +51,7 @@ router.post('/:appName/deployments',
     return deployments.addDeloyment(name, col.appid, uid);
   })
   .then(function (data) {
-    res.location('/apps/' + data.appid + '/deployments/' + data.id);
-    res.send({deployment: {name: data.name, id: data.id + ""}});
+    res.send({deployment: {name: data.name, key: data.deployment_key}});
   })
   .catch(function (e) {
     res.status(406).send(e.message);
@@ -64,7 +63,7 @@ router.get('/:appName/deployments/:deploymentName/metrics',
   res.send({"metrics":{"v1":{"active":0,"downloaded":3,"failed":0,"installed":3},"v4":{"active":0,"downloaded":1,"failed":0,"installed":1},"v5":{"active":0,"downloaded":1,"failed":0,"installed":1},"v7":{"active":0,"downloaded":1,"failed":0,"installed":1},"v10":{"active":0,"downloaded":1,"failed":0,"installed":1},"v12":{"active":1,"downloaded":1,"failed":0,"installed":1},"v13":{"active":1,"downloaded":1,"failed":0,"installed":1}}});
 });
 
-router.get('/:appName/deployments/:deploymentName/packageHistory',
+router.get('/:appName/deployments/:deploymentName/history',
   middleware.checkToken, function (req, res, next) {
   res.send('ok');
 });
@@ -76,7 +75,8 @@ router.patch('/:appName/deployments/:deploymentName',
   var deploymentName = req.params.deploymentName;
   var uid = req.users.id;
   var deployments = new Deployments();
-  accountManager.ownerCan(uid, appName).then(function (col) {
+  accountManager.ownerCan(uid, appName)
+  .then(function (col) {
     return deployments.renameDeloymentByName(deploymentName, col.appid, name);
   })
   .then(function (data) {
@@ -93,7 +93,8 @@ router.delete('/:appName/deployments/:deploymentName',
   var deploymentName = req.params.deploymentName;
   var uid = req.users.id;
   var deployments = new Deployments();
-  accountManager.ownerCan(uid, appName).then(function (col) {
+  accountManager.ownerCan(uid, appName)
+  .then(function (col) {
     return deployments.deleteDeloymentByName(deploymentName, col.appid);
   })
   .then(function (data) {

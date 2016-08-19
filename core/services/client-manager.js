@@ -29,31 +29,38 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     return Promise.reject(new Error("please input deploymentKey and appVersion"))
   }
   return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
-  .then(function (data) {
-    if (_.isEmpty(data)) {
+  .then(function (dep) {
+    if (_.isEmpty(dep)) {
       throw new Error('does not found deployment');
     }
-    return models.DeploymentsVersions.findOne({where: {deployment_id:data.id, app_version: appVersion}});
+    return models.DeploymentsVersions.findOne({where: {deployment_id:dep.id, app_version: appVersion}});
   })
   .then(function (deploymentsVersions) {
     var packageId = _.get(deploymentsVersions, 'current_package_id', 0);
     if (_.eq(packageId, 0) ) {
       return;
     }
+    var downloadURL = common.getDownloadUrl();
     return models.Packages.findById(packageId)
     .then(function (packages) {
-      var downloadURL = common.getDownloadUrl();
+      if (!_.isEmpty(packages)) {
+        rs.downloadURL = `${downloadURL}/${_.get(packages, 'blob_url')}`;
+        rs.description = _.get(packages, 'description', '');
+        rs.isAvailable = true;
+        rs.isMandatory = _.eq(deploymentsVersions.is_mandatory, 1) ? true : false;
+        rs.appVersion = appVersion;
+        rs.packageHash = _.get(packages, 'package_hash', '');
+        rs.label = _.get(packages, 'label', '');
+        rs.packageSize = _.get(packages, 'size', 0);
+        rs.shouldRunBinaryVersion = false;
+      }
+      return packages;
+    })
+    .then(function (packages) {
+      //差异化更新
       if (!_.isEmpty(packages) && !_.eq(_.get(packages, 'package_hash', ""), packageHash)) {
-        return models.PackagesDiff.findOne({where: {package_id:packages.id, diff_against_package_hash: packageHash}}).then(function (diffPackage) {
-          rs.downloadURL = `${downloadURL}/${_.get(packages, 'blob_url')}`;
-          rs.description = _.get(packages, 'description', '');
-          rs.isAvailable = true;
-          rs.isMandatory = _.eq(deploymentsVersions.is_mandatory, 1) ? true : false;
-          rs.appVersion = appVersion;
-          rs.packageHash = _.get(packages, 'package_hash', '');
-          rs.label = _.get(packages, 'label', '');
-          rs.packageSize = _.get(packages, 'size', 0);
-          rs.shouldRunBinaryVersion = false;
+        return models.PackagesDiff.findOne({where: {package_id:packages.id, diff_against_package_hash: packageHash}})
+        .then(function (diffPackage) {
           if (!_.isEmpty(diffPackage)) {
             rs.downloadURL = `${downloadURL}/${_.get(diffPackage, 'diff_blob_url')}`;
             rs.packageSize = _.get(diffPackage, 'diff_size', 0);
@@ -75,11 +82,11 @@ proto.getPackagesInfo = function (deploymentKey, label) {
     return Promise.reject(new Error("please input deploymentKey and appVersion"))
   }
   return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
-  .then(function (data) {
-    if (_.isEmpty(data)) {
+  .then(function (dep) {
+    if (_.isEmpty(dep)) {
       throw new Error('does not found deployment');
     }
-    return models.Packages.findOne({where: {deployment_id:data.id, label: label}});
+    return models.Packages.findOne({where: {deployment_id:dep.id, label: label}});
   })
   .then(function (packages) {
     if (_.isEmpty(packages)) {

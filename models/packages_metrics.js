@@ -22,9 +22,10 @@ module.exports = function(sequelize, DataTypes) {
     underscored: true,
     classMethods: {
       addOne : function (packageId, fieldName) {
-        var _this = this;
+        var self = this;
         var sql = 'UPDATE packages_metrics SET  `' + fieldName + '`=`' + fieldName + '` + 1 WHERE package_id = :package_id';
-        return sequelize.query(sql, { replacements: { package_id: packageId}}).spread(function(results, metadata) {
+        return sequelize.query(sql, { replacements: { package_id: packageId}})
+        .spread(function(results, metadata) {
           if (_.eq(results.affectedRows, 0)) {
             var params = {
               package_id: packageId,
@@ -34,7 +35,7 @@ module.exports = function(sequelize, DataTypes) {
               installed: 0,
             };
             params[fieldName] = 1;
-            return _this.create(params);
+            return self.create(params);
           }else {
             return true;
           }

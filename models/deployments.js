@@ -24,14 +24,15 @@ module.exports = function(sequelize, DataTypes) {
     paranoid: true,
     classMethods: {
       generateLabelId: function(deploymentId) {
-        var _this = this;
+        var self = this;
         return sequelize.transaction(function (t) {
-          return _this.findById(deploymentId, {transaction: t,lock: t.LOCK.UPDATE}).then(function (data) {
+          return self.findById(deploymentId, {transaction: t,lock: t.LOCK.UPDATE}).then(function (data) {
             if (_.isEmpty(data)){
               throw new Error("does not find deployment");
             }
             data.label_id = data.label_id + 1;
-            return data.save({transaction: t}).then(function (data) {
+            return data.save({transaction: t})
+            .then(function (data) {
               return data.label_id;
             });
           });

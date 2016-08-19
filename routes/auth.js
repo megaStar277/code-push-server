@@ -21,6 +21,10 @@ router.get('/login', function(req, res, next) {
   }
 });
 
+router.get('/link', function(req, res, next) {
+  res.redirect(`/auth/login`);
+});
+
 router.get('/register', function(req, res, next) {
   var config = require('../core/config');
   var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
