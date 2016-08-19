@@ -158,6 +158,10 @@ common.getDownloadUrl = function () {
   return _.get(config, 'qiniu.downloadUrl');
 }
 
+common.getBlobDownloadUrl = function (blobUrl) {
+  return `${common.getDownloadUrl()}/${blobUrl}`
+};
+
 common.uploadFileToQiniu = function (key, filePath) {
   return new Promise(function (resolve, reject) {
     qiniu.conf.ACCESS_KEY = _.get(config, "qiniu.accessKey");

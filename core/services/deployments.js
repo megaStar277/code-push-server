@@ -2,8 +2,10 @@
 var Promise = require('bluebird');
 var models = require('../../models');
 var security = require('../../core/utils/security');
+var common = require('../../core/utils/common');
 var PackageManager = require('./package-manager');
 var _ = require('lodash');
+var moment = require('moment');
 
 var proto = module.exports = function (){
   function Deployments() {
@@ -142,7 +144,19 @@ proto.findPackagesAndUserInfos = function (packageId) {
     }
     return Promise.props({
       packageInfo: packageInfo,
-      packageDiffInfo: models.PackagesDiff.findOne({where: {package_id: packageId}}),
+      packageDiffMap: models.PackagesDiff.findAll({where: {package_id: packageId}})
+      .then(function(diffs){
+        if (diffs.length > 0) {
+          return _.reduce(diffs, function(result, v){
+            result[_.get(v, 'diff_against_package_hash')] = {
+              size: _.get(v, 'diff_size'),
+              url: common.getBlobDownloadUrl(_.get(v, 'diff_blob_url')),
+            };
+            return result;
+          }, {});
+        }
+        return null;
+      }),
       userInfo: models.Users.findOne({where: {id: packageInfo.released_by}}),
     });
   });
@@ -174,27 +188,29 @@ proto.listDeloyments = function (appId) {
     }
     return Promise.map(deploymentsInfos, function (v) {
       return Promise.props({
-        name: v.name,
+        createdTime: parseInt(moment(v.created_at).format('x')),
+        id: `${v.id}`,
         key: v.deployment_key,
+        name: v.name,
         package: self.findDeloymentsPackages([v.last_deployment_version_id])
         .then(function (packageVersion) {
           if (!packageVersion) {
             return null;
           }
           return {
-            label: _.get(packageVersion, "packageInfo.label"),
             description: _.get(packageVersion, "packageInfo.description"),
-            appVersion: _.get(packageVersion, "deploymentsVersions.app_version"),
+            "isDisabled": false,
             isMandatory: _.get(packageVersion, "deploymentsVersions.is_mandatory") == 2 ? true : false,
+            rollout: 100,
+            appVersion: _.get(packageVersion, "deploymentsVersions.app_version"),
             packageHash: _.get(packageVersion, "packageInfo.package_hash"),
-            blobUrl: _.get(packageVersion, "packageInfo.blob_url"),
+            blobUrl: common.getBlobDownloadUrl(_.get(packageVersion, "packageInfo.blob_url")),
             size: _.get(packageVersion, "packageInfo.size"),
-            manifestBlobUrl: _.get(packageVersion, "packageInfo.manifest_blob_url"),
-            diffAgainstPackageHash: _.get(packageVersion, "packageDiffInfo.diff_against_package_hash"),
-            diffBlobUrl: _.get(packageVersion, "packageDiffInfo.diff_blob_url"),
-            diffSize: _.get(packageVersion, "packageDiffInfo.diff_size"),
+            manifestBlobUrl: common.getBlobDownloadUrl(_.get(packageVersion, "packageInfo.manifest_blob_url")),
+            diffPackageMap: _.get(packageVersion, 'packageDiffMap'),
             releaseMethod: _.get(packageVersion, "packageInfo.release_method"),
-            uploadTime: _.get(packageVersion, "packageInfo.updated_at"),
+            uploadTime: parseInt(moment(_.get(packageVersion, "packageInfo.updated_at")).format('x')),
+            label: _.get(packageVersion, "packageInfo.label"),
             releasedBy: _.get(packageVersion, "userInfo.email"),
           };
         })
