@@ -214,13 +214,13 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
       deployments.findDeloymentByName(destDeploymentName, appId)
     ])
     .spread(function (sourceDeploymentInfo, destDeploymentInfo) {
-      if (_.isEmpty(sourceDeploymentInfo.value)) {
+      if (!sourceDeploymentInfo) {
         throw new Error(sourceDeploymentName + " does not exist.");
       }
-      if (_.isEmpty(destDeploymentInfo.value)) {
+      if (!destDeploymentInfo) {
         throw new Error(destDeploymentName + " does not exist.");
       }
-      return [sourceDeploymentInfo.value.id, destDeploymentInfo.value.id];
+      return [sourceDeploymentInfo.id, destDeploymentInfo.id];
     })
     .spread(function (sourceDeploymentId, destDeploymentId) {
       return deployments.promote(sourceDeploymentId, destDeploymentId, uid);
