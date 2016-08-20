@@ -107,14 +107,56 @@ router.get('/:appName/deployments/:deploymentName/metrics',
 
 router.get('/:appName/deployments/:deploymentName/history',
   middleware.checkToken, function (req, res, next) {
+  var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
-  res.send({history: []});
+  var deployments = new Deployments();
+  accountManager.collaboratorCan(uid, appName)
+  .then(function(col){
+    return deployments.findDeloymentByName(deploymentName, col.appid)
+    .then(function (deploymentInfo) {
+      if (_.isEmpty(deploymentInfo)) {
+        throw new Error("does not find the deployment");
+      }
+      return deploymentInfo;
+    });
+  })
+  .then(function(deploymentInfo) {
+    return deployments.getDeploymentHistory(deploymentInfo.id);
+  })
+  .then(function (rs) {
+    res.send({history: rs});
+  })
+  .catch(function (e) {
+    res.status(406).send(e.message);
+  });
 });
 
 router.delete('/:appName/deployments/:deploymentName/history',
   middleware.checkToken, function (req, res, next) {
-  res.send('ok');
+  var uid = req.users.id;
+  var appName = _.trim(req.params.appName);
+  var deploymentName = _.trim(req.params.deploymentName);
+  var deployments = new Deployments();
+  accountManager.collaboratorCan(uid, appName)
+  .then(function(col){
+    return deployments.findDeloymentByName(deploymentName, col.appid)
+    .then(function (deploymentInfo) {
+      if (_.isEmpty(deploymentInfo)) {
+        throw new Error("does not find the deployment");
+      }
+      return deploymentInfo;
+    });
+  })
+  .then(function(deploymentInfo) {
+    return deployments.deleteDeploymentHistory(deploymentInfo.id);
+  })
+  .then(function (rs) {
+    res.send("ok");
+  })
+  .catch(function (e) {
+    res.status(406).send(e.message);
+  });
 });
 
 router.patch('/:appName/deployments/:deploymentName',
@@ -184,12 +226,13 @@ router.post('/:appName/deployments/:deploymentName/release',
       })
       .then(function (packages) {
         if (packages) {
-          setTimeout(function () {
+          Promise.delay(2000)
+          .then(function () {
             packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
             .catch(function(e){
               console.log(e);
             });
-          }, 2000)
+          });
         }
         return null;
       });
@@ -233,12 +276,13 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   })
   .then(function (packages) {
     if (!_.isEmpty(packages)) {
-      setTimeout(function () {
+      Promise.delay(2000)
+      .then(function () {
         packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
         .catch(function(e){
           console.log(e);
         });
-      }, 2000)
+      });
     }
     return null;
   })

@@ -139,7 +139,7 @@ proto.findDeloymentByName = function (deploymentName, appId) {
   });
 };
 
-proto.findPackagesAndUserInfos = function (packageId) {
+proto.findPackagesAndOtherInfos = function (packageId) {
   return models.Packages.findOne({
     where: {id: packageId}
   })
@@ -163,6 +163,7 @@ proto.findPackagesAndUserInfos = function (packageId) {
         return null;
       }),
       userInfo: models.Users.findOne({where: {id: packageInfo.released_by}}),
+      deploymentsVersions: models.DeploymentsVersions.findById(packageInfo.deployments_versions_id)
     });
   });
 };
@@ -172,16 +173,32 @@ proto.findDeloymentsPackages = function (deploymentsVersionsId) {
   return models.DeploymentsVersions.findOne({where: {id: deploymentsVersionsId}})
   .then(function(deploymentsVersionsInfo) {
     if (deploymentsVersionsInfo) {
-      return self.findPackagesAndUserInfos(deploymentsVersionsInfo.current_package_id)
-      .then(function(rs) {
-        if (rs) {
-          rs.deploymentsVersions = deploymentsVersionsInfo;
-        }
-        return rs;
-      });
+      return self.findPackagesAndOtherInfos(deploymentsVersionsInfo.current_package_id);
     }
     return null;
   });
+};
+
+proto.formatPackage = function(packageVersion) {
+  if (!packageVersion) {
+    return null;
+  }
+  return {
+    description: _.get(packageVersion, "packageInfo.description"),
+    isDisabled: false,
+    isMandatory: _.get(packageVersion, "deploymentsVersions.is_mandatory") == 2 ? true : false,
+    rollout: 100,
+    appVersion: _.get(packageVersion, "deploymentsVersions.app_version"),
+    packageHash: _.get(packageVersion, "packageInfo.package_hash"),
+    blobUrl: common.getBlobDownloadUrl(_.get(packageVersion, "packageInfo.blob_url")),
+    size: _.get(packageVersion, "packageInfo.size"),
+    manifestBlobUrl: common.getBlobDownloadUrl(_.get(packageVersion, "packageInfo.manifest_blob_url")),
+    diffPackageMap: _.get(packageVersion, 'packageDiffMap'),
+    releaseMethod: _.get(packageVersion, "packageInfo.release_method"),
+    uploadTime: parseInt(moment(_.get(packageVersion, "packageInfo.updated_at")).format('x')),
+    label: _.get(packageVersion, "packageInfo.label"),
+    releasedBy: _.get(packageVersion, "userInfo.email"),
+  };
 };
 
 proto.listDeloyments = function (appId) {
@@ -197,29 +214,32 @@ proto.listDeloyments = function (appId) {
         id: `${v.id}`,
         key: v.deployment_key,
         name: v.name,
-        package: self.findDeloymentsPackages([v.last_deployment_version_id])
-        .then(function (packageVersion) {
-          if (!packageVersion) {
-            return null;
-          }
-          return {
-            description: _.get(packageVersion, "packageInfo.description"),
-            isDisabled: false,
-            isMandatory: _.get(packageVersion, "deploymentsVersions.is_mandatory") == 2 ? true : false,
-            rollout: 100,
-            appVersion: _.get(packageVersion, "deploymentsVersions.app_version"),
-            packageHash: _.get(packageVersion, "packageInfo.package_hash"),
-            blobUrl: common.getBlobDownloadUrl(_.get(packageVersion, "packageInfo.blob_url")),
-            size: _.get(packageVersion, "packageInfo.size"),
-            manifestBlobUrl: common.getBlobDownloadUrl(_.get(packageVersion, "packageInfo.manifest_blob_url")),
-            diffPackageMap: _.get(packageVersion, 'packageDiffMap'),
-            releaseMethod: _.get(packageVersion, "packageInfo.release_method"),
-            uploadTime: parseInt(moment(_.get(packageVersion, "packageInfo.updated_at")).format('x')),
-            label: _.get(packageVersion, "packageInfo.label"),
-            releasedBy: _.get(packageVersion, "userInfo.email"),
-          };
-        })
+        package: self.findDeloymentsPackages([v.last_deployment_version_id]).then(self.formatPackage)
       });
     })
   });
 };
+
+proto.getDeploymentHistory = function (deploymentId) {
+  var self = this;
+  return models.DeploymentsHistory.findAll({where: {deployment_id: deploymentId}, order: [['id','desc']], limit: 15})
+  .then(function(history) {
+    return _.map(history, function(v){ return v.package_id});
+  })
+  .then(function(packageIds){
+    return Promise.map(packageIds, function(v) {
+      return self.findPackagesAndOtherInfos(v).then(self.formatPackage);
+    });
+  });
+};
+
+proto.deleteDeploymentHistory = function(deploymentId) {
+  return models.DeploymentsHistory.findAll({where: {deployment_id: deploymentId }, order: [['id','desc']], limit: 100})
+  .then(function(rs){
+    return Promise.map(rs, function(v){
+      return v.destroy();
+    });
+  });
+}
+
+
