@@ -109,8 +109,8 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
       {name: newName},
       {where: {name: deploymentName,appid: appId}
     })
-    .then(function (deployment) {
-      if (_.gt(deployment[0], 0)) {
+    .spread(function (affectedCount, affectedRow) {
+      if (_.gt(affectedCount, 0)) {
         return {name: newName};
       } else {
         throw new Error('does not find the deployment');
@@ -121,11 +121,11 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
 
 proto.deleteDeloymentByName = function (deploymentName, appId) {
   return models.Deployments.destroy({
-    where: {name: deploymentName,appid: appId}
+    where: {name: deploymentName, appid: appId}
   })
   .then(function (rowNum) {
     if (_.gt(rowNum, 0)) {
-      return {name: deploymentName + ""};
+      return {name: `${deploymentName}`};
     } else {
       throw new Error('does not find the deployment');
     }
@@ -134,7 +134,7 @@ proto.deleteDeloymentByName = function (deploymentName, appId) {
 
 proto.findDeloymentByName = function (deploymentName, appId) {
   return models.Deployments.findOne({
-    where: {name: deploymentName,appid: appId}
+    where: {name: deploymentName, appid: appId}
   });
 };
 

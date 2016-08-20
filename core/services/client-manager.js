@@ -43,7 +43,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     var downloadURL = common.getDownloadUrl();
     return models.Packages.findById(packageId)
     .then(function (packages) {
-      if (!_.isEmpty(packages)) {
+      if (packages && _.eq(packages.deployment_id, deploymentsVersions.deployment_id) ) {
         rs.downloadURL = `${downloadURL}/${_.get(packages, 'blob_url')}`;
         rs.description = _.get(packages, 'description', '');
         rs.isAvailable = true;

@@ -61,9 +61,8 @@ proto.existPackageHash = function (deploymentId, appVersion, packageHash) {
     } else {
       var packageId = data.current_package_id;
       if (_.gt(packageId, 0)) {
-        return models.Packages.findOne({
-          where: {id: packageId}
-        }).then(function (data) {
+        return models.Packages.findById(packageId)
+        .then(function (data) {
           if (_.eq(_.get(data,"package_hash"), packageHash)){
             return true;
           }else {
@@ -100,19 +99,17 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
         released_by: releaseUid,
         original_label: originalLabel,
         original_deployment: originalDeployment
-      },{transaction: t
-      })
+      },{transaction: t})
       .then(function (packages) {
         return models.DeploymentsVersions.findOne({where: {deployment_id: deploymentId, app_version: appVersion}})
         .then(function (deploymentsVersions) {
-          if (_.isEmpty(deploymentsVersions)) {
+          if (!deploymentsVersions) {
             return models.DeploymentsVersions.create({
               is_mandatory: isMandatory,
               current_package_id: packages.id,
               deployment_id: deploymentId,
               app_version: appVersion
-            },
-            {transaction: t})
+            },{transaction: t});
           } else {
             deploymentsVersions.set('is_mandatory', isMandatory);
             deploymentsVersions.set('current_package_id', packages.id);
@@ -205,13 +202,13 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
         .then(function (diffHash) {
           return common.uploadFileToStorage(diffHash, fileName)
           .then(function () {
-              var stats = fs.statSync(fileName);
-              return models.PackagesDiff.create({
-                package_id: packageId,
-                diff_against_package_hash: diffPackageHash,
-                diff_blob_url: diffHash,
-                diff_size: stats.size
-              });
+            var stats = fs.statSync(fileName);
+            return models.PackagesDiff.create({
+              package_id: packageId,
+              diff_against_package_hash: diffPackageHash,
+              diff_blob_url: diffHash,
+              diff_size: stats.size
+            });
           })
         });
       });
@@ -262,71 +259,73 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   var appVersion = packageInfo.appVersion;
   var description = packageInfo.description;
   var isMandatory = packageInfo.isMandatory;
-  return security.qetag(filePath)
-  .then(function (blobHash) {
-    var directoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
-    return common.createEmptyFolder(directoryPath)
+  var directoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
+  return Promise.all([
+    security.qetag(filePath),
+    common.createEmptyFolder(directoryPath)
     .then(function () {
       if (fileType == "application/zip") {
         return common.unzipFile(filePath, directoryPath)
       } else {
-        throw new Error("file type error!");
+        throw new Error("上传的文件格式不对");
       }
     })
-    .then(function (directoryPath) {
-      return security.isAndroidPackage(directoryPath)
-      .then(function (isAndroid) {
-        if (pubType == 'android' ) {
-          if (!isAndroid){
-            throw new Error("it must be publish it by android type");
-          }
-        } else if (pubType == 'ios') {
-          if (isAndroid){
-            throw new Error("it must be publish it by ios type");
-          }
-        }else {
-          throw new Error(`${pubType} does not support.`);
+  ])
+  .spread(function(blobHash) {
+    return security.isAndroidPackage(directoryPath)
+    .then(function (isAndroid) {
+      if (pubType == 'android' ) {
+        if (!isAndroid){
+          throw new Error("it must be publish it by android type");
         }
-        var dataCenterManager = require('./datacenter-manager')();
-        return dataCenterManager.storePackage(directoryPath)
-        .then(function (dataCenter) {
-          var packageHash = dataCenter.packageHash;
-          var manifestFile = dataCenter.manifestFilePath;
-          return self.existPackageHash(deploymentId, appVersion, packageHash)
-          .then(function (isExist) {
-            if (isExist){
-              throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
-            }
-          })
-          .then(function () {
-            return security.qetag(manifestFile)
-            .then(function (manifestHash) {
-              return Promise.all([
-                common.uploadFileToStorage(manifestHash, manifestFile),
-                common.uploadFileToStorage(blobHash, filePath)
-              ])
-              .spread(function (up1, up2) {
-                return [packageHash, manifestHash, blobHash];
-              });
-            });
-          });
+      } else if (pubType == 'ios') {
+        if (isAndroid){
+          throw new Error("it must be publish it by ios type");
+        }
+      }else {
+        throw new Error(`${pubType} does not support.`);
+      }
+    })
+    .then(function(){
+      return blobHash;
+    })
+  })
+  .then(function(blobHash) {
+    var dataCenterManager = require('./datacenter-manager')();
+    return dataCenterManager.storePackage(directoryPath)
+    .then(function (dataCenter) {
+      var packageHash = dataCenter.packageHash;
+      var manifestFile = dataCenter.manifestFilePath;
+      return self.existPackageHash(deploymentId, appVersion, packageHash)
+      .then(function (isExist) {
+        if (isExist){
+          throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
+        }
+        return security.qetag(manifestFile);
+      })
+      .then(function (manifestHash) {
+        return Promise.all([
+          common.uploadFileToStorage(manifestHash, manifestFile),
+          common.uploadFileToStorage(blobHash, filePath)
+        ])
+        .then(function () {
+          return [packageHash, manifestHash, blobHash];
         });
       });
-
-    })
-    .spread(function (packageHash, manifestHash, blobHash) {
-      var stats = fs.statSync(filePath);
-      var params = {
-        releaseMethod: 'Upload',
-        releaseUid: releaseUid,
-        isMandatory: isMandatory,
-        size: stats.size,
-        description: description
-      }
-      return self.createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params);
-    })
-    .finally(function () {
-      common.deleteFolderSync(directoryPath);
     });
+  })
+  .spread(function (packageHash, manifestHash, blobHash) {
+    var stats = fs.statSync(filePath);
+    var params = {
+      releaseMethod: 'Upload',
+      releaseUid: releaseUid,
+      isMandatory: isMandatory,
+      size: stats.size,
+      description: description
+    }
+    return self.createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params);
+  })
+  .finally(function () {
+    common.deleteFolderSync(directoryPath);
   });
 };

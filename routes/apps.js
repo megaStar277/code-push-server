@@ -176,7 +176,7 @@ router.post('/:appName/deployments/:deploymentName/release',
       return packageManager.parseReqFile(req)
       .then(function (data) {
         return packageManager.releasePackage(deploymentInfo.id, data.packageInfo, data.package.type, data.package.path, uid, pubType)
-        .finally(function (d) {
+        .finally(function () {
           common.deleteFolderSync(data.package.path);
         });
       })
@@ -209,7 +209,7 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   accountManager.collaboratorCan(uid, appName)
   .then(function (col) {
     var appId = col.appid;
-    return Q.allSettled([
+    return Promise.all([
       deployments.findDeloymentByName(sourceDeploymentName, appId),
       deployments.findDeloymentByName(destDeploymentName, appId)
     ])

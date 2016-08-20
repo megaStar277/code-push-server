@@ -115,6 +115,7 @@ security.isAndroidPackage = function (directoryPath) {
           _.forIn(files, function (value) {
             if (AREGEX.test(value)) {
               isAndroid = true;
+              return false;
             }
           });
           resolve(isAndroid);
