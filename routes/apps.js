@@ -98,7 +98,7 @@ router.get('/:appName/deployments/:deploymentName/metrics',
     }, {});
   })
   .then(function(rs) {
-    res.send({"metrics":rs});
+    res.send({"metrics": rs});
   })
   .catch(function(e){
     res.send({"metrics": null});
@@ -107,7 +107,9 @@ router.get('/:appName/deployments/:deploymentName/metrics',
 
 router.get('/:appName/deployments/:deploymentName/history',
   middleware.checkToken, function (req, res, next) {
-  res.send('ok');
+  var appName = _.trim(req.params.appName);
+  var deploymentName = _.trim(req.params.deploymentName);
+  res.send({history: []});
 });
 
 router.delete('/:appName/deployments/:deploymentName/history',
@@ -119,7 +121,7 @@ router.patch('/:appName/deployments/:deploymentName',
   middleware.checkToken, function (req, res, next) {
   var name = req.body.name;
   var appName = _.trim(req.params.appName);
-  var deploymentName = req.params.deploymentName;
+  var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName)
@@ -137,7 +139,7 @@ router.patch('/:appName/deployments/:deploymentName',
 router.delete('/:appName/deployments/:deploymentName',
   middleware.checkToken, function (req, res, next) {
   var appName = _.trim(req.params.appName);
-  var deploymentName = req.params.deploymentName;
+  var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName)
@@ -218,10 +220,10 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
     ])
     .spread(function (sourceDeploymentInfo, destDeploymentInfo) {
       if (!sourceDeploymentInfo) {
-        throw new Error(sourceDeploymentName + " does not exist.");
+        throw new Error(`${sourceDeploymentName}  does not exist.`);
       }
       if (!destDeploymentInfo) {
-        throw new Error(destDeploymentName + " does not exist.");
+        throw new Error(`${destDeploymentName}  does not exist.`);
       }
       return [sourceDeploymentInfo.id, destDeploymentInfo.id];
     })
@@ -423,9 +425,7 @@ router.post('/', middleware.checkToken, function (req, res, next) {
     }
     return appManager.addApp(uid, appName, req.users.identical)
     .then(function () {
-      var collaborators = {};
-      collaborators[req.users.email + ""] = {permission: "Owner"};
-      return {name: appName, collaborators: collaborators};
+      return {name: appName, collaborators: {[req.users.email]: {permission: "Owner"}}};
     });
   })
   .then(function (data) {

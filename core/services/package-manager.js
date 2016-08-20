@@ -124,6 +124,14 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
             },{where: {id: deploymentId}, transaction: t})
           ])
           .then(function () {
+            //插入日志
+            models.DeploymentsHistory.create({
+              deployment_id: deploymentId,
+              package_id: packages.id,
+            })
+            .catch(function(e){
+              console.log(e);
+            });
             return packages;
           });
         });
