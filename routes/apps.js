@@ -138,7 +138,7 @@ router.delete('/:appName/deployments/:deploymentName/history',
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var deployments = new Deployments();
-  accountManager.collaboratorCan(uid, appName)
+  accountManager.ownerCan(uid, appName)
   .then(function(col){
     return deployments.findDeloymentByName(deploymentName, col.appid)
     .then(function (deploymentInfo) {
