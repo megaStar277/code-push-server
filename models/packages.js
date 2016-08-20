@@ -8,7 +8,7 @@ module.exports = function(sequelize, DataTypes) {
       autoIncrement: true,
       primaryKey: true
     },
-    deployments_versions_id: DataTypes.INTEGER(10),
+    deployment_version_id: DataTypes.INTEGER(10),
     deployment_id: DataTypes.INTEGER(10),
     description: DataTypes.STRING,
     package_hash: DataTypes.STRING,

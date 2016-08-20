@@ -19,57 +19,6 @@ proto.getAllPackageIdsByDeploymentsId = function(deploymentsId) {
   return models.Packages.findAll({where: {deployment_id: deploymentsId}});
 };
 
-proto.promote = function (sourceDeploymentId, destDeploymentId, promoteUid) {
-  return models.Deployments.findById(sourceDeploymentId)
-  .then(function (sourceDeployment) {
-    var lastDeploymentVersionId = _.get(sourceDeployment, 'last_deployment_version_id', 0);
-    if (_.lte(lastDeploymentVersionId, 0)) {
-      throw new Error('does not exist last_deployment_version_id.');
-    }
-    return models.DeploymentsVersions.findById(lastDeploymentVersionId)
-    .then(function (deploymentsVersions) {
-      var packageId = _.get(deploymentsVersions, 'current_package_id', 0);
-      if (_.lte(packageId, 0)) {
-        throw new Error('does not exist packages.');
-      }
-      return models.Packages.findById(packageId)
-      .then(function (packages) {
-        if (!packages) {
-          throw new Error('does not exist packages.');
-        }
-        return models.DeploymentsVersions.findOne({where: {deployment_id: destDeploymentId, app_version: deploymentsVersions.app_version}})
-        .then(function (data) {
-          if (!_.isEmpty(data)) {
-            return models.Packages.findById(data.current_package_id).then(function (pa) {
-              if (_.eq(_.get(pa, 'package_hash'), packages.package_hash)) {
-                throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
-              }
-              return null;
-            });
-          }
-          return null;
-        })
-        .then(function () {
-          return [sourceDeployment, deploymentsVersions, packages];
-        });
-      });
-    });
-  })
-  .spread(function (sourceDeployment, deploymentsVersions, packages) {
-    var params = {
-      releaseMethod: 'Promote',
-      releaseUid: promoteUid,
-      isMandatory: deploymentsVersions.is_mandatory,
-      size: packages.size,
-      description: packages.description,
-      originalLabel: packages.label,
-      originalDeployment: sourceDeployment.name
-    };
-    var packageManager = new PackageManager();
-    return packageManager.createPackage(destDeploymentId, deploymentsVersions.app_version, packages.package_hash, packages.manifest_blob_url, packages.blob_url, params);
-  });
-};
-
 proto.existDeloymentName = function (appId, name) {
   return models.Deployments.findOne({where: {appid: appId, name: name}})
   .then(function (data) {
@@ -163,7 +112,7 @@ proto.findPackagesAndOtherInfos = function (packageId) {
         return null;
       }),
       userInfo: models.Users.findOne({where: {id: packageInfo.released_by}}),
-      deploymentsVersions: models.DeploymentsVersions.findById(packageInfo.deployments_versions_id)
+      deploymentsVersions: models.DeploymentsVersions.findById(packageInfo.deployment_version_id)
     });
   });
 };

@@ -47,7 +47,7 @@ proto.getDeploymentsVersions = function (deploymentId, appVersion) {
   });
 };
 
-proto.existPackageHash = function (deploymentId, appVersion, packageHash) {
+proto.existPackageHashAndCreateVersions = function (deploymentId, appVersion, packageHash) {
   return this.getDeploymentsVersions(deploymentId, appVersion)
   .then(function (data) {
     if (_.isEmpty(data)){
@@ -236,14 +236,14 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
     }
     return models.Packages.findAll({
       where:{
-        deployments_versions_id: originalPackage.deployments_versions_id,
+        deployment_version_id: originalPackage.deployment_version_id,
         id: {$lt: packageId}},
         order: [['id','desc']],
         limit: num
       })
     .then(function (lastNumsPackages) {
       return self.createDiffPackages(originalPackage, lastNumsPackages);
-    })
+    });
   });
 };
 
@@ -313,7 +313,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
     .then(function (dataCenter) {
       var packageHash = dataCenter.packageHash;
       var manifestFile = dataCenter.manifestFilePath;
-      return self.existPackageHash(deploymentId, appVersion, packageHash)
+      return self.existPackageHashAndCreateVersions(deploymentId, appVersion, packageHash)
       .then(function (isExist) {
         if (isExist){
           throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
@@ -346,3 +346,56 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
     common.deleteFolderSync(directoryPath);
   });
 };
+
+proto.promotePackage = function (sourceDeploymentId, destDeploymentId, promoteUid) {
+  var self = this;
+  return models.Deployments.findById(sourceDeploymentId)
+  .then(function (sourceDeployment) {
+    var lastDeploymentVersionId = _.get(sourceDeployment, 'last_deployment_version_id', 0);
+    if (_.lte(lastDeploymentVersionId, 0)) {
+      throw new Error('does not exist last_deployment_version_id.');
+    }
+    return models.DeploymentsVersions.findById(lastDeploymentVersionId)
+    .then(function (deploymentsVersions) {
+      var packageId = _.get(deploymentsVersions, 'current_package_id', 0);
+      if (_.lte(packageId, 0)) {
+        throw new Error('does not exist packages.');
+      }
+      return models.Packages.findById(packageId)
+      .then(function (packages) {
+        if (!packages) {
+          throw new Error('does not exist packages.');
+        }
+        return self.existPackageHashAndCreateVersions(destDeploymentId, deploymentsVersions.app_version, packages.package_hash)
+        .then(function (isExist) {
+          if (isExist){
+            throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
+          }
+        })
+        .then(function () {
+          return [sourceDeployment, deploymentsVersions, packages];
+        });
+      });
+    });
+  })
+  .spread(function (sourceDeployment, deploymentsVersions, packages) {
+    var params = {
+      releaseMethod: 'Promote',
+      releaseUid: promoteUid,
+      isMandatory: deploymentsVersions.is_mandatory,
+      size: packages.size,
+      description: packages.description,
+      originalLabel: packages.label,
+      originalDeployment: sourceDeployment.name
+    };
+    return self.createPackage(destDeploymentId, deploymentsVersions.app_version, packages.package_hash, packages.manifest_blob_url, packages.blob_url, params);
+  });
+};
+
+proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid) {
+
+}
+
+proto.getRollbackLabel = function (deploymentVersionId) {
+
+}

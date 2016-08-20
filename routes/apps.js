@@ -271,7 +271,7 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
       return [sourceDeploymentInfo.id, destDeploymentInfo.id];
     })
     .spread(function (sourceDeploymentId, destDeploymentId) {
-      return deployments.promote(sourceDeploymentId, destDeploymentId, uid);
+      return packageManager.promotePackage(sourceDeploymentId, destDeploymentId, uid);
     });
   })
   .then(function (packages) {
@@ -294,15 +294,24 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   });
 });
 
-router.post('/:appName/deployments/:deploymentName/rollback',
-  middleware.checkToken, function (req, res, next) {
+var rollbackCb = function (req, res, next) {
+  var appName = _.trim(req.params.appName);
+  var deploymentName = _.trim(req.params.deploymentName);
+  var uid = req.users.id;
+  var targetLabel = _.trim(_.get(req, 'params.label'));
+  var deployments = new Deployments();
+  accountManager.collaboratorCan(uid, appName)
+  .then(function (col) {
+    return deployments.findDeloymentByName(deploymentName, col.appid);
+  });
   res.send('ok');
-});
+};
+
+router.post('/:appName/deployments/:deploymentName/rollback',
+  middleware.checkToken, rollbackCb);
 
 router.post('/:appName/deployments/:deploymentName/rollback/:label',
-  middleware.checkToken, function (req, res, next) {
-  res.send('ok');
-});
+  middleware.checkToken, rollbackCb);
 
 router.get('/:appName/collaborators',
   middleware.checkToken, function (req, res, next) {
