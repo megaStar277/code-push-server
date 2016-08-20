@@ -87,42 +87,45 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
   return models.Deployments.generateLabelId(deploymentId)
   .then(function (labelId) {
     return models.sequelize.transaction(function (t) {
-      return models.Packages.create({
-        deployment_id: deploymentId,
-        description: description,
-        package_hash: packageHash,
-        blob_url: blobHash,
-        size: size,
-        manifest_blob_url: manifestHash,
-        release_method: releaseMethod,
-        label: "v" + labelId,
-        released_by: releaseUid,
-        original_label: originalLabel,
-        original_deployment: originalDeployment
-      },{transaction: t})
-      .then(function (packages) {
-        return models.DeploymentsVersions.findOne({where: {deployment_id: deploymentId, app_version: appVersion}})
-        .then(function (deploymentsVersions) {
-          if (!deploymentsVersions) {
-            return models.DeploymentsVersions.create({
-              is_mandatory: isMandatory,
-              current_package_id: packages.id,
-              deployment_id: deploymentId,
-              app_version: appVersion
-            },{transaction: t});
-          } else {
-            deploymentsVersions.set('is_mandatory', isMandatory);
-            deploymentsVersions.set('current_package_id', packages.id);
-            return deploymentsVersions.save({transaction: t});
-          }
-        })
-        .then(function (deploymentsVersions) {
-          return models.Deployments.update({
-            last_deployment_version_id: deploymentsVersions.id
-          },{where: {id: deploymentId}, transaction: t});
-        })
-        .then(function () {
-          return packages;
+      return models.DeploymentsVersions.findOne({where: {deployment_id: deploymentId, app_version: appVersion}})
+      .then(function (deploymentsVersions) {
+        if (!deploymentsVersions) {
+          return models.DeploymentsVersions.create({
+            is_mandatory: isMandatory,
+            current_package_id: 0,
+            deployment_id: deploymentId,
+            app_version: appVersion
+          },{transaction: t});
+        }
+        return deploymentsVersions;
+      })
+      .then(function(deploymentsVersions) {
+        return models.Packages.create({
+          deployments_versions_id: deploymentsVersions.id,
+          deployment_id: deploymentId,
+          description: description,
+          package_hash: packageHash,
+          blob_url: blobHash,
+          size: size,
+          manifest_blob_url: manifestHash,
+          release_method: releaseMethod,
+          label: "v" + labelId,
+          released_by: releaseUid,
+          original_label: originalLabel,
+          original_deployment: originalDeployment
+        },{transaction: t})
+        .then(function (packages) {
+          deploymentsVersions.set('is_mandatory', isMandatory);
+          deploymentsVersions.set('current_package_id', packages.id);
+          return Promise.all([
+            deploymentsVersions.save({transaction: t}),
+            models.Deployments.update({
+              last_deployment_version_id: deploymentsVersions.id
+            },{where: {id: deploymentId}, transaction: t})
+          ])
+          .then(function () {
+            return packages;
+          });
         });
       });
     });
@@ -227,8 +230,8 @@ proto.createDiffPackages = function (packageId, num) {
       where:{
         deployment_id: data.deployment_id,
         id: {$lt: packageId}},
-        order:[['id','desc']],
-        limit:num
+        order: [['id','desc']],
+        limit: num
       })
     .then(function (lastNumsPackages) {
       if (_.isEmpty(lastNumsPackages)) {

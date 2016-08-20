@@ -86,7 +86,7 @@ proto.getPackagesInfo = function (deploymentKey, label) {
     if (_.isEmpty(dep)) {
       throw new Error('does not found deployment');
     }
-    return models.Packages.findOne({where: {deployment_id:dep.id, label: label}});
+    return models.Packages.findOne({where: {deployment_id: dep.id, label: label}});
   })
   .then(function (packages) {
     if (_.isEmpty(packages)) {

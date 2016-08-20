@@ -34,21 +34,22 @@ proto.promote = function (sourceDeploymentId, destDeploymentId, promoteUid) {
       }
       return models.Packages.findById(packageId)
       .then(function (packages) {
-        if (_.isEmpty(packages)) {
+        if (!packages) {
           throw new Error('does not exist packages.');
         }
-        return models.DeploymentsVersions.findOne({
-          where: {deployment_id: destDeploymentId, app_version: deploymentsVersions.app_version}}).then(function (data) {
+        return models.DeploymentsVersions.findOne({where: {deployment_id: destDeploymentId, app_version: deploymentsVersions.app_version}})
+        .then(function (data) {
           if (!_.isEmpty(data)) {
             return models.Packages.findById(data.current_package_id).then(function (pa) {
               if (_.eq(_.get(pa, 'package_hash'), packages.package_hash)) {
                 throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
               }
-              return {};
+              return null;
             });
           }
-          return {};
-        }).then(function () {
+          return null;
+        })
+        .then(function () {
           return [sourceDeployment, deploymentsVersions, packages];
         });
       });
