@@ -275,7 +275,7 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
     });
   })
   .then(function (packages) {
-    if (!_.isEmpty(packages)) {
+    if (packages) {
       Promise.delay(2000)
       .then(function () {
         packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
@@ -300,11 +300,20 @@ var rollbackCb = function (req, res, next) {
   var uid = req.users.id;
   var targetLabel = _.trim(_.get(req, 'params.label'));
   var deployments = new Deployments();
+  var packageManager = new PackageManager();
   accountManager.collaboratorCan(uid, appName)
   .then(function (col) {
     return deployments.findDeloymentByName(deploymentName, col.appid);
+  })
+  .then(function(dep){
+    return packageManager.rollbackPackage(dep.last_deployment_version_id, targetLabel, uid);
+  })
+  .then(function () {
+     res.send('ok');
+  })
+  .catch(function (e) {
+    res.status(406).send(e.message);
   });
-  res.send('ok');
 };
 
 router.post('/:appName/deployments/:deploymentName/rollback',

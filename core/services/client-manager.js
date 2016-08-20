@@ -33,7 +33,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     if (_.isEmpty(dep)) {
       throw new Error('does not found deployment');
     }
-    return models.DeploymentsVersions.findOne({where: {deployment_id:dep.id, app_version: appVersion}});
+    return models.DeploymentsVersions.findOne({where: {deployment_id: dep.id, app_version: appVersion}});
   })
   .then(function (deploymentsVersions) {
     var packageId = _.get(deploymentsVersions, 'current_package_id', 0);

@@ -101,7 +101,7 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
       })
       .then(function(deploymentsVersions) {
         return models.Packages.create({
-          deployments_versions_id: deploymentsVersions.id,
+          deployment_version_id: deploymentsVersions.id,
           deployment_id: deploymentId,
           description: description,
           package_hash: packageHash,
@@ -393,9 +393,59 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, promoteUi
 };
 
 proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid) {
-
+  var self = this;
+  return models.DeploymentsVersions.findById(deploymentVersionId)
+  .then(function(deploymentsVersions){
+    if (!deploymentsVersions) {
+      throw new Error("您之前还没有发布过版本");
+    }
+    return models.Packages.findById(deploymentsVersions.current_package_id)
+    .then(function (currentPackageInfo){
+      if (targetLabel) {
+        return models.Packages.findAll({where: {deployment_version_id: deploymentVersionId, label: targetLabel}, limit: 1})
+        .then(function(rollbackPackageInfos) {
+          return [currentPackageInfo, rollbackPackageInfos]
+        });
+      } else {
+        return self.getCanRollbackPackages(deploymentVersionId)
+        .then(function(rollbackPackageInfos) {
+          return [currentPackageInfo, rollbackPackageInfos]
+        });
+      }
+    })
+    .spread(function (currentPackageInfo, rollbackPackageInfos){
+      if (currentPackageInfo && rollbackPackageInfos.length > 0) {
+        for (var i = rollbackPackageInfos.length - 1; i >= 0; i--) {
+          if (rollbackPackageInfos[i].package_hash != currentPackageInfo.package_hash) {
+            return rollbackPackageInfos[i];
+          }
+        }
+      }
+      throw new Error("没有可供回滚的版本");
+    })
+    .then(function(rollbackPackage){
+      var params = {
+        releaseMethod: 'Rollback',
+        releaseUid: rollbackUid,
+        isMandatory: deploymentsVersions.is_mandatory,
+        size: rollbackPackage.size,
+        description: rollbackPackage.description,
+        originalLabel: rollbackPackage.label,
+        originalDeployment: ''
+      };
+      return self.createPackage(deploymentsVersions.deployment_id,
+        deploymentsVersions.app_version,
+        rollbackPackage.package_hash,
+        rollbackPackage.manifest_blob_url,
+        rollbackPackage.blob_url,
+        params
+        );
+    });
+  });
 }
 
-proto.getRollbackLabel = function (deploymentVersionId) {
-
+proto.getCanRollbackPackages = function (deploymentVersionId) {
+  return models.Packages.findAll({
+    where: {deployment_version_id: deploymentVersionId, release_method: {$in: ['Upload', 'Promote'] }}, order: [['id','desc']], limit: 2
+  });
 }

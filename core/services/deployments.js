@@ -145,6 +145,8 @@ proto.formatPackage = function(packageVersion) {
     diffPackageMap: _.get(packageVersion, 'packageDiffMap'),
     releaseMethod: _.get(packageVersion, "packageInfo.release_method"),
     uploadTime: parseInt(moment(_.get(packageVersion, "packageInfo.updated_at")).format('x')),
+    originalLabel: _.get(packageVersion, "packageInfo.original_label"),
+    originalDeployment: _.get(packageVersion, "packageInfo.original_deployment"),
     label: _.get(packageVersion, "packageInfo.label"),
     releasedBy: _.get(packageVersion, "userInfo.email"),
   };
