@@ -37,10 +37,13 @@ security.parseToken = function(token) {
 }
 
 security.fileSha256 = function (file) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var rs = fs.createReadStream(file);
     var hash = crypto.createHash('sha256');
     rs.on('data', hash.update.bind(hash));
+    rs.on('error', function(e){
+      reject(e);
+    });
     rs.on('end', function () {
       resolve(hash.digest('hex'));
     });
@@ -65,13 +68,13 @@ security.packageHashSync = function (jsonData) {
 
 //参数为buffer或者readableStream或者文件路径
 security.qetag = function (buffer) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     qetag(buffer, resolve);
   });
 }
 
 security.qetagString = function (contents) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var Readable = require('stream').Readable
     var buffer = new Readable
     buffer.push(contents)
@@ -81,7 +84,7 @@ security.qetagString = function (contents) {
 }
 
 security.sha256AllFiles = function (files) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var results = {};
     var length = files.length;
     var count = 0;
@@ -99,7 +102,7 @@ security.sha256AllFiles = function (files) {
 }
 
 security.isAndroidPackage = function (directoryPath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
@@ -108,7 +111,7 @@ security.isAndroidPackage = function (directoryPath) {
         reject(error);
       } else {
         if (files.length == 0) {
-          reject({message: "empty files"});
+          reject(new Error("empty files"));
         }else {
           const AREGEX=/android\.bundle/
           var isAndroid = false;
@@ -126,7 +129,7 @@ security.isAndroidPackage = function (directoryPath) {
 }
 
 security.calcAllFileSha256 = function (directoryPath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
@@ -135,7 +138,7 @@ security.calcAllFileSha256 = function (directoryPath) {
         reject(error);
       } else {
         if (files.length == 0) {
-          reject({message: "empty files"});
+          reject(new Error("empty files"));
         }else {
           security.sha256AllFiles(files)
           .then(function (results) {

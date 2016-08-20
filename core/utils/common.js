@@ -74,7 +74,7 @@ common.createEmptyFolder = function (folderPath) {
     common.deleteFolder(folderPath).then(function (data) {
       fsextra.mkdirp(folderPath, function (err) {
         if (err) {
-          reject({message: "create error"});
+          reject(new Error("create error"));
         } else {
           resolve(folderPath);
         }
@@ -93,7 +93,7 @@ common.unzipFile = function (zipFile, outputPath) {
     try {
       fs.exists(zipFile, function(exists){
         if (!exists) {
-          reject({message: 'zipfile not found!'})
+          reject(new Error("zipfile not found!"))
         }
         var readStream = fs.createReadStream(zipFile);
         var extract = unzip.Extract({ path: outputPath });
@@ -103,7 +103,7 @@ common.unzipFile = function (zipFile, outputPath) {
         });
       })
     } catch (e) {
-      reject({message: 'zipfile not found!'})
+      reject(e)
     }
   });
 };
@@ -175,7 +175,7 @@ common.uploadFileToQiniu = function (key, filePath) {
         try {
           var uptoken = common.uptoken(bucket, key);
         } catch (e) {
-          reject({message: e.message});
+          reject(e);
         }
         var extra = new qiniu.io.PutExtra();
         qiniu.io.putFile(uptoken, key, filePath, extra, function(err, ret) {
@@ -184,7 +184,7 @@ common.uploadFileToQiniu = function (key, filePath) {
             resolve(ret.hash);
           } else {
             // 上传失败， 处理返回代码
-            reject({message: JSON.stringify(err)});
+            reject(new Error(JSON.stringify(err)));
           }
         });
       }

@@ -29,10 +29,10 @@ proto.parseReqFile = function (req) {
     var form = new formidable.IncomingForm();
     form.parse(req, function(err, fields, files) {
       if (err) {
-        reject({message: "upload error"});
+        reject(new Error("upload error"));
       } else {
         if (_.isEmpty(fields.packageInfo) || _.isEmpty(files.package)) {
-          reject({message: "upload info lack"});
+          reject(new Error("upload info lack"));
         } else {
           resolve({packageInfo:JSON.parse(fields.packageInfo), package: files.package});
         }
@@ -217,43 +217,49 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
       });
     });
   });
-}
+};
 
-proto.createDiffPackages = function (packageId, num) {
+proto.createDiffPackagesByLastNums = function (packageId, num) {
   var self = this;
   return models.Packages.findById(packageId)
-  .then(function (data) {
-    if (_.isEmpty(data)) {
+  .then(function (originalPackage) {
+    if (_.isEmpty(originalPackage)) {
       throw Error('can\'t find Package');
     }
     return models.Packages.findAll({
       where:{
-        deployment_id: data.deployment_id,
+        deployments_versions_id: originalPackage.deployments_versions_id,
         id: {$lt: packageId}},
         order: [['id','desc']],
         limit: num
       })
     .then(function (lastNumsPackages) {
-      if (_.isEmpty(lastNumsPackages)) {
-        return null;
-      }
-      var package_hash = _.get(data, 'package_hash');
-      var manifest_blob_url = _.get(data, 'manifest_blob_url');
-      var blob_url = _.get(data, 'blob_url');
-      var workDirectoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
-      common.createEmptyFolderSync(workDirectoryPath);
-      return self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url)
-      .then(function (dataCenter) {
-        return Promise.all(
-          _.map(lastNumsPackages, function (v) {
-            return self.generateOneDiffPackage(workDirectoryPath, packageId, dataCenter, v.package_hash, v.manifest_blob_url);
-          })
-        );
-      })
-      .finally(function () {
-        common.deleteFolderSync(workDirectoryPath);
-      });
+      return self.createDiffPackages(originalPackage, lastNumsPackages);
     })
+  });
+};
+
+proto.createDiffPackages = function (originalPackage, destPackages) {
+  if (!_.isArray(destPackages)) {
+    return Promise.reject(new Error('第二个参数必须是数组'));
+  }
+  if (destPackages.length <= 0) {
+    return null;
+  }
+  var self = this;
+  var package_hash = _.get(originalPackage, 'package_hash');
+  var manifest_blob_url = _.get(originalPackage, 'manifest_blob_url');
+  var blob_url = _.get(originalPackage, 'blob_url');
+  var workDirectoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
+  common.createEmptyFolderSync(workDirectoryPath);
+  return self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url)
+  .then(function (dataCenter) {
+    return Promise.map(destPackages, function (v) {
+      return self.generateOneDiffPackage(workDirectoryPath, originalPackage.id, dataCenter, v.package_hash, v.manifest_blob_url);
+    });
+  })
+  .finally(function () {
+    common.deleteFolderSync(workDirectoryPath);
   });
 }
 

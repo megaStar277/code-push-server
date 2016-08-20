@@ -181,9 +181,12 @@ router.post('/:appName/deployments/:deploymentName/release',
         });
       })
       .then(function (packages) {
-        if (!_.isEmpty(packages)) {
+        if (packages) {
           setTimeout(function () {
-            packageManager.createDiffPackages(packages.id, _.get(config, 'common.diffNums', 1))
+            packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
+            .catch(function(e){
+              console.log(e);
+            });
           }, 2000)
         }
         return null;
@@ -229,7 +232,10 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   .then(function (packages) {
     if (!_.isEmpty(packages)) {
       setTimeout(function () {
-        packageManager.createDiffPackages(packages.id, _.get(config, 'common.diffNums', 1));
+        packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
+        .catch(function(e){
+          console.log(e);
+        });
       }, 2000)
     }
     return null;

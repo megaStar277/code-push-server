@@ -157,7 +157,7 @@ const EXPIRED_SPEED = 10;
 
 proto.sendRegisterCode = function (email) {
   if (_.isEmpty(email)) {
-    return Promise.reject({message: '请您输入邮箱地址'});
+    return Promise.reject(new Error("请您输入邮箱地址"));
   }
   return models.Users.findOne({where: {email: email}})
   .then(function (u) {
@@ -229,7 +229,7 @@ proto.register = function (email, password) {
 
 proto.changePassword = function (uid, oldPassword, newPassword) {
   if (!_.isString(newPassword) || newPassword.length < 6) {
-    return Promise.reject({message: '请您输入6～20位长度的新密码'})
+    return Promise.reject(new Error("请您输入6～20位长度的新密码"));
   }
   return models.Users.findOne({where: {id: uid}})
   .then(function (u) {
