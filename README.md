@@ -1,6 +1,6 @@
 # CodePush Server [source](https://github.com/lisong/code-push-server)
 
-CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's cloud server. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use local storage, just modify config.js file, it's simple configure.
+CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use local storage, just modify config.js file, it's simple configure.
 
 ## EXAMPLE
 
@@ -25,6 +25,7 @@ $ cd /path/to/code-push-server
 $ mysql -uroot -e"create database codepush default charset utf8;"
 $ mysql -uroot codepush < ./sql/codepush.sql
 $ mysql -uroot codepush < ./sql/codepush-v0.1.1.sql
+$ mysql -uroot codepush < ./sql/codepush-v0.1.5.sql
 $ npm install
 ```
 
@@ -63,7 +64,7 @@ $ PORT=3000 HOST=127.0.0.1 NODE_ENV=production node ./bin/www
 Use code-push-cli manager CodePushServer
 
 ```shell
-$ npm i code-push-cli@lastest -g
+$ npm install code-push-cli@lastest -g
 $ code-push login http://127.0.0.1:3000 #login in browser account:admin password:123456
 ```
 
@@ -72,7 +73,8 @@ $ code-push login http://127.0.0.1:3000 #login in browser account:admin password
 ## react-native-code-push
 
 ```shell
-npm i react-native-code-push@lastest -g
+$ cd /path/to/project
+$ npm install react-native-code-push@lastest
 ```
 
 ## config react-native project
