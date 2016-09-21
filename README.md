@@ -46,6 +46,10 @@ read [config.js](https://github.com/lisong/code-push-server/blob/master/config/c
 
 ## Storage mode [local/qiniu]
 
+- 配置local存储
+修改config/config.js中storageType值为local,配置中local下面storageDir和downloadUrl，如果不在同一台机器上，downloadUrl请指定域名或者ip地址
+
+
 ## RUN
 
 ```shell
