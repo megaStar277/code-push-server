@@ -22,7 +22,7 @@ config.development = {
     downloadUrl: "http://localhost:3000/download"
   },
   common: {
-    //登录jwt签名密钥，必须更改，否则有安全隐患，可以随机生成字符串
+    //登录jwt签名密钥，必须更改，否则有安全隐患，可以使用随机生成的字符串
     loginSecret: "CodePushServer",
     //当天登录密码错误尝试次数，超过次数帐户将会锁定。0:表示无限制，可能会出现暴力破解。 大于0:必须开启redis服务。
     tryLoginTimes: 0,
