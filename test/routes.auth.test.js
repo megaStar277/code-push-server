@@ -14,7 +14,7 @@ describe('routes/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        res.text.should.containEql(`{"status":"ERROR","errorMessage":"请您输入邮箱地址"}`);
+        res.text.should.equal(`{"status":"ERROR","errorMessage":"请您输入邮箱地址"}`);
         done();
       });
     });
@@ -26,7 +26,7 @@ describe('routes/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        res.text.should.containEql(`{"status":"ERROR","errorMessage":"您输入的邮箱或密码有误"}`);
+        res.text.should.equal(`{"status":"ERROR","errorMessage":"您输入的邮箱或密码有误"}`);
         done();
       });
     });
@@ -38,7 +38,7 @@ describe('routes/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        res.text.should.containEql(`{"status":"ERROR","errorMessage":"您输入的邮箱或密码有误"}`);
+        res.text.should.equal(`{"status":"ERROR","errorMessage":"您输入的邮箱或密码有误"}`);
         done();
       });
     });
@@ -50,9 +50,31 @@ describe('routes/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        JSON.parse(res.text).status.should.containEql('OK')
+        JSON.parse(res.text).status.should.equal('OK')
         done();
       });
     });
-  })
+  });
+
+  describe('logout', function(done) {
+    it('should logout successful', function(done) {
+      request.post('/auth/logout')
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.text.should.equal('ok');
+        done();
+      });
+    });
+  });
+
+  describe('link', function(done) {
+    it('should link successful', function(done) {
+      request.get('/auth/link')
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.headers.location.should.equal('/auth/login');
+        done();
+      });
+    });
+  });
 });
