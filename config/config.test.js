@@ -36,15 +36,7 @@ config.test = {
     storageType: "local"
   },
   //邮件配置，注册模块验证邮箱需要使用 参考https://github.com/nodemailer/nodemailer
-  smtpConfig:{
-    host: "smtp.mxhichina.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: "",
-      pass: ""
-    }
-  },
+  smtpConfig: false,
   //配置redis, 注册时需要， 登录限制密码出错次数
   redis: {
     default: {

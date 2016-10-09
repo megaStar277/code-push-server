@@ -22,6 +22,9 @@ proto.sendMail = function (options) {
       return reject(new Error("to是必传参数"));
     }
     var smtpConfig = _.get(config, 'smtpConfig');
+    if (!smtpConfig) {
+      resolve({});
+    }
     var transporter = nodemailer.createTransport(smtpConfig);
     var sendEmailAddress = _.get(smtpConfig, 'auth.user');
     var defaultMailOptions = {

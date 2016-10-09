@@ -162,7 +162,7 @@ proto.sendRegisterCode = function (email) {
   return models.Users.findOne({where: {email: email}})
   .then(function (u) {
     if (u) {
-      throw new Error(`"${email}" 已经注册，请更换邮箱注册`);
+      throw new Error(`"${email}" 已经注册过，请更换邮箱注册`);
     }
   })
   .then(function () {

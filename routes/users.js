@@ -18,7 +18,7 @@ router.post('/', function (req, res, next) {
   return accountManager.checkRegisterCode(email, token)
   .then(function (u) {
     if (_.isString(password) && password.length < 6) {
-      throw new Error('密码长度至少为6位');
+      throw new Error('请您输入6～20位长度的密码');
     }
     return accountManager.register(email, password);
   })
@@ -32,9 +32,12 @@ router.post('/', function (req, res, next) {
 });
 
 router.get('/exists', function (req, res, next) {
-  var email = _.get(req, 'query.email');
+  var email = _.trim(_.get(req, 'query.email'));
   models.Users.findOne({where: {email: email}})
   .then(function (u) {
+    if (!email) {
+      throw new Error(`请您输入邮箱地址`);
+    }
     res.send({status: "OK", exists: u ? true : false});
   })
   .catch(function (e) {

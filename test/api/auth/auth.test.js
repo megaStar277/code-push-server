@@ -3,8 +3,9 @@ var request = require('supertest')(app);
 var should = require("should");
 
 describe('api/auth/test.js', function() {
-  var account = 'lisong2010@gmail.com';
+  var account = '522539441@qq.com';
   var password = '123456';
+
   describe('sign in', function(done) {
     it('should not sign in successful when account is empty', function(done) {
       request.post('/auth/login')
@@ -14,7 +15,7 @@ describe('api/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        res.text.should.equal(`{"status":"ERROR","errorMessage":"请您输入邮箱地址"}`);
+        JSON.parse(res.text).should.containEql({status:"ERROR",errorMessage:"请您输入邮箱地址"});
         done();
       });
     });
@@ -26,7 +27,7 @@ describe('api/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        res.text.should.equal(`{"status":"ERROR","errorMessage":"您输入的邮箱或密码有误"}`);
+        JSON.parse(res.text).should.containEql({status:"ERROR",errorMessage:"您输入的邮箱或密码有误"});
         done();
       });
     });
@@ -38,7 +39,7 @@ describe('api/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        res.text.should.equal(`{"status":"ERROR","errorMessage":"您输入的邮箱或密码有误"}`);
+        JSON.parse(res.text).should.containEql({status:"ERROR",errorMessage:"您输入的邮箱或密码有误"});
         done();
       });
     });
@@ -50,7 +51,7 @@ describe('api/auth/test.js', function() {
       })
       .end(function(err, res) {
         should.not.exist(err);
-        JSON.parse(res.text).status.should.equal('OK')
+        JSON.parse(res.text).should.containEql({status:"OK"})
         done();
       });
     });
