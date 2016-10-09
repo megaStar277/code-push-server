@@ -1,10 +1,60 @@
 var app = require('../../../app');
 var request = require('supertest')(app);
 var should = require("should");
+var config = require('../../../core/config');
+var _ = require('lodash');
 
 describe('api/auth/test.js', function() {
   var account = '522539441@qq.com';
   var password = '123456';
+
+  describe('sign in view', function(done) {
+    it('should show sign in redirect view successful', function(done) {
+      _.set(config, 'common.codePushWebUrl', 'http://localhost:3001')
+      request.get('/auth/login')
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(302);
+        done();
+      });
+    });
+
+    it('should show sign in view successful', function(done) {
+      _.set(config, 'common.codePushWebUrl', null)
+      request.get('/auth/login')
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        done();
+      });
+    });
+  });
+
+  describe('sign up view', function(done) {
+    it('should show sign up redirect view successful', function(done) {
+      _.set(config, 'common.codePushWebUrl', 'http://localhost:3001')
+      request.get('/auth/register')
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(302);
+        done();
+      });
+    });
+
+    it('should show sign up view successful', function(done) {
+      _.set(config, 'common.codePushWebUrl', null)
+      request.get('/auth/register')
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        done();
+      });
+    });
+  });
 
   describe('sign in', function(done) {
     it('should not sign in successful when account is empty', function(done) {
