@@ -82,7 +82,7 @@ proto.createAccessKey = function (uid, newAccessKey, isSession, ttl, friendlyNam
     name: friendlyName,
     tokens: newAccessKey,
     description: description,
-    is_session: isSession ? true : false,
+    is_session: isSession ? 1 : 0,
     created_by: createdBy,
     expires_at: moment().add(ttl/1000, 'seconds').format('YYYY-MM-DD HH:mm:ss'),
     created_at: moment().format('YYYY-MM-DD HH:mm:ss'),

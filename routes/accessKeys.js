@@ -86,9 +86,9 @@ router.patch('/:name', middleware.checkToken, function(req, res, next){
   })
   .then(function (token) {
     var moment = require('moment');
-    if (ttl > 0) {
-      var newExp = moment(token.get('expires_at')).add(ttl/1000, 'seconds').format('YYYY-MM-DD HH:mm:ss')
-      token.set('expires_at', newExp)
+    if (ttl > 0 || ttl < 0) {
+      var newExp = moment(token.get('expires_at')).add(ttl/1000, 'seconds').format('YYYY-MM-DD HH:mm:ss');
+      token.set('expires_at', newExp);
     }
     if (friendlyName.length > 0) {
       token.set('name', friendlyName);
