@@ -1,8 +1,8 @@
-var app = require('../app');
+var app = require('../../../app');
 var request = require('supertest')(app);
 var should = require("should");
 
-describe('routes/auth/test.js', function() {
+describe('api/auth/test.js', function() {
   var account = 'lisong2010@gmail.com';
   var password = '123456';
   describe('sign in', function(done) {

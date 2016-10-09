@@ -36,6 +36,5 @@ insert_final_newline = true
 [**.yml]
 indent_size = 2
 
-[**.php]
-indent_size = 4
-indent_style = space
+[Makefile]
+indent_style = tab

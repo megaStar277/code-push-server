@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node ./bin/www",
-    "test": "istanbul cover _mocha"
+    "test": "make test",
+    "coverage": "make coverage"
   },
   "author": {
     "name": "Tab Lee",
