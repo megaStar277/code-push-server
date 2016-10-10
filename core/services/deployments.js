@@ -63,7 +63,7 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
       if (_.gt(affectedCount, 0)) {
         return {name: newName};
       } else {
-        throw new Error('does not find the deployment');
+        throw new Error(`does not find the deployment "${deploymentName}"`);
       }
     });
   });
@@ -77,7 +77,7 @@ proto.deleteDeloymentByName = function (deploymentName, appId) {
     if (_.gt(rowNum, 0)) {
       return {name: `${deploymentName}`};
     } else {
-      throw new Error('does not find the deployment');
+      throw new Error(`does not find the deployment "${deploymentName}"`);
     }
   });
 };
