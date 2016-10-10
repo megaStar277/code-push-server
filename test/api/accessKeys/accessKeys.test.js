@@ -30,7 +30,7 @@ describe('api/accessKeys/accessKeys.test.js', function() {
     it('should create accessKeys successful', function(done) {
       request.post(`/accessKeys`)
       .set('Authorization', `Basic ${authToken}`)
-      .send({createdBy: 'tablee', friendlyName: 'test', isSession: false, ttl: 30*24*60*60})
+      .send({createdBy: 'tablee', friendlyName: friendlyName, isSession: false, ttl: 30*24*60*60})
       .end(function(err, res) {
         should.not.exist(err);
         res.status.should.equal(200);
