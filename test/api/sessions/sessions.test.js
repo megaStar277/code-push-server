@@ -26,7 +26,7 @@ describe('api/sessions/sessions.test.js', function() {
     });
   });
 
-  describe('create accessKeys', function(done) {
+  describe('create accessKeys', function() {
     it('should create accessKeys successful', function(done) {
       request.post(`/accessKeys`)
       .set('Authorization', `Basic ${authToken}`)
@@ -43,7 +43,7 @@ describe('api/sessions/sessions.test.js', function() {
     });
   });
 
-  describe('delete sessions', function(done) {
+  describe('delete sessions', function() {
     it('should delete sessions successful', function(done) {
       request.delete(`/sessions/${encodeURI(machineName)}`)
       .set('Authorization', `Basic ${authToken}`)
@@ -55,5 +55,4 @@ describe('api/sessions/sessions.test.js', function() {
       });
     });
   });
-
 });

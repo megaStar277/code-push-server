@@ -70,7 +70,6 @@ describe('api/accessKeys/accessKeys.test.js', function() {
           return it.should.have.properties(['name', 'createdTime', 'createdBy',
           'expires', 'isSession', 'description', 'friendlyName']);
         });
-
         done();
       });
     });
