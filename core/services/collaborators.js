@@ -44,7 +44,7 @@ proto.addCollaborator = function (appId, uid) {
         roles: "Collaborator"
       });
     }else {
-      throw new Error('user aleady is Collaborator.');
+      throw new Error('user already is Collaborator.');
     }
   });
 };
