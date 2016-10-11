@@ -1,3 +1,5 @@
+var os = require('os');
+
 var config = {};
 config.test = {
   //数据库配置
@@ -17,7 +19,7 @@ config.test = {
   },
   //文件存储在本地配置 当storageType为local时需要配置
   local: {
-    storageDir: "/Users/tablee/workspaces/storage",
+    storageDir: os.tmpdir(),
     //文件下载地址 CodePush Server 地址 + '/download' download对应app.js里面的地址
     downloadUrl: "http://localhost:3000/download"
   },
@@ -31,7 +33,7 @@ config.test = {
     //差异化更新版本生成数目 默认为3
     diffNums: 3,
     //数据目录，优化选项
-    dataDir: "/Users/tablee/workspaces/data",
+    dataDir: os.tmpdir(),
     //选择存储类型，目前支持local和qiniu配置
     storageType: "local"
   },
