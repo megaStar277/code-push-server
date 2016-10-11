@@ -5,6 +5,7 @@ var path = require("path");
 var security = require('../../../core/utils/security');
 var factory = require('../../../core/utils/factory');
 var _ = require('lodash');
+const SLEEP_TIME = 5000;
 
 describe('api/apps/release.test.js', function() {
   var account = '522539441@qq.com';
@@ -76,6 +77,20 @@ describe('api/apps/release.test.js', function() {
         done();
       });
     });
+
+    it('should release apps v2 successful', function(done) {
+      request.post(`/apps/${appName}/deployments/Staging/release`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .attach('package', path.resolve(__dirname, './bundle_v2.zip'))
+      .field('packageInfo', `{"appVersion": "1.0.0", "description": "test", "isMandatory": false}`)
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        setTimeout(function(){
+          done();
+        }, SLEEP_TIME);
+      });
+    });
   });
 
   describe('promote apps', function(done) {
@@ -86,6 +101,127 @@ describe('api/apps/release.test.js', function() {
       .end(function(err, res) {
         should.not.exist(err);
         res.status.should.equal(200);
+        done();
+      });
+    });
+  });
+
+  describe('rollback deployments', function(done) {
+    it('should rollback deployments successful when point labels', function(done) {
+      request.post(`/apps/${appName}/deployments/Staging/rollback/v1`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        res.text.should.equal(`ok`);
+        setTimeout(function(){
+          done();
+        }, SLEEP_TIME);
+      });
+    });
+
+    it('should rollback deployments successful', function(done) {
+      request.post(`/apps/${appName}/deployments/Staging/rollback`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        res.text.should.equal(`ok`);
+        setTimeout(function(){
+          done();
+        }, SLEEP_TIME);
+      });
+    });
+  });
+
+  describe('show deployments history', function(done) {
+    it('should not show deployments history successful where deployments does not exist', function(done) {
+      request.get(`/apps/${appName}/deployments/Test/history`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(406);
+        res.text.should.equal(`does not find the deployment`);
+        done();
+      });
+    });
+
+    it('should show deployments history successful', function(done) {
+      request.get(`/apps/${appName}/deployments/Staging/history`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        var rs = JSON.parse(res.text);
+        rs.should.have.properties('history');
+        rs.history.should.be.an.instanceOf(Array);
+        rs.history.should.matchEach(function(it) {
+          return it.should.have.properties([
+            'description','isDisabled','isMandatory','rollout','appVersion','packageHash',
+            'blobUrl','size','manifestBlobUrl','diffPackageMap','releaseMethod','uploadTime',
+            'originalLabel','originalDeployment','label','releasedBy'
+          ]);
+        });
+        done();
+      });
+    });
+  });
+
+  describe('delete deployments history', function(done) {
+    it('should not delete deployments history successful where deployments does not exist', function(done) {
+      request.delete(`/apps/${appName}/deployments/Test/history`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(406);
+        res.text.should.equal(`does not find the deployment`);
+        done();
+      });
+    });
+
+    it('should delete deployments history successful', function(done) {
+      request.delete(`/apps/${appName}/deployments/Staging/history`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        res.text.should.equal(`ok`);
+        done();
+      });
+    });
+  });
+
+  describe('show deployments metrics', function(done) {
+    it('should not show deployments metrics successful where deployments does not exist', function(done) {
+      request.get(`/apps/${appName}/deployments/Test/metrics`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        done();
+      });
+    });
+
+    it('should show deployments metrics successful', function(done) {
+      request.get(`/apps/${appName}/deployments/Staging/metrics`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send()
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(200);
+        var rs = JSON.parse(res.text);
+        rs.should.have.properties('metrics');
+        rs.metrics.should.be.an.instanceOf(Object);
+        rs.metrics.should.matchEach(function(it) {
+          return it.should.have.properties(['active','downloaded','failed','installed']);
+        });
         done();
       });
     });

@@ -18,7 +18,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     description: "",
     isAvailable: false,
     isMandatory: false,
-    appVersion: "1.0.1",
+    appVersion: appVersion,
     packageHash: "",
     label: "",
     packageSize: 0,
@@ -43,7 +43,9 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     var downloadURL = common.getDownloadUrl();
     return models.Packages.findById(packageId)
     .then(function (packages) {
-      if (packages && _.eq(packages.deployment_id, deploymentsVersions.deployment_id) ) {
+      if (packages
+        && _.eq(packages.deployment_id, deploymentsVersions.deployment_id)
+        && !_.eq(packages.package_hash, packageHash)) {
         rs.downloadURL = `${downloadURL}/${_.get(packages, 'blob_url')}`;
         rs.description = _.get(packages, 'description', '');
         rs.isAvailable = true;
@@ -56,6 +58,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
       }
       return packages;
     })
+
     .then(function (packages) {
       //差异化更新
       if (!_.isEmpty(packages) && !_.eq(_.get(packages, 'package_hash', ""), packageHash)) {
