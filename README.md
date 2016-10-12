@@ -104,7 +104,7 @@ $ PORT=3000 HOST=127.0.0.1 NODE_ENV=production node ./bin/www
 Use code-push-cli manager CodePushServer
 
 ```shell
-$ npm install code-push-cli@lastest -g
+$ npm install code-push-cli@latest -g
 $ code-push login http://127.0.0.1:3000 #login in browser account:admin password:123456
 ```
 
@@ -114,7 +114,7 @@ $ code-push login http://127.0.0.1:3000 #login in browser account:admin password
 
 ```shell
 $ cd /path/to/project
-$ npm install react-native-code-push@lastest
+$ npm install react-native-code-push@latest
 ```
 
 ## config react-native project
