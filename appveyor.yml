@@ -27,7 +27,6 @@ install:
   - if exist node_modules npm prune
   - if exist node_modules npm rebuild
   - npm install
-build: off
 test_script:
   - node --version
   - npm --version
