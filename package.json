@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "test": "make test",
-    "test-win": "NODE_ENV=test CONFIG_FILE=config/config.test.js mocha test/api/init test/api/users test/api/auth test/api/account test/api/accessKeys test/api/sessions test/api/apps test/api/index --recursive --timeout 15000",
+    "test-win": "mocha test/api/init test/api/users test/api/auth test/api/account test/api/accessKeys test/api/sessions test/api/apps test/api/index --recursive --timeout 15000",
     "coverage": "make coverage"
   },
   "author": {
