@@ -34,7 +34,7 @@ test_script:
   - node --version
   - node_modules\.bin\npm --version
   - set NODE_ENV=test
-  - set CONFIG_FILE=config/config.test.js
+  - set CONFIG_FILE=config/config.testwin.js
   - node_modules\.bin\npm run test-win
 build: off
 version: "{build}"
