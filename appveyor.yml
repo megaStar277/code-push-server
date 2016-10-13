@@ -22,8 +22,8 @@ cache:
 install:
   - ps: Install-Product node $env:nodejs_version
   - cmd: nuget install redis-64 -excludeversion
-  - cmd: redis-64\redis-server.exe --service-install
-  - cmd: redis-64\redis-server.exe --service-start
+  - cmd: redis-64\tools\redis-server.exe --service-install
+  - cmd: redis-64\tools\redis-server.exe --service-start
   - if exist node_modules npm prune
   - if exist node_modules npm rebuild
   - npm install
