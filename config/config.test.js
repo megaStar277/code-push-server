@@ -5,7 +5,7 @@ config.test = {
   //数据库配置
   db: {
     username: "root",
-    password: "null",
+    password: null,
     database: "codepush_test",
     host: "127.0.0.1",
     dialect: "mysql"
