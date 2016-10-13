@@ -1,3 +1,5 @@
+init:
+  - git config --global core.autocrlf input
 
 environment:
   matrix:
@@ -21,14 +23,16 @@ cache:
   - node_modules
 install:
   - ps: Install-Product node $env:nodejs_version
+  - npm install npm@next
   - cmd: nuget install redis-64 -excludeversion
   - cmd: redis-64\tools\redis-server.exe --service-install
   - cmd: redis-64\tools\redis-server.exe --service-start
-  - if exist node_modules npm prune
-  - if exist node_modules npm rebuild
-  - npm install
+  - if exist node_modules node_modules\.bin\npm prune
+  - if exist node_modules node_modules\.bin\npm rebuild
+  - node_modules\.bin\npm install
 test_script:
   - node --version
-  - npm --version
-  - npm run test
+  - node_modules\.bin\npm --version
+  - node_modules\.bin\npm run test
+build: off
 version: "{build}"
