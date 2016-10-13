@@ -18,7 +18,7 @@
     "url": "https://github.com/lisong/"
   },
   "dependencies": {
-    "bcrypt": "^0.8.5",
+    "bcrypt": "^0.8.7",
     "bluebird": "^3.4.1",
     "body-parser": "~1.13.2",
     "cookie-parser": "~1.3.5",
