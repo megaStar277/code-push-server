@@ -33,6 +33,6 @@ install:
 test_script:
   - node --version
   - node_modules\.bin\npm --version
-  - node_modules\.bin\npm run test
+  - node_modules\.bin\npm run test-win
 build: off
 version: "{build}"
