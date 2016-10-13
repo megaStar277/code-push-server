@@ -6,16 +6,23 @@
     "type": "git",
     "url": "git://github.com/lisong/code-push-server.git"
   },
+  "author": {
+    "name": "Tab Lee",
+    "email": "lisong2010@gmail.com",
+    "url": "https://github.com/lisong/"
+  },
+  "bin": {
+    "code-push-server": "./bin/www"
+  },
+  "engines": {
+    "node": ">= 5.0",
+    "npm": ">= 3.10.8"
+  },
   "scripts": {
     "start": "node ./bin/www",
     "test": "make test",
     "test-win": "mocha test/api/init test/api/users test/api/auth test/api/account test/api/accessKeys test/api/sessions test/api/apps test/api/index --recursive --timeout 15000",
     "coverage": "make coverage"
-  },
-  "author": {
-    "name": "Tab Lee",
-    "email": "lisong2010@gmail.com",
-    "url": "https://github.com/lisong/"
   },
   "dependencies": {
     "bcrypt": "^0.8.7",
