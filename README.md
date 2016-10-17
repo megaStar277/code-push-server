@@ -45,8 +45,9 @@ $ code-push-server #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```shell
 $ git clone https://github.com/lisong/code-push-server.git
 $ cd code-push-server
-$ ./bin/db init --dbhost localhost --dbuser root --dbpassword
 $ npm install
+$ ./bin/db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
+$ ./bin/www #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```
 
 ## CONFIG
