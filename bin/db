@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+var fs = require('fs');
+var path   = require('path');
+var yargs = require('yargs')
+    .usage('Usage: $0 <command> [options]')
+    .command('init', '初始化数据库')
+    .example('$0 init --dbname codepush --dbhost localhost --dbuser root --dbpassword 123456', '初始化code-push-server数据库')
+    .default({dbname: 'codepush', dbhost: 'localhost', dbuser: 'root', dbpassword: null})
+    .help('h')
+    .alias('h', 'help');
+var argv = yargs
+    .argv;
+var command = argv._[0];
+var mysql = require('mysql');
+var Promise = require("bluebird");
+var dbname = argv.dbname ? argv.dbname : 'codepush';
+var dbhost = argv.dbhost ? argv.dbhost : 'localhost';
+var dbuser = argv.dbuser ? argv.dbuser : 'root';
+var dbpassword = argv.dbpassword ? argv.dbpassword : null;
+if (command === 'init') {
+    var connection2;
+    var connection = mysql.createConnection({
+        host: dbhost,
+        user: dbuser,
+        password: dbpassword
+    });
+    Promise.promisifyAll(connection);
+    connection.connect();
+    connection.queryAsync(`CREATE DATABASE ${dbname}`)
+    .then(function(){
+        connection2 = mysql.createConnection({
+            host: dbhost,
+            user: dbuser,
+            password: dbpassword,
+            database: dbname,
+            multipleStatements: true
+        });
+        connection2.connect();
+        Promise.promisifyAll(connection2);
+        return connection2;
+    })
+    .then(function(connection2){
+        var sql = fs.readFileSync(path.resolve(__dirname, '../sql/codepush.sql'), 'utf-8');
+        var sql2 = fs.readFileSync(path.resolve(__dirname, '../sql/codepush-v0.1.1.sql'), 'utf-8');
+        var sql3 = fs.readFileSync(path.resolve(__dirname, '../sql/codepush-v0.1.5.sql'), 'utf-8');
+        return connection2.queryAsync(sql)
+        .then(function(){
+            return connection2.queryAsync(sql2);
+        })
+        .then(function(){
+            return connection2.queryAsync(sql3);
+        });
+    })
+    .then(function(){
+        console.log('success.');
+    })
+    .catch(function(e){
+        console.log(e);
+    })
+    .finally(function(){
+        if(connection) connection.end();
+        if(connection2) connection2.end()
+    });
+} else {
+    yargs.showHelp();
+}

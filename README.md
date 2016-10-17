@@ -32,14 +32,20 @@ $ code-push login http://codepush.19910225.com:8080 #登录
 
 [CodePushDemo](https://github.com/lisong/code-push-demo-app)
 
-## INSTALL
+## INSTALL FROM NPM PACKAGE
 
 ```shell
-$ cd /path/to/code-push-server
-$ mysql -uroot -e"create database codepush default charset utf8;"
-$ mysql -uroot codepush < ./sql/codepush.sql
-$ mysql -uroot codepush < ./sql/codepush-v0.1.1.sql
-$ mysql -uroot codepush < ./sql/codepush-v0.1.5.sql
+$ npm install code-push-server -g
+$ code-push-server-db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
+$ code-push-server #启动服务
+```
+
+## INSTALL FROM SOURCE CODE
+
+```shell
+$ git clone https://github.com/lisong/code-push-server.git
+$ cd code-push-server
+$ ./bin/db init --dbhost localhost --dbuser root --dbpassword
 $ npm install
 ```
 

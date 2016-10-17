@@ -13,7 +13,8 @@
     "url": "https://github.com/lisong/"
   },
   "bin": {
-    "code-push-server": "./bin/www"
+    "code-push-server": "./bin/www",
+    "code-push-server-db": "./bin/db"
   },
   "engines": {
     "node": ">= 5.0",
@@ -55,6 +56,7 @@
     "serve-favicon": "~2.3.0",
     "slash": "^1.0.0",
     "validator": "^5.0.0",
+    "yargs": "^6.2.0",
     "yazl": "^2.3.0"
   },
   "devDependencies": {
