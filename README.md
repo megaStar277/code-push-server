@@ -37,7 +37,7 @@ $ code-push login http://codepush.19910225.com:8080 #登录
 ```shell
 $ npm install code-push-server -g
 $ code-push-server-db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
-$ code-push-server #启动服务
+$ code-push-server #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```
 
 ## INSTALL FROM SOURCE CODE
