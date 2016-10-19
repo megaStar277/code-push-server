@@ -1,6 +1,6 @@
 {
   "name": "code-push-server",
-  "description": "Base on microsoft CodePush project, adaptor code-push-cli and react-native-code-push, setup react-native hot update service for yourself",
+  "description": "CodePush service",
   "version": "0.2.1",
   "license": "MIT",
   "repository": {

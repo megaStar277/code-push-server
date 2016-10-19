@@ -7,7 +7,7 @@ describe('api/index/index.test.js', function() {
   var account = '522539441@qq.com';
   var password = '123456';
   var authToken;
-  var appName = 'ios_demo';
+  var appName = 'Demo-ios';
   var deploymentKey;
   var packageHash;
   var label;

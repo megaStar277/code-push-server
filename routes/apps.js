@@ -11,6 +11,11 @@ var AppManager = require('../core/services/app-manager');
 var PackageManager = require('../core/services/package-manager');
 var common = require('../core/utils/common');
 var config    = require('../core/config');
+const REGEX = /^(\w+)(-android|-ios)$/;
+const REGEX_ANDROID = /^(\w+)(-android)$/;
+const REGEX_IOS = /^(\w+)(-ios)$/;
+const OLD_REGEX_ANDROID = /^(android_)/;
+const OLD_REGEX_IOS = /^(ios_)/;
 
 router.get('/',
   middleware.checkToken, function(req, res, next) {
@@ -203,15 +208,16 @@ router.post('/:appName/deployments/:deploymentName/release',
   var uid = req.users.id;
   var deployments = new Deployments();
   var packageManager = new PackageManager();
-  const AREGEX = /^android_/;
-  var pubType = '';
-  if (AREGEX.test(appName)) {
-    pubType = 'android';
-  } else {
-    pubType = 'ios';
-  }
   accountManager.collaboratorCan(uid, appName)
   .then(function (col) {
+    var pubType = '';
+    if (REGEX_ANDROID.test(appName)) {
+      pubType = 'android';
+    } else if (REGEX_IOS.test(appName)) {
+      pubType = 'ios';
+    } else {
+      throw new Error(`you have to rename app name, eg. Demo-android Demo-ios`);
+    }
     return deployments.findDeloymentByName(deploymentName, col.appid)
     .then(function (deploymentInfo) {
       if (_.isEmpty(deploymentInfo)) {
@@ -425,6 +431,17 @@ router.patch('/:appName',
     var appManager = new AppManager();
     return accountManager.ownerCan(uid, appName)
     .then(function (col) {
+      if (REGEX_ANDROID.test(appName) || OLD_REGEX_ANDROID.test(appName)) {
+        if (!REGEX_ANDROID.test(newAppName)) {
+          throw new Error(`new appName have to point -android suffix! eg. Demo-android`);
+        }
+      } else if (REGEX_IOS.test(appName) || OLD_REGEX_IOS.test(appName)) {
+        if (!REGEX_IOS.test(newAppName)) {
+          throw new Error(`new appName have to point -ios suffix! eg. Demo-ios`);
+        }
+      } else {
+        throw new Error(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
+      }
       return appManager.findAppByName(uid, newAppName)
       .then(function (appInfo) {
         if (!_.isEmpty(appInfo)){
@@ -476,14 +493,13 @@ router.post('/', middleware.checkToken, function (req, res, next) {
   if (_.isEmpty(appName)) {
     return res.status(406).send("Please input name!");
   }
-  const REGEX = /^[android_|ios_]/;
   appManager.findAppByName(uid, appName)
   .then(function (appInfo) {
     if (!_.isEmpty(appInfo)){
       throw new Error(appName + " Exist!");
     }
     if (!REGEX.test(appName)) {
-      throw new Error(`appName have to point android_ or ios_ prefix! like android_${appName} ios_${appName}`);
+      throw new Error(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
     }
     return appManager.addApp(uid, appName, req.users.identical)
     .then(function () {

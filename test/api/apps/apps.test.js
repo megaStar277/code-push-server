@@ -13,8 +13,8 @@ describe('api/apps/apps.test.js', function() {
   var authToken;
   var machineName = `Login-${Math.random()}`;
   var friendlyName = `Login-${Math.random()}`;
-  var appName = 'ios_test';
-  var newAppName = 'ios_newtest';
+  var appName = 'test-ios';
+  var newAppName = 'newtest-ios';
   var bearerToken;
   var testDeployment = 'test';
   var newTestDeployment = 'newtest';
@@ -73,7 +73,7 @@ describe('api/apps/apps.test.js', function() {
       .end(function(err, res) {
         should.not.exist(err);
         res.status.should.equal(406);
-        res.text.should.equal(`appName have to point android_ or ios_ prefix! like android_${appName} ios_${appName}`);
+        res.text.should.equal(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
         done();
       });
     });
@@ -429,7 +429,20 @@ describe('api/apps/apps.test.js', function() {
       });
     });
 
-    it(`should rename apps successful when new name does exists`, function(done) {
+    it(`should not rename apps successful when new name invalid`, function(done) {
+      var newAppName = 'newtest';
+      request.patch(`/apps/${appName}`)
+      .set('Authorization', `Bearer ${bearerToken}`)
+      .send({name: newAppName})
+      .end(function(err, res) {
+        should.not.exist(err);
+        res.status.should.equal(406);
+        res.text.should.equal(`new appName have to point -ios suffix! eg. Demo-ios`);
+        done();
+      });
+    });
+
+    it(`should rename apps successful`, function(done) {
       request.patch(`/apps/${appName}`)
       .set('Authorization', `Bearer ${bearerToken}`)
       .send({name: newAppName})

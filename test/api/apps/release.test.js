@@ -13,7 +13,7 @@ describe('api/apps/release.test.js', function() {
   var authToken;
   var machineName = `Login-${Math.random()}`;
   var friendlyName = `Login-${Math.random()}`;
-  var appName = 'ios_demo';
+  var appName = 'Demo-ios';
   var bearerToken;
 
   before(function(done){
