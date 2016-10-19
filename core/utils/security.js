@@ -112,12 +112,17 @@ security.isAndroidPackage = function (directoryPath) {
       } else {
         if (files.length == 0) {
           reject(new Error("empty files"));
-        }else {
+        } else {
           const AREGEX=/android\.bundle/
-          var isAndroid = false;
+          const AREGEX_IOS=/main\.jsbundle/
+          var isAndroid = 0;
           _.forIn(files, function (value) {
             if (AREGEX.test(value)) {
-              isAndroid = true;
+              isAndroid = 1;
+              return false;
+            }
+            if (AREGEX_IOS.test(value)) {
+              isAndroid = 2;
               return false;
             }
           });

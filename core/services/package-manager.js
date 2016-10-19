@@ -290,17 +290,19 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   ])
   .spread(function(blobHash) {
     return security.isAndroidPackage(directoryPath)
-    .then(function (isAndroid) {
-      if (pubType == 'android' ) {
-        if (!isAndroid){
+    .then(function (type) {
+      if (type === 1) {
+        //android
+        if (pubType !== 'android' ) {
           throw new Error("it must be publish it by android type");
         }
-      } else if (pubType == 'ios') {
-        if (isAndroid){
+      } else if (type === 2) {
+        //ios
+        if (pubType !== 'ios'){
           throw new Error("it must be publish it by ios type");
         }
-      }else {
-        throw new Error(`${pubType} does not support.`);
+      } else {
+        //不验证
       }
     })
     .then(function(){
