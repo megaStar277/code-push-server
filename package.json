@@ -1,12 +1,20 @@
 {
   "name": "code-push-server",
-  "description": "CodePush service",
+  "description": "CodePush service for react-native and cordova",
   "version": "0.2.1",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/lisong/code-push-server.git"
   },
+  "keywords": [
+    "code-push",
+    "react-native",
+    "cordova",
+    "services",
+    "code",
+    "push"
+  ],
   "author": {
     "name": "Tab Lee",
     "email": "lisong2010@gmail.com",

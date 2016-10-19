@@ -30,7 +30,8 @@ $ code-push login http://codepush.19910225.com:8080 #登录
 
 ### 客户端eg.
 
-[CodePushDemo](https://github.com/lisong/code-push-demo-app)
+[ReactNative CodePushDemo](https://github.com/lisong/code-push-demo-app)
+[Cordova CodePushDemo](https://github.com/lisong/code-push-cordova-demo-app)
 
 ## INSTALL FROM NPM PACKAGE
 
@@ -96,13 +97,13 @@ read [config.js](https://github.com/lisong/code-push-server/blob/master/config/c
 ## RUN
 
 ```shell
-$ node ./bin/www
+$ node ./bin/www # or code-push-server
 ```
 
 or point config file and ENV
 
 ```shell
-$ CONFIG_FILE=/path/to/config.js NODE_ENV=production node ./bin/www
+$ CONFIG_FILE=/path/to/config.js NODE_ENV=production node ./bin/www # or CONFIG_FILE=/path/to/config.js NODE_ENV=production code-push-server
 ```
 
 notice. you have to change `loginSecret` in config.js for security.
@@ -111,7 +112,7 @@ notice. you have to change `loginSecret` in config.js for security.
 you can change like this.
 
 ```shell
-$ PORT=3000 HOST=127.0.0.1 NODE_ENV=production node ./bin/www
+$ PORT=3000 HOST=127.0.0.1 NODE_ENV=production node ./bin/www # or PORT=3000 HOST=127.0.0.1 NODE_ENV=production code-push-server
 ```
 
 ## code-push-cli 
@@ -124,7 +125,7 @@ $ code-push login http://127.0.0.1:3000 #login in browser account:admin password
 
 [code-push-cli source](https://github.com/Microsoft/code-push)
 
-## react-native-code-push
+## [react-native-code-push](https://github.com/Microsoft/react-native-code-push) for react-native
 
 ```shell
 $ cd /path/to/project
@@ -162,8 +163,28 @@ protected List<ReactPackage> getPackages() {
 }
 ```
 
-[react-native-code-push source](https://github.com/Microsoft/react-native-code-push)
 
+## [cordova-plugin-code-push](https://github.com/Microsoft/cordova-plugin-code-push) for cordova
+
+```shell
+$ cd /path/to/project
+$ cordova plugin add cordova-plugin-code-push@latest --save
+```
+
+## config cordova project
+
+edit config.xml. add code below.
+
+```xml
+<platform name="android">
+    <preference name="CodePushDeploymentKey" value="nVHPr6asLSusnWoLBNCSktk9FWbiqLF160UDg" />
+    <preference name="CodePushServerUrl" value="http://codepush.19910225.com:8080/" />
+</platform>
+<platform name="ios">
+    <preference name="CodePushDeploymentKey" value="Iw5DMZSIrCOS7hbLsY5tHAHNITFQqLF160UDg" />
+    <preference name="CodePushServerUrl" value="http://codepush.19910225.com:8080/" />
+</platform>
+```
 
 ## Production Manage
 use [pm2](http://pm2.keymetrics.io/) to manage process.
