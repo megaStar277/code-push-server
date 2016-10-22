@@ -5,6 +5,7 @@
  */
 var fs = require('fs');
 var path   = require('path');
+var _   = require('lodash');
 var yargs = require('yargs')
     .usage('Usage: $0 <command> [options]')
     .command('init', '初始化数据库')
@@ -20,7 +21,7 @@ var Promise = require("bluebird");
 var dbname = argv.dbname ? argv.dbname : 'codepush';
 var dbhost = argv.dbhost ? argv.dbhost : 'localhost';
 var dbuser = argv.dbuser ? argv.dbuser : 'root';
-var dbpassword = argv.dbpassword ? argv.dbpassword : null;
+var dbpassword = _.isString(argv.dbpassword) ? argv.dbpassword : null;
 if (command === 'init') {
     var connection2;
     var connection = mysql.createConnection({
