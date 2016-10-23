@@ -10,7 +10,7 @@ router.get('/login', function(req, res, next) {
   var isRedirect = false;
   if (codePushWebUrl) {
     var validator = require('validator');
-    if (validator.isUrl(codePushWebUrl)){
+    if (validator.isURL(codePushWebUrl)){
       isRedirect = true;
     }
   }
@@ -31,7 +31,7 @@ router.get('/register', function(req, res, next) {
   var isRedirect = false;
   if (codePushWebUrl) {
     var validator = require('validator');
-    if (validator.isUrl(codePushWebUrl)){
+    if (validator.isURL(codePushWebUrl)){
       isRedirect = true;
     }
   }
