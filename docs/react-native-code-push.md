@@ -14,7 +14,7 @@
  - Q: “code-push使用复杂么？”    
    A: “不复杂。很多网上的文章说复杂，是因为作者没有仔细理解官方文档，而且认为踩坑了。”
 
- - Q: “为什么推荐code-push？”
+ - Q: “为什么推荐code-push？”    
    A: ”非常好。除了满足基本更新功能外，还有统计，hash计算容错和差异化更新功能。微软的项目，大公司技术有保障，而且开源。读大学的时候，个人非常讨厌微软，近几年微软在拥抱开源方面，让大家也是刮目相看。“
 
 ## 安装依赖包
@@ -43,14 +43,9 @@ $ react-native link react-native-code-push  #连接到项目中，提示输入�
 #### 4. [code-push-server](https://github.com/lisong/code-push-server) 微软云服务在中国太慢，可以用它搭建自己的服务端。具体配置参考该项目
 
 ```shell
-$ git clone https://github.com/lisong/code-push-server.git
-$ cd code-push-server
-$ mysql -uroot -e"create database codepush default charset utf8;"
-$ mysql -uroot codepush < ./sql/codepush.sql
-$ mysql -uroot codepush < ./sql/codepush-v0.1.1.sql
-$ mysql -uroot codepush < ./sql/codepush-v0.1.5.sql
-$ npm install
-$ PORT=3000 HOST=127.0.0.1 node ./bin/www
+$ npm install code-push-server -g
+$ code-push-server-db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
+$ code-push-server #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```
 
 ## 创建服务端应用
