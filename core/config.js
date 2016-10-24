@@ -1,7 +1,11 @@
 var env       = process.env.NODE_ENV || 'development';
-var CONFIG_FILE = process.env.CONFIG_FILE || './config/config.js';
-var path = require('path');
 var _    = require('lodash');
-var CONFIG_PATH = path.join(__dirname, path.relative(__dirname, CONFIG_FILE));
-var config    = _.get(require(CONFIG_PATH), env);
+var path = require('path');
+var config = {};
+if (process.env.CONFIG_FILE) {
+  var CONFIG_PATH = path.join(__dirname, path.relative(__dirname, process.env.CONFIG_FILE));
+  config = _.get(require(CONFIG_PATH), env);
+} else {
+  config = _.get(require('../config/config.js'), env);
+}
 module.exports = config;
