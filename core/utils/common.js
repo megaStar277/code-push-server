@@ -1,7 +1,7 @@
 'use strict';
 var Promise = require('bluebird');
 var fs = require("fs");
-var fsextra = require("fs.extra");
+var fsextra = require("fs-extra");
 var unzip = require('node-unzip-2');
 var config    = require('../config');
 var _ = require('lodash');
@@ -39,23 +39,19 @@ common.createFileFromRequest = function (url, filePath) {
 }
 
 common.move = function (sourceDst, targertDst) {
-  return new Promise(function (resolve, reject, notify) {
-    var ncp = require('ncp').ncp;
-    ncp.limit = 16;
-    ncp.clobber = true;
-    ncp(sourceDst, targertDst, function (err) {
+  return new Promise(function (resolve, reject) {
+    fsextra.move(sourceDst, targertDst, {clobber: true, limit: 16}, function (err) {
       if (err) {
         return reject(err);
       }
       resolve();
-      common.deleteFolder(sourceDst);
     });
   });
 };
 
 common.deleteFolder = function (folderPath) {
   return new Promise(function (resolve, reject, notify) {
-    fsextra.rmrf(folderPath, function (err) {
+    fsextra.remove(folderPath, function (err) {
       if (err) {
         reject(err);
       }else {
@@ -66,13 +62,13 @@ common.deleteFolder = function (folderPath) {
 };
 
 common.deleteFolderSync = function (folderPath) {
-  return fsextra.rmrfSync(folderPath);
+  return fsextra.removeSync(folderPath);
 };
 
 common.createEmptyFolder = function (folderPath) {
   return new Promise(function (resolve, reject, notify) {
     common.deleteFolder(folderPath).then(function (data) {
-      fsextra.mkdirp(folderPath, function (err) {
+      fsextra.mkdirs(folderPath, function (err) {
         if (err) {
           reject(new Error("create error"));
         } else {
@@ -85,7 +81,7 @@ common.createEmptyFolder = function (folderPath) {
 
 common.createEmptyFolderSync = function (folderPath) {
   common.deleteFolderSync(folderPath);
-  return fsextra.mkdirp(folderPath);
+  return fsextra.mkdirsSync(folderPath);
 };
 
 common.unzipFile = function (zipFile, outputPath) {
