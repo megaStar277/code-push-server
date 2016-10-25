@@ -1,7 +1,7 @@
 {
   "name": "code-push-server",
   "description": "CodePush service for react-native and cordova",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "repository": {
     "type": "git",
