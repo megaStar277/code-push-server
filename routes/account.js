@@ -5,7 +5,7 @@ var _ = require('lodash');
 var security = require('../core/utils/security');
 var middleware = require('../core/middleware');
 
-router.get('/', middleware.checkToken, function(req, res, next) {
+router.get('/', middleware.checkToken, function(req, res) {
   var userInfo = {
     email:req.users.email,
     id:req.users.identical,

@@ -4,7 +4,7 @@ var _ = require('lodash');
 var models = require('../models');
 var middleware = require('../core/middleware');
 
-router.delete('/:machineName', middleware.checkToken, function(req, res, next){
+router.delete('/:machineName', middleware.checkToken, function(req, res){
   var machineName = _.trim(decodeURI(req.params.machineName));
   var uid = req.users.id;
   models.UserTokens.destroy({where: {created_by:machineName, uid: uid}})

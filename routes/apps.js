@@ -18,7 +18,7 @@ const OLD_REGEX_ANDROID = /^(android_)/;
 const OLD_REGEX_IOS = /^(ios_)/;
 
 router.get('/',
-  middleware.checkToken, function(req, res, next) {
+  middleware.checkToken, function(req, res) {
   var uid = req.users.id;
   var appManager = new AppManager();
   appManager.listApps(uid)
@@ -31,7 +31,7 @@ router.get('/',
 });
 
 router.get('/:appName/deployments',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deployments = new Deployments();
@@ -48,7 +48,7 @@ router.get('/:appName/deployments',
 });
 
 router.post('/:appName/deployments',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var name = req.body.name;
@@ -66,7 +66,7 @@ router.post('/:appName/deployments',
 });
 
 router.get('/:appName/deployments/:deploymentName/metrics',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
@@ -111,7 +111,7 @@ router.get('/:appName/deployments/:deploymentName/metrics',
 });
 
 router.get('/:appName/deployments/:deploymentName/history',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
@@ -138,7 +138,7 @@ router.get('/:appName/deployments/:deploymentName/history',
 });
 
 router.delete('/:appName/deployments/:deploymentName/history',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
@@ -165,7 +165,7 @@ router.delete('/:appName/deployments/:deploymentName/history',
 });
 
 router.patch('/:appName/deployments/:deploymentName',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var name = req.body.name;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
@@ -184,7 +184,7 @@ router.patch('/:appName/deployments/:deploymentName',
 });
 
 router.delete('/:appName/deployments/:deploymentName',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
@@ -202,7 +202,7 @@ router.delete('/:appName/deployments/:deploymentName',
 });
 
 router.post('/:appName/deployments/:deploymentName/release',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
@@ -253,7 +253,7 @@ router.post('/:appName/deployments/:deploymentName/release',
 });
 
 router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var sourceDeploymentName = _.trim(req.params.sourceDeploymentName);
   var destDeploymentName = _.trim(req.params.destDeploymentName);
@@ -300,7 +300,7 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   });
 });
 
-var rollbackCb = function (req, res, next) {
+var rollbackCb = function (req, res) {
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
@@ -329,7 +329,7 @@ router.post('/:appName/deployments/:deploymentName/rollback/:label',
   middleware.checkToken, rollbackCb);
 
 router.get('/:appName/collaborators',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
   var collaborators = new Collaborators();
@@ -354,7 +354,7 @@ router.get('/:appName/collaborators',
 });
 
 router.post('/:appName/collaborators/:email',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var email = _.trim(req.params.email);
   var uid = req.users.id;
@@ -377,7 +377,7 @@ router.post('/:appName/collaborators/:email',
 });
 
 router.delete('/:appName/collaborators/:email',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var email = _.trim(decodeURI(req.params.email));
   var uid = req.users.id;
@@ -404,7 +404,7 @@ router.delete('/:appName/collaborators/:email',
 });
 
 router.delete('/:appName',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
   var appManager = new AppManager();
@@ -421,7 +421,7 @@ router.delete('/:appName',
 });
 
 router.patch('/:appName',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var newAppName = _.trim(req.body.name);
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
@@ -460,7 +460,7 @@ router.patch('/:appName',
 });
 
 router.post('/:appName/transfer/:email',
-  middleware.checkToken, function (req, res, next) {
+  middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);
   var email = _.trim(req.params.email);
   var uid = req.users.id;
@@ -486,7 +486,7 @@ router.post('/:appName/transfer/:email',
   });
 });
 
-router.post('/', middleware.checkToken, function (req, res, next) {
+router.post('/', middleware.checkToken, function (req, res) {
   var appName = req.body.name;
   var uid = req.users.id;
   var appManager = new AppManager();

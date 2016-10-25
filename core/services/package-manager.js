@@ -160,7 +160,7 @@ proto.downloadPackageAndExtract = function (workDirectoryPath, packageHash, blob
 }
 
 proto.zipDiffPackage = function (fileName, files, baseDirectoryPath, hotCodePushFile) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     var zipFile = new yazl.ZipFile();
     var writeStream = fs.createWriteStream(fileName);
     writeStream.on('error', function (error) {

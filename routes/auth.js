@@ -4,7 +4,7 @@ var _ = require('lodash');
 var security = require('../core/utils/security');
 var accountManager = require('../core/services/account-manager')();
 
-router.get('/login', function(req, res, next) {
+router.get('/login', function(req, res) {
   var config = require('../core/config');
   var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
   var isRedirect = false;
@@ -21,11 +21,11 @@ router.get('/login', function(req, res, next) {
   }
 });
 
-router.get('/link', function(req, res, next) {
+router.get('/link', function(req, res) {
   res.redirect(`/auth/login`);
 });
 
-router.get('/register', function(req, res, next) {
+router.get('/register', function(req, res) {
   var config = require('../core/config');
   var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
   var isRedirect = false;
@@ -42,11 +42,11 @@ router.get('/register', function(req, res, next) {
   }
 });
 
-router.post('/logout', function (req, res, next) {
+router.post('/logout', function (req, res) {
   res.send("ok");
 });
 
-router.post('/login', function(req, res, next) {
+router.post('/login', function(req, res) {
   var account = _.trim(req.body.account);
   var password = _.trim(req.body.password);
   var config = require('../core/config');

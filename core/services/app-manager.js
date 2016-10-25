@@ -83,7 +83,7 @@ proto.transferApp = function (appId, fromUid, toUid) {
 };
 
 proto.listApps = function (uid) {
-  let self = this;
+  const self = this;
   return models.Collaborators.findAll({where : {uid: uid}})
   .then(function(data){
     if (_.isEmpty(data)){

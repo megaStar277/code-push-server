@@ -5,11 +5,11 @@ var middleware = require('../core/middleware');
 var ClientManager = require('../core/services/client-manager');
 var _ = require('lodash');
 
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
   res.render('index', { title: 'CodePushServer' });
 });
 
-router.get('/README.md', function(req, res, next) {
+router.get('/README.md', function(req, res) {
   var MarkdownIt = require('markdown-it');
   const path = require('path');
   const fs = require('fs');
@@ -26,11 +26,11 @@ router.get('/README.md', function(req, res, next) {
 
 });
 
-router.get('/tokens', function(req, res, next) {
+router.get('/tokens', function(req, res) {
   res.render('tokens', { title: '获取token' });
 });
 
-router.get('/updateCheck', function(req, res, next){
+router.get('/updateCheck', function(req, res){
   var deploymentKey = _.get(req, "query.deploymentKey");
   var appVersion = _.get(req, "query.appVersion");
   var label = _.get(req, "query.label");
@@ -45,7 +45,7 @@ router.get('/updateCheck', function(req, res, next){
   });
 });
 
-router.post('/reportStatus/download', function(req, res, next){
+router.post('/reportStatus/download', function(req, res){
   var clientUniqueId = _.get(req, "body.clientUniqueId");
   var label = _.get(req, "body.label");
   var deploymentKey = _.get(req, "body.deploymentKey");
@@ -57,7 +57,7 @@ router.post('/reportStatus/download', function(req, res, next){
   res.send('OK');
 });
 
-router.post('/reportStatus/deploy', function(req, res, next){
+router.post('/reportStatus/deploy', function(req, res){
   var clientUniqueId = _.get(req, "body.clientUniqueId");
   var label = _.get(req, "body.label");
   var deploymentKey = _.get(req, "body.deploymentKey");
@@ -69,7 +69,7 @@ router.post('/reportStatus/deploy', function(req, res, next){
   res.send('OK');
 });
 
-router.get('/authenticated', middleware.checkToken, function (req, res, next) {
+router.get('/authenticated', middleware.checkToken, function (req, res) {
   return res.send({authenticated: true});
 })
 

@@ -7,7 +7,7 @@ var models = require('../models');
 var middleware = require('../core/middleware');
 var accountManager = require('../core/services/account-manager')();
 
-router.get('/', middleware.checkToken, function(req, res, next) {
+router.get('/', middleware.checkToken, function(req, res) {
   var uid = req.users.id;
   accountManager.getAllAccessKeyByUid(uid)
   .then(function(accessKeys){
@@ -18,7 +18,7 @@ router.get('/', middleware.checkToken, function(req, res, next) {
   });
 });
 
-router.post('/', middleware.checkToken, function(req, res, next) {
+router.post('/', middleware.checkToken, function(req, res) {
   var uid = req.users.id;
   var identical = req.users.identical;
   var createdBy = _.trim(req.body.createdBy);
@@ -54,7 +54,7 @@ router.post('/', middleware.checkToken, function(req, res, next) {
   });
 });
 
-router.delete('/:name', middleware.checkToken, function(req, res, next){
+router.delete('/:name', middleware.checkToken, function(req, res){
   var name = _.trim(decodeURI(req.params.name));
   var uid = req.users.id;
   return models.UserTokens.destroy({where: {name:name, uid: uid}})
@@ -66,7 +66,7 @@ router.delete('/:name', middleware.checkToken, function(req, res, next){
   });
 });
 
-router.patch('/:name', middleware.checkToken, function(req, res, next){
+router.patch('/:name', middleware.checkToken, function(req, res){
   var name = _.trim(decodeURI(req.params.name));
   var friendlyName = _.trim(req.body.friendlyName);
   var ttl = _.trim(req.body.ttl);
