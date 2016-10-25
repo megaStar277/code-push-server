@@ -50,7 +50,7 @@ common.move = function (sourceDst, targertDst) {
 };
 
 common.deleteFolder = function (folderPath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     fsextra.remove(folderPath, function (err) {
       if (err) {
         reject(err);
@@ -66,7 +66,7 @@ common.deleteFolderSync = function (folderPath) {
 };
 
 common.createEmptyFolder = function (folderPath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     common.deleteFolder(folderPath).then(function (data) {
       fsextra.mkdirs(folderPath, function (err) {
         if (err) {
@@ -85,7 +85,7 @@ common.createEmptyFolderSync = function (folderPath) {
 };
 
 common.unzipFile = function (zipFile, outputPath) {
-  return new Promise(function (resolve, reject, notify) {
+  return new Promise(function (resolve, reject) {
     try {
       fs.exists(zipFile, function(exists){
         if (!exists) {
@@ -110,7 +110,7 @@ common.uptoken = function (bucket, key) {
 };
 
 common.uploadFileToStorage = function (key, filePath) {
-  if (_.get(config, 'common.storageType') == 'local') {
+  if (_.get(config, 'common.storageType') === 'local') {
     return common.uploadFileToLocal(key, filePath);
   }
   return common.uploadFileToQiniu(key, filePath);
@@ -135,10 +135,7 @@ common.uploadFileToLocal = function (key, filePath) {
     if (!stats.isFile()) {
       throw new Error(`${filePath} must be file`);
     }
-    var ncp = require('ncp').ncp;
-    ncp.limit = 16;
-    ncp.clobber = true;
-    ncp(filePath, `${storageDir}/${key}`, function (err) {
+    fsextra.copy(filePath, `${storageDir}/${key}`, {clobber: true, limit: 16}, function (err) {
       if (err) {
         return reject(err);
       }
@@ -148,7 +145,7 @@ common.uploadFileToLocal = function (key, filePath) {
 };
 
 common.getDownloadUrl = function () {
-  if (_.get(config, 'common.storageType') == 'local') {
+  if (_.get(config, 'common.storageType') === 'local') {
     return _.get(config, 'local.downloadUrl');
   }
   return _.get(config, 'qiniu.downloadUrl');
