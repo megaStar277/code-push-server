@@ -40,7 +40,7 @@ $ code-push login http://codepush.19910225.com:8080 #登录
 
 ```shell
 $ npm install code-push-server -g
-$ code-push-server-db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
+$ code-push-server-db init --dbhost localhost --dbuser root --dbpassword #初始化mysql数据库
 $ code-push-server #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```
 
@@ -50,7 +50,7 @@ $ code-push-server #启动服务 浏览器中打开 http://127.0.0.1:3000
 $ git clone https://github.com/lisong/code-push-server.git
 $ cd code-push-server
 $ npm install
-$ ./bin/db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
+$ ./bin/db init --dbhost localhost --dbuser root --dbpassword #初始化mysql数据库
 $ ./bin/www #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```
 
@@ -118,15 +118,13 @@ you can change like this.
 $ PORT=3000 HOST=127.0.0.1 NODE_ENV=production node ./bin/www # or PORT=3000 HOST=127.0.0.1 NODE_ENV=production code-push-server
 ```
 
-## code-push-cli 
+## [code-push-cli](https://github.com/Microsoft/code-push)
 Use code-push-cli manager CodePushServer
 
 ```shell
 $ npm install code-push-cli@latest -g
 $ code-push login http://127.0.0.1:3000 #login in browser account:admin password:123456
 ```
-
-[code-push-cli source](https://github.com/Microsoft/code-push)
 
 ## [react-native-code-push](https://github.com/Microsoft/react-native-code-push) for react-native
 
