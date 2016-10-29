@@ -1,6 +1,6 @@
 {
   "name": "code-push-server",
-  "description": "CodePush service for react-native and cordova",
+  "description": "CodePush service is hotupdate services which adapter react-native-code-push and cordova-plugin-code-push",
   "version": "0.2.7",
   "license": "MIT",
   "repository": {
