@@ -111,7 +111,7 @@ $ CONFIG_FILE=/path/to/config.js NODE_ENV=production node ./bin/www # or CONFIG_
 
 notice. you have to change `loginSecret` in config.js for security.
 
-## Default listen Host/Port  127.0.0.1/3000 
+## Default listen Host/Port  0.0.0.0/3000 
 you can change like this.
 
 ```shell
