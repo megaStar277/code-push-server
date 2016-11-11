@@ -15,6 +15,12 @@ config.development = {
     bucketName: "",
     downloadUrl: "" //文件下载域名地址
   },
+  // conf for s3
+  s3: {
+    bucketName: process.env.BUCKET_NAME,
+    region: process.env.REGION,
+    downloadUrl: process.env.DOWNLOAD_URL,
+  },
   //文件存储在本地配置 当storageType为local时需要配置
   local: {
     storageDir: "/Users/tablee/workspaces/storage",
