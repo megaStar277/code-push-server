@@ -6,6 +6,7 @@ var unzip = require('node-unzip-2');
 var config    = require('../config');
 var _ = require('lodash');
 var qiniu = require("qiniu");
+var AWS = require('aws-skd');
 var common = {};
 module.exports = common;
 
@@ -183,6 +184,32 @@ common.uploadFileToQiniu = function (key, filePath) {
       }
     });
   });
+};
+
+common.uploadFileToS3 = function (key, filePath) {
+  return (
+    new Promise(function(resolve, reject) {
+      AWS.config.update({
+        region: 'cn-north-1'
+      })
+      var s3 = new AWS.S3({
+        params: {Bucket: 'code-push'}
+      });
+      fs.readFile(filePath, function(err, data) {
+        s3.upload({
+          Key: key,
+          Body: data,
+          ACL:'public-read',
+        }, function(err, response) {
+          if(err) {
+            reject(new Error(JSON.stringify(err)));
+          } else {
+            resolve(response.ETag)
+          }
+        })
+      })
+    })
+  );
 };
 
 common.diffCollectionsSync = function (collection1, collection2) {
