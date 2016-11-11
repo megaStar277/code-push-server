@@ -150,6 +150,8 @@ common.uploadFileToLocal = function (key, filePath) {
 common.getDownloadUrl = function () {
   if (_.get(config, 'common.storageType') === 'local') {
     return _.get(config, 'local.downloadUrl');
+  } else if (_.get(config, 'common.storageType') === 's3') {
+    return _.get(config, 's3.downloadUrl');
   }
   return _.get(config, 'qiniu.downloadUrl');
 }
