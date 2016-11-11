@@ -113,6 +113,8 @@ common.uptoken = function (bucket, key) {
 common.uploadFileToStorage = function (key, filePath) {
   if (_.get(config, 'common.storageType') === 'local') {
     return common.uploadFileToLocal(key, filePath);
+  } else if (_.get(config, 'common.storageType') === 's3') {
+    return common.uploadFileToS3(key, filePath);
   }
   return common.uploadFileToQiniu(key, filePath);
 };
