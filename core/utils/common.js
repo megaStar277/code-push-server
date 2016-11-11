@@ -194,10 +194,10 @@ common.uploadFileToS3 = function (key, filePath) {
   return (
     new Promise(function(resolve, reject) {
       AWS.config.update({
-        region: 'cn-north-1'
-      })
+        region: _.get(config, 's3.region')
+      });
       var s3 = new AWS.S3({
-        params: {Bucket: 'code-push'}
+        params: {Bucket: _.get(config, 's3.bucketName')}
       });
       fs.readFile(filePath, function(err, data) {
         s3.upload({
@@ -211,7 +211,7 @@ common.uploadFileToS3 = function (key, filePath) {
             resolve(response.ETag)
           }
         })
-      })
+      });
     })
   );
 };
