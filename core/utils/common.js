@@ -6,6 +6,7 @@ var unzip = require('node-unzip-2');
 var config    = require('../config');
 var _ = require('lodash');
 var qiniu = require("qiniu");
+var AWS = require('aws-sdk');
 var common = {};
 module.exports = common;
 
@@ -112,6 +113,8 @@ common.uptoken = function (bucket, key) {
 common.uploadFileToStorage = function (key, filePath) {
   if (_.get(config, 'common.storageType') === 'local') {
     return common.uploadFileToLocal(key, filePath);
+  } else if (_.get(config, 'common.storageType') === 's3') {
+    return common.uploadFileToS3(key, filePath);
   }
   return common.uploadFileToQiniu(key, filePath);
 };
@@ -147,6 +150,8 @@ common.uploadFileToLocal = function (key, filePath) {
 common.getDownloadUrl = function () {
   if (_.get(config, 'common.storageType') === 'local') {
     return _.get(config, 'local.downloadUrl');
+  } else if (_.get(config, 'common.storageType') === 's3') {
+    return _.get(config, 's3.downloadUrl');
   }
   return _.get(config, 'qiniu.downloadUrl');
 }
@@ -183,6 +188,32 @@ common.uploadFileToQiniu = function (key, filePath) {
       }
     });
   });
+};
+
+common.uploadFileToS3 = function (key, filePath) {
+  return (
+    new Promise(function(resolve, reject) {
+      AWS.config.update({
+        region: _.get(config, 's3.region')
+      });
+      var s3 = new AWS.S3({
+        params: {Bucket: _.get(config, 's3.bucketName')}
+      });
+      fs.readFile(filePath, function(err, data) {
+        s3.upload({
+          Key: key,
+          Body: data,
+          ACL:'public-read',
+        }, function(err, response) {
+          if(err) {
+            reject(new Error(JSON.stringify(err)));
+          } else {
+            resolve(response.ETag)
+          }
+        })
+      });
+    })
+  );
 };
 
 common.diffCollectionsSync = function (collection1, collection2) {
