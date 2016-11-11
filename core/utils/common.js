@@ -6,7 +6,7 @@ var unzip = require('node-unzip-2');
 var config    = require('../config');
 var _ = require('lodash');
 var qiniu = require("qiniu");
-var AWS = require('aws-skd');
+var AWS = require('aws-sdk');
 var common = {};
 module.exports = common;
 
