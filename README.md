@@ -126,6 +126,12 @@ $ npm install code-push-cli@latest -g
 $ code-push login http://127.0.0.1:3000 #login in browser account:admin password:123456
 ```
 
+change admin password eg.
+
+```shell
+$ curl -X PATCH -H "Authorization: Bearer mytoken" -H "Accept: application/json" -H "Content-Type:application/json" -d '{"oldPassword":"123456","newPassword":"654321"}' http://127.0.0.1:3000/users/password
+```
+
 ## [react-native-code-push](https://github.com/Microsoft/react-native-code-push) for react-native
 
 ```shell
