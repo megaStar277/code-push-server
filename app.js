@@ -51,8 +51,10 @@ if (app.get('env') === 'development') {
 
 if (_.get(config, 'common.storageType') === 'local'
   && _.get(config, 'local.storageDir')
-  && fs.existsSync(_.get(config, 'local.storageDir'))
   ) {
+  if (!fs.existsSync(_.get(config, 'local.storageDir'))) {
+    throw new Error(`Please create dir ${_.get(config, 'local.storageDir')}`);
+  }
   app.use(_.get(config, 'local.public', '/download'), express.static(_.get(config, 'local.storageDir')));
 }
 
