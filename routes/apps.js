@@ -240,6 +240,15 @@ router.post('/:appName/deployments/:deploymentName/release',
             });
           });
         }
+        //clear cache if exists.
+        if (_.get(config, 'common.updateCheckCache', false) !== false) {
+          Promise.delay(2500)
+          .then(function () {
+            var ClientManager = require('../core/services/client-manager');
+            var clientManager = new ClientManager();
+            clientManager.clearUpdateCheckCache(deploymentInfo.deployment_key, '*', '*', '*');
+          });
+        }
         return null;
       });
     });
@@ -273,6 +282,15 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
       }
       if (!destDeploymentInfo) {
         throw new Error(`${destDeploymentName}  does not exist.`);
+      }
+      //clear cache if exists.
+      if (_.get(config, 'common.updateCheckCache', false) !== false) {
+        Promise.delay(2500)
+        .then(function () {
+          var ClientManager = require('../core/services/client-manager');
+          var clientManager = new ClientManager();
+          clientManager.clearUpdateCheckCache(destDeploymentInfo.deployment_key, '*', '*', '*');
+        });
       }
       return [sourceDeploymentInfo.id, destDeploymentInfo.id];
     })

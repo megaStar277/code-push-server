@@ -19,7 +19,8 @@ config.test = {
     tryLoginTimes: 10,
     diffNums: 3,
     dataDir: os.tmpdir(),
-    storageType: "local"
+    storageType: "local",
+    updateCheckCache: true
   },
   smtpConfig: false,
   redis: {

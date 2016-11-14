@@ -45,8 +45,10 @@ config.development = {
     diffNums: 3,
     // data dir for caclulate diff files. it's optimization.
     dataDir: "/Users/tablee/workspaces/data",
-    //storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3")
-    storageType: "local"
+    // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3")
+    storageType: "local",
+    // options value is (true | false), when it's true, it will cache updateCheck results in redis.
+    updateCheckCache: false
   },
   //config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
   smtpConfig:{

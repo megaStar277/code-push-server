@@ -36,7 +36,7 @@ router.get('/updateCheck', function(req, res){
   var label = _.get(req, "query.label");
   var packageHash = _.get(req, "query.packageHash")
   var clientManager = new ClientManager();
-  clientManager.updateCheck(deploymentKey, appVersion, label, packageHash)
+  clientManager.updateCheckFromCache(deploymentKey, appVersion, label, packageHash)
   .then(function (rs) {
     res.send({"updateInfo":rs});
   })

@@ -3,6 +3,7 @@ var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
 var common = require('../utils/common');
+var factory = require('../utils/factory');
 
 var proto = module.exports = function (){
   function ClientManager() {
@@ -11,6 +12,56 @@ var proto = module.exports = function (){
   ClientManager.__proto__ = proto;
   return ClientManager;
 };
+
+const UPDATE_CHECK = "UPDATE_CHECK";
+const EXPIRED = 600;
+
+proto.getUpdateCheckCacheKey = function(deploymentKey, appVersion, label, packageHash) {
+  return [UPDATE_CHECK, deploymentKey, appVersion, label, packageHash].join(':');
+}
+
+proto.clearUpdateCheckCache = function(deploymentKey, appVersion, label, packageHash) {
+  let redisCacheKey = this.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
+  var client = factory.getRedisClient("default");
+  return client.keysAsync(redisCacheKey)
+  .then(function(data) {
+    if (_.isArray(data)) {
+      return Promise.map(data, function(key){
+        return client.delAsync(key);
+      });
+    }
+    return null;
+  });
+}
+
+proto.updateCheckFromCache = function(deploymentKey, appVersion, label, packageHash) {
+  const self = this;
+  let redisCacheKey = self.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
+  var updateCheckCache = _.get(require('../config'), 'common.updateCheckCache', false);
+  if (updateCheckCache === false) {
+    return self.updateCheck(deploymentKey, appVersion, label, packageHash);
+  }
+  var client = factory.getRedisClient("default");
+  return client.getAsync(redisCacheKey)
+  .then(function(data){
+    if (data) {
+      try {
+        var obj = JSON.parse(data);
+        return obj;
+      } catch (e) {
+      }
+    }
+    return self.updateCheck(deploymentKey, appVersion, label, packageHash)
+    .then(function(rs){
+      try {
+        var strRs = JSON.stringify(rs);
+        client.setexAsync(redisCacheKey, EXPIRED, strRs);
+      } catch (e) {
+      }
+      return rs;
+    });
+  })
+}
 
 proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
   var rs = {
