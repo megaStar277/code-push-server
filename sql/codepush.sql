@@ -84,7 +84,7 @@ CREATE TABLE `deployments` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `appid` int(10) unsigned NOT NULL DEFAULT '0',
   `name` varchar(20) NOT NULL DEFAULT '',
-  `description` varchar(200) NOT NULL DEFAULT '',
+  `description` varchar(500) NOT NULL DEFAULT '',
   `deployment_key` varchar(64) NOT NULL,
   `last_deployment_version_id` int(10) unsigned NOT NULL DEFAULT '0',
   `label_id` int(11) unsigned NOT NULL DEFAULT '0',
@@ -145,7 +145,7 @@ DROP TABLE IF EXISTS `packages`;
 CREATE TABLE `packages` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `deployment_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `description` varchar(100) NOT NULL DEFAULT '',
+  `description` varchar(500) NOT NULL DEFAULT '',
   `package_hash` varchar(64) NOT NULL DEFAULT '',
   `blob_url` varchar(255) NOT NULL DEFAULT '',
   `size` int(11) unsigned NOT NULL DEFAULT '0',
