@@ -49,11 +49,11 @@ if (app.get('env') === 'development') {
 
 
 
-if (_.get(config, 'common.storageType') == 'local'
+if (_.get(config, 'common.storageType') === 'local'
   && _.get(config, 'local.storageDir')
   && fs.existsSync(_.get(config, 'local.storageDir'))
   ) {
-  app.use('/download', express.static(_.get(config, 'local.storageDir')));
+  app.use(_.get(config, 'local.public', '/download'), express.static(_.get(config, 'local.storageDir')));
 }
 
 app.use('/', routes);

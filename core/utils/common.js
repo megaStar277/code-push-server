@@ -6,7 +6,6 @@ var unzip = require('node-unzip-2');
 var config    = require('../config');
 var _ = require('lodash');
 var qiniu = require("qiniu");
-var AWS = require('aws-sdk');
 var common = {};
 module.exports = common;
 
@@ -191,6 +190,7 @@ common.uploadFileToQiniu = function (key, filePath) {
 };
 
 common.uploadFileToS3 = function (key, filePath) {
+  var AWS = require('aws-sdk');
   return (
     new Promise(function(resolve, reject) {
       AWS.config.update({

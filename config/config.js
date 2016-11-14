@@ -1,6 +1,6 @@
 var config = {};
 config.development = {
-  //数据库配置
+  // Config for database, only support mysql.
   db: {
     username: "root",
     password: null,
@@ -8,40 +8,47 @@ config.development = {
     host: "127.0.0.1",
     dialect: "mysql"
   },
-  //七牛云存储配置 当storageType为qiniu时需要配置
+  // Config for qiniu (http://www.qiniu.com/) cloud storage when storageType value is "qiniu".
   qiniu: {
     accessKey: "",
     secretKey: "",
     bucketName: "",
-    downloadUrl: "" //文件下载域名地址
+    downloadUrl: "" // Binary files download host address.
   },
-  // conf for s3
+  // Config for Amazon s3 (https://aws.amazon.com/cn/s3/) storage when storageType value is "s3".
   s3: {
     bucketName: process.env.BUCKET_NAME,
     region: process.env.REGION,
-    downloadUrl: process.env.DOWNLOAD_URL,
+    downloadUrl: process.env.DOWNLOAD_URL, // binary files download host address.
   },
-  //文件存储在本地配置 当storageType为local时需要配置
+  // Config for local storage when storageType value is "local".
   local: {
+    // Binary files storage dir, Do not use tmpdir and it's public download dir.
     storageDir: "/Users/tablee/workspaces/storage",
-    //文件下载地址 CodePush Server 地址 + '/download' download对应app.js里面的地址
-    downloadUrl: "http://localhost:3000/download"
+    // Binary files download host address which Code Push Server listen to. the files storage in storageDir.
+    downloadUrl: "http://localhost:3000/download",
+    // public static download spacename.
+    public: '/download'
   },
   common: {
-    //登录jwt签名密钥，必须更改，否则有安全隐患，可以使用随机生成的字符串
+    // jwt sign secret for auth. you have to modify it for security. use random string instead it.
     loginSecret: "CodePushServer",
-    //当天登录密码错误尝试次数，超过次数帐户将会锁定。0:表示无限制，可能会出现暴力破解。 大于0:必须开启redis服务。
+    /*
+     * tryLoginTimes is control login error times to avoid force attack.
+     * if value is 0, no limit for login auth, it may not safe for account. when it's a number, it means you can
+     * try that times today. but it need config redis server.
+     */
     tryLoginTimes: 0,
-    //CodePush Web部署地址，也可以配置成CodePush Web地址
-    //codePushWebUrl: "http://localhost:3001",
-    //差异化更新版本生成数目 默认为3
+    // CodePush Web(https://github.com/lisong/code-push-web) login address.
+    //codePushWebUrl: "http://localhost:3001/login",
+    // create patch updates's number. default value is 3
     diffNums: 3,
-    //数据目录，优化选项
+    // data dir for caclulate diff files. it's optimization.
     dataDir: "/Users/tablee/workspaces/data",
-    //选择存储类型，目前支持local和qiniu配置
+    //storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3")
     storageType: "local"
   },
-  //邮件配置，注册模块验证邮箱需要使用 参考https://github.com/nodemailer/nodemailer
+  //config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
   smtpConfig:{
     host: "smtp.mxhichina.com",
     port: 465,
@@ -51,7 +58,7 @@ config.development = {
       pass: ""
     }
   },
-  //配置redis, 注册时需要， 登录限制密码出错次数
+  //config for redis (register module, tryLoginTimes module)
   redis: {
     default: {
       host: "127.0.0.1",
