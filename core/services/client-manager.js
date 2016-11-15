@@ -36,11 +36,11 @@ proto.clearUpdateCheckCache = function(deploymentKey, appVersion, label, package
 
 proto.updateCheckFromCache = function(deploymentKey, appVersion, label, packageHash) {
   const self = this;
-  let redisCacheKey = self.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
   var updateCheckCache = _.get(require('../config'), 'common.updateCheckCache', false);
   if (updateCheckCache === false) {
     return self.updateCheck(deploymentKey, appVersion, label, packageHash);
   }
+  let redisCacheKey = self.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
   var client = factory.getRedisClient("default");
   return client.getAsync(redisCacheKey)
   .then(function(data){
