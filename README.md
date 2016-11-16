@@ -136,7 +136,7 @@ $ curl -X PATCH -H "Authorization: Bearer mytoken" -H "Accept: application/json"
 
 ```shell
 $ cd /path/to/project
-$ npm install react-native-code-push@latest
+$ npm install react-native-code-push@latest --save
 ```
 
 ## config react-native project
