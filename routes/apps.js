@@ -330,6 +330,15 @@ var rollbackCb = function (req, res) {
     return deployments.findDeloymentByName(deploymentName, col.appid);
   })
   .then(function(dep){
+    //clear cache if exists.
+    if (_.get(config, 'common.updateCheckCache', false) !== false) {
+      Promise.delay(2500)
+      .then(function () {
+        var ClientManager = require('../core/services/client-manager');
+        var clientManager = new ClientManager();
+        clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
+      });
+    }
     return packageManager.rollbackPackage(dep.last_deployment_version_id, targetLabel, uid);
   })
   .then(function () {
