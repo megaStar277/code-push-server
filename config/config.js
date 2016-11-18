@@ -50,7 +50,7 @@ config.development = {
     // options value is (true | false), when it's true, it will cache updateCheck results in redis.
     updateCheckCache: false
   },
-  //config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
+  // Config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
   smtpConfig:{
     host: "smtp.mxhichina.com",
     port: 465,
@@ -60,7 +60,7 @@ config.development = {
       pass: ""
     }
   },
-  //config for redis (register module, tryLoginTimes module)
+  // Config for redis (register module, tryLoginTimes module)
   redis: {
     default: {
       host: "127.0.0.1",
