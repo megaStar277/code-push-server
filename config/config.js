@@ -30,9 +30,12 @@ config.development = {
     // public static download spacename.
     public: '/download'
   },
+  jwt: {
+    // Recommended: 63 random alpha-numeric characters
+    // Generate using: https://www.grc.com/passwords.htm
+    tokenSecret: 'INSERT_RANDOM_TOKEN_KEY'
+  },
   common: {
-    // jwt sign secret for auth. you have to modify it for security. use random string instead it.
-    loginSecret: "CodePushServer",
     /*
      * tryLoginTimes is control login error times to avoid force attack.
      * if value is 0, no limit for login auth, it may not safe for account. when it's a number, it means you can

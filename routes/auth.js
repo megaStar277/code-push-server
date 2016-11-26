@@ -50,11 +50,11 @@ router.post('/login', function(req, res) {
   var account = _.trim(req.body.account);
   var password = _.trim(req.body.password);
   var config = require('../core/config');
-  var loginSecret = _.get(config, 'common.loginSecret');
+  var tokenSecret = _.get(config, 'jwt.tokenSecret');
   accountManager.login(account, password)
   .then(function (users) {
     var jwt = require('jsonwebtoken');
-    return jwt.sign({ uid: users.id, hash: security.md5(users.ack_code), expiredIn: 7200 }, loginSecret);
+    return jwt.sign({ uid: users.id, hash: security.md5(users.ack_code), expiredIn: 7200 }, tokenSecret);
   })
   .then(function (token) {
     res.send({status:'OK', results: {tokens: token}});

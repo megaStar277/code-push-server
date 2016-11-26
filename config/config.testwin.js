@@ -14,8 +14,10 @@ config.test = {
     downloadUrl: "http://localhost:3000/download",
     public: '/download'
   },
+  jwt: {
+    tokenSecret: 'INSERT_RANDOM_TOKEN_KEY'
+  },
   common: {
-    loginSecret: "CodePushServer",
     tryLoginTimes: 10,
     diffNums: 3,
     dataDir: os.tmpdir(),

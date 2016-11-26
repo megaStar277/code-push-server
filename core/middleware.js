@@ -36,9 +36,9 @@ var checkAccessToken = function (accessToken) {
       throw new Error('401 Unauthorized');
     }
     var config = require('../core/config');
-    var loginSecret = _.get(config, 'common.loginSecret');
+    var tokenSecret = _.get(config, 'jwt.tokenSecret');
     var jwt = require('jsonwebtoken');
-    var authData = jwt.verify(accessToken, loginSecret);
+    var authData = jwt.verify(accessToken, tokenSecret);
     var uid = _.get(authData, 'uid', null);
     var hash = _.get(authData, 'hash', null);
     if (parseInt(uid) > 0) {

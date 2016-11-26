@@ -82,9 +82,13 @@ $ vim config/config.js
     //文件下载地址 CodePush Server 地址 + '/download' download对应app.js里面的地址
     downloadUrl: "http://localhost:3000/download"
   },
+  jwt: {
+    // 登录jwt签名密钥，必须更改，否则有安全隐患，可以使用随机生成的字符串
+    // Recommended: 63 random alpha-numeric characters
+    // Generate using: https://www.grc.com/passwords.htm
+    tokenSecret: 'INSERT_RANDOM_TOKEN_KEY'
+  },
   common: {
-    //登录jwt签名密钥，必须更改，否则有安全隐患，可以使用随机生成的字符串
-    loginSecret: "CodePushServer",
     dataDir: "/Users/tablee/workspaces/data",
     //选择存储类型，目前支持local和qiniu配置
     storageType: "local"
@@ -110,7 +114,7 @@ or point config file and ENV
 $ CONFIG_FILE=/path/to/config.js NODE_ENV=production node ./bin/www # or CONFIG_FILE=/path/to/config.js NODE_ENV=production code-push-server
 ```
 
-notice. you have to change `loginSecret` in config.js for security.
+notice. you have to change `tokenSecret` in config.js for security.
 
 ## Default listen Host/Port  0.0.0.0/3000 
 you can change like this.
@@ -215,7 +219,6 @@ eg.
 ```json
 ...
 "common": {
-  "loginSecret": "CodePushServer",
   "codePushWebUrl": "Your CodePush Web address",
 }
 ...
