@@ -6,6 +6,7 @@ config.development = {
     password: null,
     database: "codepush",
     host: "127.0.0.1",
+    port: 3306,
     dialect: "mysql"
   },
   // Config for qiniu (http://www.qiniu.com/) cloud storage when storageType value is "qiniu".
