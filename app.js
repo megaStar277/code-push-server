@@ -40,10 +40,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 //use nginx in production
 if (app.get('env') === 'development') {
   app.all('*', function(req, res, next) {
-      res.header("Access-Control-Allow-Origin", "*");
-      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-      res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
-      next();
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
+    next();
   });
 }
 
@@ -53,7 +53,8 @@ if (_.get(config, 'common.storageType') === 'local'
   && _.get(config, 'local.storageDir')
   ) {
   if (!fs.existsSync(_.get(config, 'local.storageDir'))) {
-    throw new Error(`Please create dir ${_.get(config, 'local.storageDir')}`);
+    var dir = _.get(config, 'local.storageDir');
+    throw new Error(`Please create dir ${dir}`);
   }
   app.use(_.get(config, 'local.public', '/download'), express.static(_.get(config, 'local.storageDir')));
 }
