@@ -21,7 +21,7 @@ proto.collaboratorCan = function(uid, appName) {
   return this.getCollaborator(uid, appName)
   .then(function (data) {
     if (!data) {
-      throw new Error("Permission Deny!");
+      throw new Error(`App ${appName} not exists.`);
     }
     return data;
   });
