@@ -263,7 +263,7 @@ router.post('/:appName/deployments/:deploymentName/release',
 
 router.patch('/:appName/deployments/:deploymentName/release',
   middleware.checkToken, function (req, res) {
-    res.status(406).send('Not supported currently');
+    return res.status(406).send('Not supported currently');
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
     var uid = req.users.id;
