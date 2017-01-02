@@ -47,8 +47,6 @@ if (app.get('env') === 'development') {
   });
 }
 
-
-
 if (_.get(config, 'common.storageType') === 'local'
   && _.get(config, 'local.storageDir')
   ) {

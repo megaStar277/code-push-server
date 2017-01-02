@@ -51,30 +51,13 @@ describe('api/init/database.js', function() {
       connection.end();
     });
 
-    it('should import data codepush.sql successful', function(done) {
-      var sql = fs.readFileSync(path.resolve(__dirname, '../../../sql/codepush.sql'), 'utf-8');
+    it('should import data codepush-all.sql successful', function(done) {
+      var sql = fs.readFileSync(path.resolve(__dirname, '../../../sql/codepush-all.sql'), 'utf-8');
       connection.query(sql, function(err, results) {
         should.not.exist(err);
         done();
       });
     });
-
-    it('should import data codepush-v0.1.1.sql successful', function(done) {
-      var sql = fs.readFileSync(path.resolve(__dirname, '../../../sql/codepush-v0.1.1.sql'), 'utf-8');
-      connection.query(sql, function(err, results) {
-        should.not.exist(err);
-        done();
-      });
-    });
-
-    it('should import data codepush-v0.1.5.sql successful', function(done) {
-      var sql = fs.readFileSync(path.resolve(__dirname, '../../../sql/codepush-v0.1.5.sql'), 'utf-8');
-      connection.query(sql, function(err, results) {
-        should.not.exist(err);
-        done();
-      });
-    });
-
   });
 
 });

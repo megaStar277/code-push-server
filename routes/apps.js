@@ -261,6 +261,11 @@ router.post('/:appName/deployments/:deploymentName/release',
   });
 });
 
+router.patch('/:appName/deployments/:deploymentName/release',
+  middleware.checkToken, function (req, res) {
+    res.status(406).send('Not supported currently');
+});
+
 router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',
   middleware.checkToken, function (req, res) {
   var appName = _.trim(req.params.appName);

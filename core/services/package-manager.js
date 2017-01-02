@@ -54,7 +54,6 @@ proto.existPackageHashAndCreateVersions = function (deploymentId, appVersion, pa
       return models.DeploymentsVersions.create({
         deployment_id: deploymentId,
         app_version: appVersion,
-        is_mandatory: false,
       }).then(function () {
         return false;
       });
@@ -91,7 +90,6 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
       .then(function (deploymentsVersions) {
         if (!deploymentsVersions) {
           return models.DeploymentsVersions.create({
-            is_mandatory: isMandatory,
             current_package_id: 0,
             deployment_id: deploymentId,
             app_version: appVersion
@@ -111,11 +109,11 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
           release_method: releaseMethod,
           label: "v" + labelId,
           released_by: releaseUid,
+          is_mandatory: isMandatory,
           original_label: originalLabel,
           original_deployment: originalDeployment
         },{transaction: t})
         .then(function (packages) {
-          deploymentsVersions.set('is_mandatory', isMandatory);
           deploymentsVersions.set('current_package_id', packages.id);
           return Promise.all([
             deploymentsVersions.save({transaction: t}),
@@ -275,7 +273,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   var self = this;
   var appVersion = packageInfo.appVersion;
   if (!/^([0-9.]+)$/.test(appVersion)) {
-    return Promise.reject(new Error(`targetBinaryVersion not support.`))
+    return Promise.reject(new Error(`targetBinaryVersion ${appVersion} not support.`))
   }
   var description = packageInfo.description;
   var isMandatory = packageInfo.isMandatory;
@@ -352,6 +350,36 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   });
 };
 
+proto.modifyReleasePackage = function(deploymentId, deploymentVersionId, packageInfo) {
+  var appVersion = _.get(packageInfo, 'appVersion');
+  var description = _.get(packageInfo, 'description');
+  var isMandatory = _.get(packageInfo, 'isMandatory');
+  var isDisabled = _.get(packageInfo, 'isDisabled');
+  return models.DeploymentsVersions.findById(deploymentVersionId)
+  .then(function(deploymentsVersions){
+    if (_.isBoolean(isDisabled)) {
+      throw new Error(`--disabled -x function is not implements`);
+    }
+    if (!appVersion) {
+      if (!/^([0-9.]+)$/.test(appVersion)) {
+        return Promise.reject(new Error(`targetBinaryVersion ${appVersion} not support.`))
+      }
+      return models.DeploymentsVersions.findOne({deployment_id: deploymentId, app_version: appVersion})
+      .then(function(d){
+        if (d) {
+          throw new Error(`version ${appVersion} already exist`);
+        }
+      });
+    }
+    if(!deploymentsVersions) {
+      throw new Error(`packages were not found in db`);
+    }
+  })
+  .then(function(){
+
+  });
+};
+
 proto.promotePackage = function (sourceDeploymentId, destDeploymentId, promoteUid) {
   var self = this;
   return models.Deployments.findById(sourceDeploymentId)
@@ -387,7 +415,7 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, promoteUi
     var params = {
       releaseMethod: 'Promote',
       releaseUid: promoteUid,
-      isMandatory: deploymentsVersions.is_mandatory,
+      isMandatory: packages.is_mandatory == 1 ? true : false,
       size: packages.size,
       description: packages.description,
       originalLabel: packages.label,
@@ -432,7 +460,7 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
       var params = {
         releaseMethod: 'Rollback',
         releaseUid: rollbackUid,
-        isMandatory: deploymentsVersions.is_mandatory,
+        isMandatory: rollbackPackage.is_mandatory == 1 ? true : false,
         size: rollbackPackage.size,
         description: rollbackPackage.description,
         originalLabel: rollbackPackage.label,

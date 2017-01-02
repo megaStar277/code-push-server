@@ -11,7 +11,9 @@ var Promise = require("bluebird");
 var yargs = require('yargs')
     .usage('Usage: $0 <command> [options]')
     .command('init', '初始化数据库')
+    .command('upgrade', '升级数据库')
     .example('$0 init --dbname codepush --dbhost localhost --dbuser root --dbpassword 123456 --dbport 3306 --force', '初始化code-push-server数据库')
+    .example('$0 upgrade --dbname codepush --dbhost localhost --dbuser root --dbpassword 123456 --dbport 3306', '升级code-push-server数据库')
     .default({dbname: 'codepush', dbhost: 'localhost', dbuser: 'root', dbpassword: null})
     .help('h')
     .alias('h', 'help');
@@ -22,6 +24,7 @@ var dbhost = argv.dbhost ? argv.dbhost : 'localhost';
 var dbuser = argv.dbuser ? argv.dbuser : 'root';
 var dbport = argv.dbport ? argv.dbport : 3306;
 var dbpassword = _.isString(argv.dbpassword) ? argv.dbpassword : null;
+
 if (command === 'init') {
     var connection2;
     var connection = mysql.createConnection({
@@ -30,7 +33,7 @@ if (command === 'init') {
         password: dbpassword,
         port: dbport
     });
-    var createDatabaseSql = argv.force ? `CREATE DATABASE if not exists ${dbname}` :
+    var createDatabaseSql = argv.force ? `CREATE DATABASE IF NOT EXISTS ${dbname}` :
         `CREATE DATABASE ${dbname}`;
     Promise.promisifyAll(connection);
     connection.connect();
@@ -49,16 +52,8 @@ if (command === 'init') {
         return connection2;
     })
     .then(function(connection2){
-        var sql = fs.readFileSync(path.resolve(__dirname, '../sql/codepush.sql'), 'utf-8');
-        var sql2 = fs.readFileSync(path.resolve(__dirname, '../sql/codepush-v0.1.1.sql'), 'utf-8');
-        var sql3 = fs.readFileSync(path.resolve(__dirname, '../sql/codepush-v0.1.5.sql'), 'utf-8');
-        return connection2.queryAsync(sql)
-        .then(function(){
-            return connection2.queryAsync(sql2);
-        })
-        .then(function(){
-            return connection2.queryAsync(sql3);
-        });
+        var sql = fs.readFileSync(path.resolve(__dirname, '../sql/codepush-all.sql'), 'utf-8');
+        return connection2.queryAsync(sql);
     })
     .then(function(){
         console.log('success.');
@@ -69,6 +64,48 @@ if (command === 'init') {
     .finally(function(){
         if(connection) connection.end();
         if(connection2) connection2.end()
+    });
+} else if (command == 'upgrade'){
+    var connection = mysql.createConnection({
+        host: dbhost,
+        user: dbuser,
+        password: dbpassword,
+        database: dbname,
+        multipleStatements: true,
+        port: dbport
+    });
+    Promise.promisifyAll(connection);
+    connection.connect();
+    return Promise.coroutine(function*(val){
+        var version_no = '0.0.1';
+        try {
+            var rs = yield connection.queryAsync('select `version` from `versions` where `type`=1 limit 1');
+            version_no = _.get(rs,'0.version', '0.0.1');
+        } catch (e) {
+        }
+        if (version_no == '0.2.14') {
+            console.log('Everything up-to-date.');
+            process.exit(1);
+        }
+        var allSqlFile = [
+            {version:'0.2.24', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.24.sql')}
+        ];
+        for (var i = 0; i < allSqlFile.length; i++) {
+            if(!_.gt(allSqlFile[i]['version'], version_no)) {
+                continue;
+            }
+            var sql = fs.readFileSync(allSqlFile[i]['path'], 'utf-8');
+            yield connection.queryAsync(sql);
+        }
+    })()
+    .then(function(){
+        console.log('Upgrade success.');
+    })
+    .catch(function(e){
+        console.error(e);
+    })
+    .finally(function(){
+        if(connection) connection.end();
     });
 } else {
     yargs.showHelp();
