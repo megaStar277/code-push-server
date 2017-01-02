@@ -264,6 +264,28 @@ router.post('/:appName/deployments/:deploymentName/release',
 router.patch('/:appName/deployments/:deploymentName/release',
   middleware.checkToken, function (req, res) {
     res.status(406).send('Not supported currently');
+    var appName = _.trim(req.params.appName);
+    var deploymentName = _.trim(req.params.deploymentName);
+    var uid = req.users.id;
+    var deployments = new Deployments();
+    var packageManager = new PackageManager();
+    accountManager.collaboratorCan(uid, appName)
+    .then(function (col) {
+      return deployments.findDeloymentByName(deploymentName, col.appid)
+      .then(function (deploymentInfo) {
+        if (_.isEmpty(deploymentInfo)) {
+          throw new Error("does not find the deployment");
+        }
+        var label = deploymentInfo.label;
+        var deploymentVersionId = deploymentInfo.last_deployment_version_id;
+        return packageManager.modifyReleasePackage(deploymentInfo.id, deploymentVersionId, _.get(req, 'body.packageInfo'));
+      });
+    }).then(function (data) {
+      res.send("");
+    })
+    .catch(function (e) {
+      res.status(406).send(e.message);
+    });
 });
 
 router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',

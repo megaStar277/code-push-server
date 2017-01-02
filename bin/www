@@ -5,9 +5,10 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('myapp1:server');
+var debug = require('debug')('codepush:server');
 var http = require('http');
 var validator = require('validator')
+var _ = require('lodash')
 /**
  * Get port from environment and store in Express.
  */
@@ -29,9 +30,9 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 var models = require('../models');
-models.Versions.findOne({type:1})
+models.Versions.findOne({where:{type:1}})
 .then(function(v){
-    if (!v) {
+    if (!v || v.get('version') != '0.2.14') {
         throw new Error(`Please upgrade your database. usage bin/db upgrade or code-push-server-db upgrade`);
     }
     server.listen(port, host);
@@ -40,7 +41,11 @@ models.Versions.findOne({type:1})
     return;
 })
 .catch(function(e){
-    console.error(e);
+    if (_.startsWith(e.message, 'ER_NO_SUCH_TABLE')) {
+        console.error(`Please upgrade your database. usage bin/db upgrade or code-push-server-db upgrade`);
+    } else {
+        console.error(e);
+    }
     process.exit(1);
 });
 
