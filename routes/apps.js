@@ -234,6 +234,10 @@ router.post('/:appName/deployments/:deploymentName/release',
         if (packages) {
           Promise.delay(2000)
           .then(function () {
+            packageManager.createBaseDiffPackages(packages.id)
+            .catch(function(e){
+              console.log(e);
+            });
             packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
             .catch(function(e){
               console.log(e);
@@ -329,6 +333,10 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
     if (packages) {
       Promise.delay(2000)
       .then(function () {
+        packageManager.createBaseDiffPackages(packages.id)
+        .catch(function(e){
+          console.log(e);
+        });
         packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
         .catch(function(e){
           console.log(e);

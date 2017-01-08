@@ -245,6 +245,27 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
   });
 };
 
+/** 基于第一个版本创建补丁更新**/
+proto.createBaseDiffPackages = function (packageId) {
+  var self = this;
+  return models.Packages.findById(packageId)
+  .then(function (originalPackage) {
+    if (_.isEmpty(originalPackage)) {
+      throw Error('can\'t find Package');
+    }
+    return models.Packages.findAll({
+      where:{
+        deployment_version_id: originalPackage.deployment_version_id,
+        id: {$lt: packageId}},
+        order: [['id','asc']],
+        limit: 2
+      })
+    .then(function (lastNumsPackages) {
+      return self.createDiffPackages(originalPackage, lastNumsPackages);
+    });
+  });
+};
+
 proto.createDiffPackages = function (originalPackage, destPackages) {
   if (!_.isArray(destPackages)) {
     return Promise.reject(new Error('第二个参数必须是数组'));
