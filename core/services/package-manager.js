@@ -232,35 +232,27 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
     if (_.isEmpty(originalPackage)) {
       throw Error('can\'t find Package');
     }
-    return models.Packages.findAll({
-      where:{
-        deployment_version_id: originalPackage.deployment_version_id,
-        id: {$lt: packageId}},
-        order: [['id','desc']],
-        limit: num
+    return Promise.all([
+      models.Packages.findAll({
+        where:{
+          deployment_version_id: originalPackage.deployment_version_id,
+          id: {$lt: packageId}},
+          order: [['id','desc']],
+          limit: num
+      }),
+      models.Packages.findAll({
+        where:{
+          deployment_version_id: originalPackage.deployment_version_id,
+          id: {$lt: packageId}},
+          order: [['id','asc']],
+          limit: 2
       })
-    .then(function (lastNumsPackages) {
-      return self.createDiffPackages(originalPackage, lastNumsPackages);
-    });
-  });
-};
-
-/** 基于第一个版本创建补丁更新**/
-proto.createBaseDiffPackages = function (packageId) {
-  var self = this;
-  return models.Packages.findById(packageId)
-  .then(function (originalPackage) {
-    if (_.isEmpty(originalPackage)) {
-      throw Error('can\'t find Package');
-    }
-    return models.Packages.findAll({
-      where:{
-        deployment_version_id: originalPackage.deployment_version_id,
-        id: {$lt: packageId}},
-        order: [['id','asc']],
-        limit: 2
-      })
-    .then(function (lastNumsPackages) {
+    ])
+    .spread(function (lastNumsPackages, basePackages) {
+      return _.unionBy(lastNumsPackages, basePackages, 'id');
+    })
+    .then(function(lastNumsPackages){
+      console.log(lastNumsPackages);
       return self.createDiffPackages(originalPackage, lastNumsPackages);
     });
   });
