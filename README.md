@@ -91,7 +91,9 @@ $ vim config/config.js
   local: {
     storageDir: "/Users/tablee/workspaces/storage",
     //文件下载地址 CodePush Server 地址 + '/download' download对应app.js里面的地址
-    downloadUrl: "http://localhost:3000/download"
+    downloadUrl: "http://localhost:3000/download",
+    // public static download spacename.
+    public: '/download'
   },
   jwt: {
     // 登录jwt签名密钥，必须更改，否则有安全隐患，可以使用随机生成的字符串
@@ -101,7 +103,7 @@ $ vim config/config.js
   },
   common: {
     dataDir: "/Users/tablee/workspaces/data",
-    //选择存储类型，目前支持local和qiniu配置
+    //选择存储类型，目前支持local,oss,qiniu,s3配置
     storageType: "local"
   },
 ```
