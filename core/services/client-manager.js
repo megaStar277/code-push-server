@@ -91,13 +91,12 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     if (_.eq(packageId, 0) ) {
       return;
     }
-    var downloadURL = common.getDownloadUrl();
     return models.Packages.findById(packageId)
     .then(function (packages) {
       if (packages
         && _.eq(packages.deployment_id, deploymentsVersions.deployment_id)
         && !_.eq(packages.package_hash, packageHash)) {
-        rs.downloadURL = `${downloadURL}/${_.get(packages, 'blob_url')}`;
+        rs.downloadURL = common.getBlobDownloadUrl(_.get(packages, 'blob_url'));
         rs.description = _.get(packages, 'description', '');
         rs.isAvailable = true;
         rs.isMandatory = _.eq(packages.is_mandatory, 1) ? true : false;
@@ -116,7 +115,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
         return models.PackagesDiff.findOne({where: {package_id:packages.id, diff_against_package_hash: packageHash}})
         .then(function (diffPackage) {
           if (!_.isEmpty(diffPackage)) {
-            rs.downloadURL = `${downloadURL}/${_.get(diffPackage, 'diff_blob_url')}`;
+            rs.downloadURL = common.getBlobDownloadUrl(_.get(diffPackage, 'diff_blob_url'));
             rs.packageSize = _.get(diffPackage, 'diff_size', 0);
           }
           return;

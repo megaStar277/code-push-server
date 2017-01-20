@@ -145,7 +145,7 @@ proto.downloadPackageAndExtract = function (workDirectoryPath, packageHash, blob
     if (isValidate) {
       return dataCenterManager.getPackageInfo(packageHash);
     } else {
-      var downloadURL = `${common.getDownloadUrl()}/${blobHash}`;
+      var downloadURL = common.getBlobDownloadUrl(blobHash);
       return common.createFileFromRequest(downloadURL, `${workDirectoryPath}/${blobHash}`)
       .then(function (download) {
         return common.unzipFile(`${workDirectoryPath}/${blobHash}`, `${workDirectoryPath}/current`)
@@ -192,7 +192,7 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
     if (!_.isEmpty(diffPackage)) {
       return;
     }
-    var downloadURL = `${common.getDownloadUrl()}/${diffManifestBlobHash}`;
+    var downloadURL = common.getBlobDownloadUrl(diffManifestBlobHash);
     return common.createFileFromRequest(downloadURL, `${workDirectoryPath}/${diffManifestBlobHash}`)
     .then(function(){
       var originContentPath = dataCenter.contentPath;
