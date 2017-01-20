@@ -66,15 +66,13 @@ common.deleteFolderSync = function (folderPath) {
 };
 
 common.createEmptyFolder = function (folderPath) {
-  return new Promise(function (resolve, reject) {
-    common.deleteFolder(folderPath).then(function (data) {
-      fsextra.mkdirs(folderPath, function (err) {
-        if (err) {
-          reject(new Error("create error"));
-        } else {
-          resolve(folderPath);
-        }
-      });
+  return common.deleteFolder(folderPath)
+  .then(function (data) {
+    fsextra.mkdirs(folderPath, function (err) {
+      if (err) {
+        throw err;
+      }
+      return folderPath;
     });
   });
 };

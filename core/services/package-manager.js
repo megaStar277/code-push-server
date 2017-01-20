@@ -252,7 +252,6 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
       return _.unionBy(lastNumsPackages, basePackages, 'id');
     })
     .then(function(lastNumsPackages){
-      console.log(lastNumsPackages);
       return self.createDiffPackages(originalPackage, lastNumsPackages);
     });
   });
@@ -270,8 +269,10 @@ proto.createDiffPackages = function (originalPackage, destPackages) {
   var manifest_blob_url = _.get(originalPackage, 'manifest_blob_url');
   var blob_url = _.get(originalPackage, 'blob_url');
   var workDirectoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
-  common.createEmptyFolderSync(workDirectoryPath);
-  return self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url)
+  return common.createEmptyFolder(workDirectoryPath)
+  .then(function(){
+    return self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url)
+  })
   .then(function (dataCenter) {
     return Promise.map(destPackages, function (v) {
       return self.generateOneDiffPackage(workDirectoryPath, originalPackage.id, dataCenter, v.package_hash, v.manifest_blob_url);
@@ -360,7 +361,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   })
   .finally(function () {
     common.deleteFolderSync(directoryPath);
-  });
+  })
 };
 
 proto.modifyReleasePackage = function(deploymentId, deploymentVersionId, packageInfo) {

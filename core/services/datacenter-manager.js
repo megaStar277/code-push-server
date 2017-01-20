@@ -93,12 +93,14 @@ proto.storePackage = function (sourceDst, force) {
     if (!force && self.hasPackageStoreSync(packageHash)) {
       return self.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
     } else {
-      common.createEmptyFolderSync(packageHashPath);
-      return common.move(sourceDst, contentPath)
-      .then(function () {
-        var manifestString = JSON.stringify(manifestJson);
-        fs.writeFileSync(manifestFile, manifestString);
-        return self.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
+      return common.createEmptyFolder(packageHashPath)
+      .then(function(){
+        return common.move(sourceDst, contentPath)
+        .then(function () {
+          var manifestString = JSON.stringify(manifestJson);
+          fs.writeFileSync(manifestFile, manifestString);
+          return self.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
+        });
       });
     }
   });

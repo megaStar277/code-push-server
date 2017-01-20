@@ -7,6 +7,8 @@ var moment = require('moment');
 
 var middleware = module.exports
 
+const UNAUTHORIZED_TEXT = `401 Unauthorized`;
+
 var checkAuthToken = function (authToken) {
   var objToken = security.parseToken(authToken);
   return models.Users.findOne({
@@ -14,14 +16,14 @@ var checkAuthToken = function (authToken) {
   })
   .then(function(users) {
     if (_.isEmpty(users)) {
-      throw new Error('401 Unauthorized');
+      throw new Error(UNAUTHORIZED_TEXT);
     }
     return models.UserTokens.findOne({
       where: {tokens: authToken, uid: users.id, expires_at: { gt: moment().format('YYYY-MM-DD HH:mm:ss') }}
     })
     .then(function(tokenInfo){
       if (_.isEmpty(tokenInfo)){
-        throw new Error('401 Unauthorized')
+        throw new Error(UNAUTHORIZED_TEXT)
       }
       return users;
     })
@@ -33,7 +35,7 @@ var checkAuthToken = function (authToken) {
 var checkAccessToken = function (accessToken) {
   return new Promise(function (resolve, reject) {
     if (_.isEmpty(accessToken)) {
-      throw new Error('401 Unauthorized');
+      throw new Error(UNAUTHORIZED_TEXT);
     }
     var config = require('../core/config');
     var tokenSecret = _.get(config, 'jwt.tokenSecret');
@@ -47,10 +49,10 @@ var checkAccessToken = function (accessToken) {
       })
       .then(function(users) {
         if (_.isEmpty(users)) {
-          throw new Error('401 Unauthorized');
+          throw new Error(UNAUTHORIZED_TEXT);
         }
         if (!_.eq(hash, security.md5(users.get('ack_code')))){
-          throw new Error('401 Unauthorized');
+          throw new Error(UNAUTHORIZED_TEXT);
         }
         resolve(users);
       })
@@ -58,7 +60,7 @@ var checkAccessToken = function (accessToken) {
         reject(e);
       });
     } else {
-      throw new Error('401 Unauthorized');
+      throw new Error(UNAUTHORIZED_TEXT);
     }
   });
 }
@@ -100,6 +102,6 @@ middleware.checkToken = function(req, res, next) {
       res.status(401).send(e.message);
     });
   } else {
-    res.status(401).send('401 Unauthorized');
+    res.status(401).send(UNAUTHORIZED_TEXT);
   }
 };
