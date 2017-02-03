@@ -17,6 +17,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     tableName: 'packages_diff',
     underscored: true,
+    paranoid: true
   });
 
   return PackagesDiff;

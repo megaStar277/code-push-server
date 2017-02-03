@@ -57,8 +57,8 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
   .then(function () {
     return models.Deployments.update(
       {name: newName},
-      {where: {name: deploymentName,appid: appId}
-    })
+      {where: {name: deploymentName,appid: appId}}
+    )
     .spread(function (affectedCount, affectedRow) {
       if (_.gt(affectedCount, 0)) {
         return {name: newName};
@@ -185,11 +185,37 @@ proto.getDeploymentHistory = function (deploymentId) {
 };
 
 proto.deleteDeploymentHistory = function(deploymentId) {
-  return models.DeploymentsHistory.findAll({where: {deployment_id: deploymentId }, order: [['id','desc']], limit: 100})
-  .then(function(rs){
-    return Promise.map(rs, function(v){
-      return v.destroy();
-    });
+  return models.sequelize.transaction(function (t) {
+    return Promise.all([
+      models.Deployments.update(
+        {last_deployment_version_id:0,label_id:0},
+        {where: {id: deploymentId},transaction: t}
+      ),
+      models.DeploymentsHistory.findAll({where: {deployment_id: deploymentId}, order: [['id','desc']], limit: 1000})
+      .then(function(rs){
+        return Promise.map(rs, function(v){
+          return v.destroy({transaction: t});
+        });
+      }),
+      models.DeploymentsVersions.findAll({where: {deployment_id: deploymentId}, order: [['id','desc']], limit: 1000})
+      .then(function(rs) {
+        return Promise.map(rs, function(v){
+          return v.destroy({transaction: t});
+        });
+      }),
+      models.Packages.findAll({where: {deployment_id: deploymentId}, order: [['id','desc']], limit: 1000})
+      .then(function(rs) {
+        return Promise.map(rs, function(v){
+          return v.destroy({transaction: t})
+          .then(function(){
+            return Promise.all([
+              models.PackagesMetrics.destroy({where: {package_id: v.get('id')},transaction: t}),
+              models.PackagesDiff.destroy({where: {package_id: v.get('id')},transaction: t})
+            ]);
+          });
+        });
+      })
+    ]);
   });
 }
 

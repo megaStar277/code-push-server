@@ -20,6 +20,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     tableName: 'packages_metrics',
     underscored: true,
+    paranoid: true,
     classMethods: {
       addOne : function (packageId, fieldName) {
         var self = this;

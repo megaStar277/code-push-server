@@ -86,12 +86,13 @@ if (command === 'init') {
             version_no = _.get(rs,'0.version', '0.0.1');
         } catch (e) {
         }
-        if (version_no == '0.2.14') {
+        if (version_no == '0.2.15') {
             console.log('Everything up-to-date.');
             process.exit(1);
         }
         var allSqlFile = [
-            {version:'0.2.14', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.14.sql')}
+            {version:'0.2.14', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.14.sql')},
+            {version:'0.2.15', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.15.sql')}
         ];
         for (var i = 0; i < allSqlFile.length; i++) {
             if(!_.gt(allSqlFile[i]['version'], version_no)) {

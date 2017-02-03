@@ -117,19 +117,20 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
           deploymentsVersions.set('current_package_id', packages.id);
           return Promise.all([
             deploymentsVersions.save({transaction: t}),
-            models.Deployments.update({
-              last_deployment_version_id: deploymentsVersions.id
-            },{where: {id: deploymentId}, transaction: t})
+            models.Deployments.update(
+              {last_deployment_version_id: deploymentsVersions.id},
+              {where: {id: deploymentId}, transaction: t}
+            ),
+            models.PackagesMetrics.create(
+              {package_id: packages.id},
+              {transaction: t}
+            ),
+            models.DeploymentsHistory.create(
+              {deployment_id: deploymentId,package_id: packages.id},
+              {transaction: t}
+            )
           ])
           .then(function () {
-            //插入日志
-            models.DeploymentsHistory.create({
-              deployment_id: deploymentId,
-              package_id: packages.id,
-            })
-            .catch(function(e){
-              console.log(e);
-            });
             return packages;
           });
         });
@@ -486,7 +487,7 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
         rollbackPackage.manifest_blob_url,
         rollbackPackage.blob_url,
         params
-        );
+      );
     });
   });
 }

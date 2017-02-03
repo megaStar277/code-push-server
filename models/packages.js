@@ -26,6 +26,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     tableName: 'packages',
     underscored: true,
+    paranoid: true
   });
 
   return Packages;

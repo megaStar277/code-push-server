@@ -62,8 +62,9 @@ CREATE TABLE `deployments_versions` (
   `current_package_id` int(10) unsigned NOT NULL DEFAULT '0',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_did_appversion` (`deployment_id`,`app_version`)
+  KEY `idx_did_appversion` (`deployment_id`,`app_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `packages`;
@@ -84,6 +85,7 @@ CREATE TABLE `packages` (
   `created_at` timestamp NULL DEFAULT NULL,
   `released_by` bigint(20) unsigned NOT NULL,
   `is_mandatory` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_deploymentid_label` (`deployment_id`,`label`(8)),
   KEY `idx_versions_id` (`deployment_version_id`)
@@ -98,6 +100,7 @@ CREATE TABLE `packages_diff` (
   `diff_size` int(11) unsigned NOT NULL DEFAULT '0',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_packageid_hash` (`package_id`,`diff_against_package_hash`(40))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -112,8 +115,9 @@ CREATE TABLE `packages_metrics` (
   `installed` int(10) unsigned NOT NULL DEFAULT '0',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `udx_packageid` (`package_id`)
+  KEY `idx_packageid` (`package_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `user_tokens`;
@@ -166,5 +170,5 @@ CREATE TABLE `versions` (
 LOCK TABLES `versions` WRITE;
 INSERT INTO `versions` (`id`, `type`, `version`)
 VALUES
-	(1,1,'0.2.14');
+	(1,1,'0.2.15');
 UNLOCK TABLES;
