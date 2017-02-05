@@ -124,8 +124,11 @@ CodePush.sync({
 import CodePush from "react-native-code-push" 
 ```
 
-> notice: demo.js中用到ECMAScript中Decorators语法,需要安装`$ npm install babel-preset-react-native-stage-0 --save`，
+> notice: 
+> 
+> demo.js中用到ECMAScript中Decorators语法,需要安装`$ npm install babel-preset-react-native-stage-0 --save`，
 > 同时在.babelrc中添加'react-native-stage-0/decorator-support'.
+> 
 > eg.
 > {
 > "presets": ["react-native", "react-native-stage-0/decorator-support"]
