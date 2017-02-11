@@ -132,7 +132,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
 
 proto.getPackagesInfo = function (deploymentKey, label) {
   if (_.isEmpty(deploymentKey) || _.isEmpty(label)) {
-    return Promise.reject(new Error("please input deploymentKey and appVersion"))
+    return Promise.reject(new Error("please input deploymentKey and label"))
   }
   return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
   .then(function (dep) {

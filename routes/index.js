@@ -65,7 +65,7 @@ router.post('/reportStatus/deploy', function(req, res){
   clientManager.reportStatusDeploy(deploymentKey, label, clientUniqueId, req.body)
   .catch(function (e) {
     console.log(e);
-  });;
+  });
   res.send('OK');
 });
 
