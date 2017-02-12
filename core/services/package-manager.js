@@ -309,13 +309,13 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
     .then(function (type) {
       if (type === 1) {
         //android
-        if (pubType !== 'android' ) {
-          throw new Error("it must be publish it by android type");
+        if (pubType == 'ios' ) {
+          throw new Error("it must be publish it by ios type");
         }
       } else if (type === 2) {
         //ios
-        if (pubType !== 'ios'){
-          throw new Error("it must be publish it by ios type");
+        if (pubType == 'android'){
+          throw new Error("it must be publish it by android type");
         }
       } else {
         //不验证
