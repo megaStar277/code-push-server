@@ -3,8 +3,9 @@ var router = express.Router();
 var _ = require('lodash');
 var security = require('../core/utils/security');
 var accountManager = require('../core/services/account-manager')();
+var AppError = require('../core/app-error');
 
-router.get('/login', function(req, res) {
+router.get('/login', (req, res) => {
   var config = require('../core/config');
   var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
   var isRedirect = false;
@@ -21,11 +22,11 @@ router.get('/login', function(req, res) {
   }
 });
 
-router.get('/link', function(req, res) {
+router.get('/link', (req, res) => {
   res.redirect(`/auth/login`);
 });
 
-router.get('/register', function(req, res) {
+router.get('/register', (req, res) => {
   var config = require('../core/config');
   var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
   var isRedirect = false;
@@ -42,25 +43,29 @@ router.get('/register', function(req, res) {
   }
 });
 
-router.post('/logout', function (req, res) {
+router.post('/logout', (req, res) => {
   res.send("ok");
 });
 
-router.post('/login', function(req, res) {
+router.post('/login', (req, res, next) => {
   var account = _.trim(req.body.account);
   var password = _.trim(req.body.password);
   var config = require('../core/config');
   var tokenSecret = _.get(config, 'jwt.tokenSecret');
   accountManager.login(account, password)
-  .then(function (users) {
+  .then((users) => {
     var jwt = require('jsonwebtoken');
     return jwt.sign({ uid: users.id, hash: security.md5(users.ack_code), expiredIn: 7200 }, tokenSecret);
   })
-  .then(function (token) {
+  .then((token) => {
     res.send({status:'OK', results: {tokens: token}});
   })
-  .catch(function (e) {
-    res.send({status:'ERROR', errorMessage: e.message});
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.send({status:'ERROR', errorMessage: e.message});
+    } else {
+      next(e);
+    }
   });
 });
 

@@ -3,13 +3,13 @@ var router = express.Router();
 var _ = require('lodash');
 var models = require('../models');
 var middleware = require('../core/middleware');
-var AppError = require('../core/services/app-error');
+var AppError = require('../core/app-error');
 
-router.delete('/:machineName', middleware.checkToken, function(req, res, next){
+router.delete('/:machineName', middleware.checkToken, (req, res, next) => {
   var machineName = _.trim(decodeURI(req.params.machineName));
   var uid = req.users.id;
   models.UserTokens.destroy({where: {created_by:machineName, uid: uid}})
-  .then(function(rowNum){
+  .then((rowNum) => {
     res.send("");
   })
   .catch(e => {

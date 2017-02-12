@@ -4,7 +4,7 @@ var models = require('../../models');
 var _ = require('lodash');
 var common = require('../utils/common');
 var factory = require('../utils/factory');
-var AppError = require('./app-error');
+var AppError = require('../app-error');
 
 var proto = module.exports = function (){
   function ClientManager() {

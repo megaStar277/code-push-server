@@ -8,6 +8,7 @@ var security = require('../utils/security');
 var common = require('../utils/common');
 const MANIFEST_FILE_NAME = 'manifest.json';
 const CONTENTS_NAME = 'contents';
+var AppError = require('../app-error');
 
 var proto = module.exports = function (){
   function DataCenterManager() {
@@ -41,7 +42,7 @@ proto.getPackageInfo = function (packageHash) {
     var contentPath = `${packageHashPath}/${CONTENTS_NAME}`;
     return this.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
   } else {
-    throw new Error('can\'t get PackageInfo');
+    throw new AppError.AppError('can\'t get PackageInfo');
   }
 }
 

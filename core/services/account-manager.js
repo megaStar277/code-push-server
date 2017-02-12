@@ -8,6 +8,7 @@ var factory = require('../utils/factory');
 var moment = require('moment');
 var EmailManager = require('./email-manager');
 var config = require('../config');
+var AppError = require('../app-error');
 
 var proto = module.exports = function (){
   function AccountManager() {
@@ -19,9 +20,9 @@ var proto = module.exports = function (){
 
 proto.collaboratorCan = function(uid, appName) {
   return this.getCollaborator(uid, appName)
-  .then(function (data) {
+  .then((data) => {
     if (!data) {
-      throw new Error(`App ${appName} not exists.`);
+      throw new AppError.AppError(`App ${appName} not exists.`);
     }
     return data;
   });
@@ -29,9 +30,9 @@ proto.collaboratorCan = function(uid, appName) {
 
 proto.ownerCan = function(uid, appName) {
   return this.getCollaborator(uid, appName)
-  .then(function (data) {
+  .then((data) => {
     if (!data || !_.eq(_.get(data,'roles'), 'Owner') ) {
-      throw new Error("Permission Deny!");
+      throw new AppError.AppError("Permission Deny!");
     }
     return data;
   });
@@ -43,9 +44,9 @@ proto.getCollaborator = function (uid, appName) {
 
 proto.findUserByEmail = function (email) {
   return models.Users.findOne({where: {email: email}})
-  .then(function (data) {
+  .then((data) => {
     if (_.isEmpty(data)) {
-      throw new Error(email + " does not exist.");
+      throw new AppError.AppError(email + " does not exist.");
     } else {
       return data;
     }
@@ -54,7 +55,7 @@ proto.findUserByEmail = function (email) {
 
 proto.getAllAccessKeyByUid = function (uid) {
   return models.UserTokens.findAll({where: {uid: uid}, order:[['id', 'DESC']]})
-  .then(function (tokens) {
+  .then((tokens) => {
     return _.map(tokens, function(v){
       return {
         id: v.id + "",
@@ -93,10 +94,10 @@ const LOGIN_LIMIT_PRE = 'LOGIN_LIMIT_PRE_';
 
 proto.login = function (account, password) {
   if (_.isEmpty(account)) {
-    return Promise.reject(new Error("请您输入邮箱地址"))
+    return Promise.reject(new AppError.AppError("请您输入邮箱地址"))
   }
   if (_.isEmpty(password)) {
-    return Promise.reject(new Error("请您输入密码"))
+    return Promise.reject(new AppError.AppError("请您输入密码"))
   }
   var where = {};
   if (validator.isEmail(account)) {
@@ -106,20 +107,20 @@ proto.login = function (account, password) {
   }
   var tryLoginTimes = _.get(config, 'common.tryLoginTimes', 0);
   return models.Users.findOne({where: where})
-  .then(function(users) {
+  .then((users) => {
     if (_.isEmpty(users)) {
-      throw new Error("您输入的邮箱或密码有误");
+      throw new AppError.AppError("您输入的邮箱或密码有误");
     }
     return users;
   })
-  .then(function (users) {
+  .then((users) => {
     if (tryLoginTimes > 0) {
       var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
       var client = factory.getRedisClient("default");
       return client.getAsync(loginKey)
-      .then(function (loginErrorTimes) {
+      .then((loginErrorTimes) => {
         if (loginErrorTimes > tryLoginTimes) {
-          throw new Error(`您输入密码错误次数超过限制，帐户已经锁定`);
+          throw new AppError.AppError(`您输入密码错误次数超过限制，帐户已经锁定`);
         }
         return users;
       });
@@ -127,24 +128,24 @@ proto.login = function (account, password) {
       return users;
     }
   })
-  .then(function (users) {
+  .then((users) => {
     if (!security.passwordVerifySync(password, users.password)) {
       if (tryLoginTimes > 0) {
         var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
         var client = factory.getRedisClient("default");
         client.existsAsync(loginKey)
-        .then(function (isExists) {
+        .then((isExists) => {
           if (!isExists) {
             var expires = moment().endOf('day').format('X') - moment().format('X');
             return client.setexAsync(loginKey, expires, 0);
           }
           return isExists;
         })
-        .then(function () {
+        .then(() => {
           return client.incrAsync(loginKey);
         });
       }
-      throw new Error("您输入的邮箱或密码有误");
+      throw new AppError.AppError("您输入的邮箱或密码有误");
     } else {
       return users;
     }
@@ -157,23 +158,23 @@ const EXPIRED_SPEED = 10;
 
 proto.sendRegisterCode = function (email) {
   if (_.isEmpty(email)) {
-    return Promise.reject(new Error("请您输入邮箱地址"));
+    return Promise.reject(new AppError.AppError("请您输入邮箱地址"));
   }
   return models.Users.findOne({where: {email: email}})
-  .then(function (u) {
+  .then((u) => {
     if (u) {
-      throw new Error(`"${email}" 已经注册过，请更换邮箱注册`);
+      throw new AppError.AppError(`"${email}" 已经注册过，请更换邮箱注册`);
     }
   })
-  .then(function () {
+  .then(() => {
     //将token临时存储到redis
     var token = security.randToken(40);
     return factory.getRedisClient("default").setexAsync(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
-    .then(function () {
+    .then(() => {
       return token;
     });
   })
-  .then(function (token) {
+  .then((token) => {
     //将token发送到用户邮箱
     var emailManager = new EmailManager();
     return emailManager.sendRegisterCode(email, token);
@@ -182,28 +183,28 @@ proto.sendRegisterCode = function (email) {
 
 proto.checkRegisterCode = function (email, token) {
   return models.Users.findOne({where: {email: email}})
-  .then(function (u) {
+  .then((u) => {
     if (u) {
-      throw new Error(`"${email}" 已经注册过，请更换邮箱注册`);
+      throw new AppError.AppError(`"${email}" 已经注册过，请更换邮箱注册`);
     }
   })
-  .then(function () {
+  .then(() => {
     var registerKey = `${REGISTER_CODE}${security.md5(email)}`;
     var client = factory.getRedisClient("default");
     return client.getAsync(registerKey)
-    .then(function (storageToken) {
+    .then((storageToken) => {
       if (_.isEmpty(storageToken)) {
-        throw new Error(`验证码已经失效，请您重新获取`);
+        throw new AppError.AppError(`验证码已经失效，请您重新获取`);
       }
       if (!_.eq(token, storageToken)) {
         client.ttlAsync(registerKey)
-        .then(function (ttl) {
+        .then((ttl) => {
           if (ttl > 0) {
             return client.expireAsync(registerKey, ttl - EXPIRED_SPEED);
           }
           return ttl;
         })
-        throw new Error(`您输入的验证码不正确，请重新输入`);
+        throw new AppError.AppError(`您输入的验证码不正确，请重新输入`);
       }
       return storageToken;
     })
@@ -212,12 +213,12 @@ proto.checkRegisterCode = function (email, token) {
 
 proto.register = function (email, password) {
   return models.Users.findOne({where: {email: email}})
-  .then(function (u) {
+  .then((u) => {
     if (u) {
-      throw new Error(`"${email}" 已经注册过，请更换邮箱注册`);
+      throw new AppError.AppError(`"${email}" 已经注册过，请更换邮箱注册`);
     }
   })
-  .then(function () {
+  .then(() => {
     var identical = security.randToken(9);
     return models.Users.create({
       email: email,
@@ -229,19 +230,19 @@ proto.register = function (email, password) {
 
 proto.changePassword = function (uid, oldPassword, newPassword) {
   if (!_.isString(newPassword) || newPassword.length < 6) {
-    return Promise.reject(new Error("请您输入6～20位长度的新密码"));
+    return Promise.reject(new AppError.AppError("请您输入6～20位长度的新密码"));
   }
   return models.Users.findOne({where: {id: uid}})
-  .then(function (u) {
+  .then((u) => {
     if (!u) {
-      throw new Error(`未找到用户信息`);
+      throw new AppError.AppError(`未找到用户信息`);
     }
     return u;
   })
-  .then(function (u) {
+  .then((u) => {
     var isEq = security.passwordVerifySync(oldPassword, u.get('password'));
     if (!isEq) {
-      throw new Error(`您输入的旧密码不正确，请重新输入`);
+      throw new AppError.AppError(`您输入的旧密码不正确，请重新输入`);
     }
     u.set('password', security.passwordHashSync(newPassword));
     u.set('ack_code', security.randToken(5));

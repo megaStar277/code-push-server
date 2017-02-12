@@ -7,6 +7,7 @@ var AppError = function (msg, constr) {
   Error.captureStackTrace(this, constr || this)
   this.message = msg || 'Error'
   this.name = 'AppError'
+  this.status = 200
 }
 util.inherits(AppError, Error)
 
@@ -18,8 +19,17 @@ var NotFoundError = function(msg) {
 }
 util.inherits(NotFoundError, AppError)
 
+var UnauthorizedError = function(msg) {
+  NotFoundError.super_.call(this, msg, this.constructor)
+  this.message = msg || `401 Unauthorized`;
+  this.name = 'UnauthorizedError'
+  this.status = 401
+}
+util.inherits(UnauthorizedError, AppError)
+
 module.exports = {
   AppError: AppError,
-  NotFound: NotFoundError
+  NotFound: NotFoundError,
+  Unauthorized: UnauthorizedError
 }
 

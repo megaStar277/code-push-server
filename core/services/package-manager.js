@@ -11,6 +11,7 @@ var slash = require("slash");
 var common = require('../utils/common');
 var os = require('os');
 var path = require('path');
+var AppError = require('../app-error');
 
 var proto = module.exports = function (){
   function PackageManager() {
@@ -29,10 +30,10 @@ proto.parseReqFile = function (req) {
     var form = new formidable.IncomingForm();
     form.parse(req, function(err, fields, files) {
       if (err) {
-        reject(new Error("upload error"));
+        reject(new AppError.AppError("upload error"));
       } else {
         if (_.isEmpty(fields.packageInfo) || _.isEmpty(files.package)) {
-          reject(new Error("upload info lack"));
+          reject(new AppError.AppError("upload info lack"));
         } else {
           resolve({packageInfo:JSON.parse(fields.packageInfo), package: files.package});
         }
@@ -231,7 +232,7 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
   return models.Packages.findById(packageId)
   .then(function (originalPackage) {
     if (_.isEmpty(originalPackage)) {
-      throw Error('can\'t find Package');
+      throw AppError.AppError('can\'t find Package');
     }
     return Promise.all([
       models.Packages.findAll({
@@ -260,7 +261,7 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
 
 proto.createDiffPackages = function (originalPackage, destPackages) {
   if (!_.isArray(destPackages)) {
-    return Promise.reject(new Error('第二个参数必须是数组'));
+    return Promise.reject(new AppError.AppError('第二个参数必须是数组'));
   }
   if (destPackages.length <= 0) {
     return null;
@@ -288,7 +289,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   var self = this;
   var appVersion = packageInfo.appVersion;
   if (!/^([0-9.]+)$/.test(appVersion)) {
-    return Promise.reject(new Error(`targetBinaryVersion ${appVersion} not support.`))
+    return Promise.reject(new AppError.AppError(`targetBinaryVersion ${appVersion} not support.`))
   }
   var description = packageInfo.description;
   var isMandatory = packageInfo.isMandatory;
@@ -300,7 +301,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
       if (fileType == "application/zip") {
         return common.unzipFile(filePath, directoryPath)
       } else {
-        throw new Error("上传的文件格式不对");
+        throw new AppError.AppError("上传的文件格式不对");
       }
     })
   ])
@@ -310,12 +311,12 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
       if (type === 1) {
         //android
         if (pubType == 'ios' ) {
-          throw new Error("it must be publish it by ios type");
+          throw new AppError.AppError("it must be publish it by ios type");
         }
       } else if (type === 2) {
         //ios
         if (pubType == 'android'){
-          throw new Error("it must be publish it by android type");
+          throw new AppError.AppError("it must be publish it by android type");
         }
       } else {
         //不验证
@@ -334,7 +335,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
       return self.existPackageHashAndCreateVersions(deploymentId, appVersion, packageHash)
       .then(function (isExist) {
         if (isExist){
-          throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
+          throw new AppError.AppError("The uploaded package is identical to the contents of the specified deployment's current release.");
         }
         return security.qetag(manifestFile);
       })
@@ -373,21 +374,21 @@ proto.modifyReleasePackage = function(deploymentId, deploymentVersionId, package
   return models.DeploymentsVersions.findById(deploymentVersionId)
   .then(function(deploymentsVersions){
     if (_.isBoolean(isDisabled)) {
-      throw new Error(`--disabled -x function is not implements`);
+      throw new AppError.AppError(`--disabled -x function is not implements`);
     }
     if (!appVersion) {
       if (!/^([0-9.]+)$/.test(appVersion)) {
-        return Promise.reject(new Error(`targetBinaryVersion ${appVersion} not support.`))
+        return Promise.reject(new AppError.AppError(`targetBinaryVersion ${appVersion} not support.`))
       }
       return models.DeploymentsVersions.findOne({deployment_id: deploymentId, app_version: appVersion})
       .then(function(d){
         if (d) {
-          throw new Error(`version ${appVersion} already exist`);
+          throw new AppError.AppError(`version ${appVersion} already exist`);
         }
       });
     }
     if(!deploymentsVersions) {
-      throw new Error(`packages were not found in db`);
+      throw new AppError.AppError(`packages were not found in db`);
     }
   })
   .then(function(){
@@ -401,23 +402,23 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, promoteUi
   .then(function (sourceDeployment) {
     var lastDeploymentVersionId = _.get(sourceDeployment, 'last_deployment_version_id', 0);
     if (_.lte(lastDeploymentVersionId, 0)) {
-      throw new Error('does not exist last_deployment_version_id.');
+      throw new AppError.AppError('does not exist last_deployment_version_id.');
     }
     return models.DeploymentsVersions.findById(lastDeploymentVersionId)
     .then(function (deploymentsVersions) {
       var packageId = _.get(deploymentsVersions, 'current_package_id', 0);
       if (_.lte(packageId, 0)) {
-        throw new Error('does not exist packages.');
+        throw new AppError.AppError('does not exist packages.');
       }
       return models.Packages.findById(packageId)
       .then(function (packages) {
         if (!packages) {
-          throw new Error('does not exist packages.');
+          throw new AppError.AppError('does not exist packages.');
         }
         return self.existPackageHashAndCreateVersions(destDeploymentId, deploymentsVersions.app_version, packages.package_hash)
         .then(function (isExist) {
           if (isExist){
-            throw new Error("The uploaded package is identical to the contents of the specified deployment's current release.");
+            throw new AppError.AppError("The uploaded package is identical to the contents of the specified deployment's current release.");
           }
         })
         .then(function () {
@@ -445,7 +446,7 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
   return models.DeploymentsVersions.findById(deploymentVersionId)
   .then(function(deploymentsVersions){
     if (!deploymentsVersions) {
-      throw new Error("您之前还没有发布过版本");
+      throw new AppError.AppError("您之前还没有发布过版本");
     }
     return models.Packages.findById(deploymentsVersions.current_package_id)
     .then(function (currentPackageInfo){
@@ -469,7 +470,7 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
           }
         }
       }
-      throw new Error("没有可供回滚的版本");
+      throw new AppError.AppError("没有可供回滚的版本");
     })
     .then(function(rollbackPackage){
       var params = {

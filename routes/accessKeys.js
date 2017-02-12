@@ -6,19 +6,24 @@ var security = require('../core/utils/security');
 var models = require('../models');
 var middleware = require('../core/middleware');
 var accountManager = require('../core/services/account-manager')();
+var AppError = require('../core/app-error')
 
-router.get('/', middleware.checkToken, function(req, res) {
+router.get('/', middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   accountManager.getAllAccessKeyByUid(uid)
-  .then(function(accessKeys){
+  .then((accessKeys) => {
     res.send({accessKeys:accessKeys});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
-router.post('/', middleware.checkToken, function(req, res) {
+router.post('/', middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var identical = req.users.identical;
   var createdBy = _.trim(req.body.createdBy);
@@ -28,15 +33,15 @@ router.post('/', middleware.checkToken, function(req, res) {
   var description = _.trim(req.body.description);
   var newAccessKey = security.randToken(28).concat(identical);
   return accountManager.isExsitAccessKeyName(uid, friendlyName)
-  .then(function (data) {
+  .then((data) => {
     if (!_.isEmpty(data)) {
-      throw Error(`The access key "${friendlyName}"  already exists.`);
+      throw new AppError.AppError(`The access key "${friendlyName}"  already exists.`);
     }
   })
-  .then(function () {
+  .then(() => {
     return accountManager.createAccessKey(uid, newAccessKey, isSession, ttl, friendlyName, createdBy, description);
   })
-  .then(function(newToken){
+  .then((newToken) => {
     var moment = require("moment");
     var info = {
       name : newToken.tokens,
@@ -49,24 +54,32 @@ router.post('/', middleware.checkToken, function(req, res) {
     };
     res.send({accessKey:info});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
-router.delete('/:name', middleware.checkToken, function(req, res){
+router.delete('/:name', middleware.checkToken, (req, res, next) => {
   var name = _.trim(decodeURI(req.params.name));
   var uid = req.users.id;
   return models.UserTokens.destroy({where: {name:name, uid: uid}})
-  .then(function(rowNum){
+  .then((rowNum) => {
     res.send({friendlyName:name});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
-router.patch('/:name', middleware.checkToken, function(req, res){
+router.patch('/:name', middleware.checkToken, (req, res, next) => {
   var name = _.trim(decodeURI(req.params.name));
   var friendlyName = _.trim(req.body.friendlyName);
   var ttl = _.trim(req.body.ttl);
@@ -75,16 +88,16 @@ router.patch('/:name', middleware.checkToken, function(req, res){
     models.UserTokens.findOne({where: {name:name, uid: uid}}),
     accountManager.isExsitAccessKeyName(uid, friendlyName),
   ])
-  .spread(function (token, token2) {
+  .spread((token, token2) => {
     if (_.isEmpty(token)) {
-      throw new Error(`The access key "${name}" does not exist.`);
+      throw new AppError.AppError(`The access key "${name}" does not exist.`);
     }
     if (!_.isEmpty(token2)) {
-      throw new Error(`The access key "${friendlyName}"  already exists.`);
+      throw new AppError.AppError(`The access key "${friendlyName}"  already exists.`);
     }
     return token;
   })
-  .then(function (token) {
+  .then((token) => {
     var moment = require('moment');
     if (ttl > 0 || ttl < 0) {
       var newExp = moment(token.get('expires_at')).add(ttl/1000, 'seconds').format('YYYY-MM-DD HH:mm:ss');
@@ -95,7 +108,7 @@ router.patch('/:name', middleware.checkToken, function(req, res){
     }
     return token.save();
   })
-  .then(function (token) {
+  .then((token) => {
     var info = {
       name : '(hidden)',
       isSession: token.is_session == 1 ? true :false,
@@ -108,8 +121,12 @@ router.patch('/:name', middleware.checkToken, function(req, res){
     };
     res.send({accessKey: info});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 

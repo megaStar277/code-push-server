@@ -1,6 +1,7 @@
 "use strict";
 
 var _ = require('lodash');
+var AppError = require('../core/app-error');
 
 module.exports = function(sequelize, DataTypes) {
   var Deployments = sequelize.define("Deployments", {
@@ -28,7 +29,7 @@ module.exports = function(sequelize, DataTypes) {
         return sequelize.transaction(function (t) {
           return self.findById(deploymentId, {transaction: t,lock: t.LOCK.UPDATE}).then(function (data) {
             if (_.isEmpty(data)){
-              throw new Error("does not find deployment");
+              throw new AppError.AppError("does not find deployment");
             }
             data.label_id = data.label_id + 1;
             return data.save({transaction: t})

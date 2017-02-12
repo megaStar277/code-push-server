@@ -111,7 +111,7 @@ security.isAndroidPackage = function (directoryPath) {
         reject(error);
       } else {
         if (files.length == 0) {
-          reject(new Error("empty files"));
+          reject(new AppError.AppError("empty files"));
         } else {
           const AREGEX=/android\.bundle/
           const AREGEX_IOS=/main\.jsbundle/
@@ -143,7 +143,7 @@ security.calcAllFileSha256 = function (directoryPath) {
         reject(error);
       } else {
         if (files.length == 0) {
-          reject(new Error("empty files"));
+          reject(new AppError.AppError("empty files"));
         }else {
           security.sha256AllFiles(files)
           .then(function (results) {

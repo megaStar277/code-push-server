@@ -7,6 +7,7 @@ var config    = require('../config');
 var _ = require('lodash');
 var qiniu = require("qiniu");
 var common = {};
+var AppError = require('../app-error');
 module.exports = common;
 
 common.createFileFromRequest = function (url, filePath) {
@@ -87,7 +88,7 @@ common.unzipFile = function (zipFile, outputPath) {
     try {
       fs.exists(zipFile, function(exists){
         if (!exists) {
-          reject(new Error("zipfile not found!"))
+          reject(new AppError.AppError("zipfile not found!"))
         }
         var readStream = fs.createReadStream(zipFile);
         var extract = unzip.Extract({ path: outputPath });
@@ -122,20 +123,20 @@ common.uploadFileToLocal = function (key, filePath) {
   return new Promise(function (resolve, reject) {
     var storageDir = _.get(config, 'local.storageDir');
     if (!storageDir) {
-      throw new Error('please set config local storageDir');
+      throw new AppError.AppError('please set config local storageDir');
     }
     if (!fs.existsSync(storageDir)) {
-      throw new Error(`please create dir ${storageDir}`);
+      throw new AppError.AppError(`please create dir ${storageDir}`);
     }
     fs.accessSync(storageDir, fs.W_OK);
     var stats = fs.statSync(storageDir);
     if (!stats.isDirectory()) {
-      throw new Error(`${storageDir} must be directory`);
+      throw new AppError.AppError(`${storageDir} must be directory`);
     }
     fs.accessSync(filePath, fs.R_OK);
     stats = fs.statSync(filePath);
     if (!stats.isFile()) {
-      throw new Error(`${filePath} must be file`);
+      throw new AppError.AppError(`${filePath} must be file`);
     }
     fsextra.copy(filePath, `${storageDir}/${key}`, {clobber: true, limit: 16}, function (err) {
       if (err) {
@@ -183,7 +184,7 @@ common.uploadFileToQiniu = function (key, filePath) {
             resolve(ret.hash);
           } else {
             // 上传失败， 处理返回代码
-            reject(new Error(JSON.stringify(err)));
+            reject(new AppError.AppError(JSON.stringify(err)));
           }
         });
       }
@@ -208,7 +209,7 @@ common.uploadFileToS3 = function (key, filePath) {
           ACL:'public-read',
         }, function(err, response) {
           if(err) {
-            reject(new Error(JSON.stringify(err)));
+            reject(new AppError.AppError(JSON.stringify(err)));
           } else {
             resolve(response.ETag)
           }

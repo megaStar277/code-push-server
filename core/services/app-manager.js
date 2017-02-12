@@ -3,6 +3,7 @@ var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
 var security = require('../../core/utils/security');
+var AppError = require('../app-error');
 
 var proto = module.exports = function (){
   function AppManager() {
@@ -65,7 +66,7 @@ proto.modifyApp = function (appId, params) {
   return models.Apps.update(params, {where: {id:appId}})
   .spread(function (affectedCount, affectedRows) {
     if (!_.gt(affectedCount, 0)) {
-      throw Error('modify errors');
+      throw AppError.AppError('modify errors');
     }
     return affectedCount;
   });

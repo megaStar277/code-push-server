@@ -6,6 +6,7 @@ var common = require('../../core/utils/common');
 var PackageManager = require('./package-manager');
 var _ = require('lodash');
 var moment = require('moment');
+var AppError = require('../app-error');
 
 var proto = module.exports = function (){
   function Deployments() {
@@ -23,7 +24,7 @@ proto.existDeloymentName = function (appId, name) {
   return models.Deployments.findOne({where: {appid: appId, name: name}})
   .then(function (data) {
     if (!_.isEmpty(data)){
-      throw new Error(name + " name does Exist!")
+      throw new AppError.AppError(name + " name does Exist!")
     } else {
       return data;
     }
@@ -35,7 +36,7 @@ proto.addDeloyment = function (name, appId, uid) {
   return models.Users.findById(uid)
   .then(function (user) {
     if (_.isEmpty(user)) {
-      throw new Error('can\'t find user');
+      throw new AppError.AppError('can\'t find user');
     }
     return self.existDeloymentName(appId, name)
     .then(function () {
@@ -63,7 +64,7 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
       if (_.gt(affectedCount, 0)) {
         return {name: newName};
       } else {
-        throw new Error(`does not find the deployment "${deploymentName}"`);
+        throw new AppError.AppError(`does not find the deployment "${deploymentName}"`);
       }
     });
   });
@@ -77,7 +78,7 @@ proto.deleteDeloymentByName = function (deploymentName, appId) {
     if (_.gt(rowNum, 0)) {
       return {name: `${deploymentName}`};
     } else {
-      throw new Error(`does not find the deployment "${deploymentName}"`);
+      throw new AppError.AppError(`does not find the deployment "${deploymentName}"`);
     }
   });
 };

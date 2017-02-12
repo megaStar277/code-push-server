@@ -9,6 +9,7 @@ var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
 var AppManager = require('../core/services/app-manager');
 var PackageManager = require('../core/services/package-manager');
+var AppError = require('../core/app-error');
 var common = require('../core/utils/common');
 var config    = require('../core/config');
 const REGEX = /^(\w+)(-android|-ios)$/;
@@ -18,55 +19,67 @@ const OLD_REGEX_ANDROID = /^(android_)/;
 const OLD_REGEX_IOS = /^(ios_)/;
 
 router.get('/',
-  middleware.checkToken, function(req, res) {
+  middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var appManager = new AppManager();
   appManager.listApps(uid)
-  .then(function (data) {
+  .then((data) => {
     res.send({apps: data});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.get('/:appName/deployments',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deployments = new Deployments();
   accountManager.collaboratorCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return deployments.listDeloyments(col.appid);
   })
-  .then(function (data) {
+  .then((data) => {
     res.send({deployments: data});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.post('/:appName/deployments',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var name = req.body.name;
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return deployments.addDeloyment(name, col.appid, uid);
   })
-  .then(function (data) {
+  .then((data) => {
     res.send({deployment: {name: data.name, key: data.deployment_key}});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.get('/:appName/deployments/:deploymentName/metrics',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
@@ -74,22 +87,22 @@ router.get('/:appName/deployments/:deploymentName/metrics',
   var packageManager = new PackageManager();
 
   accountManager.collaboratorCan(uid, appName)
-  .then(function(col) {
+  .then((col) => {
     return deployments.findDeloymentByName(deploymentName, col.appid)
-    .then(function (deploymentInfo) {
+    .then((deploymentInfo) => {
       if (_.isEmpty(deploymentInfo)) {
-        throw new Error("does not find the deployment");
+        throw new AppError.AppError("does not find the deployment");
       }
       return deploymentInfo;
     })
   })
-  .then(function(deploymentInfo) {
+  .then((deploymentInfo) => {
     return deployments.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
   })
-  .then(function(packagesInfos) {
-    return Promise.reduce(packagesInfos, function (result, v) {
+  .then((packagesInfos) => {
+    return Promise.reduce(packagesInfos, (result, v) => {
       return packageManager.getMetricsbyPackageId(v.get('id'))
-      .then(function (metrics) {
+      .then((metrics) => {
         if (metrics) {
           result[v.get('label')] = {
             active: metrics.get('active'),
@@ -102,140 +115,160 @@ router.get('/:appName/deployments/:deploymentName/metrics',
       });
     }, {});
   })
-  .then(function(rs) {
+  .then((rs) => {
     res.send({"metrics": rs});
   })
-  .catch(function(e){
-    res.send({"metrics": null});
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.send({"metrics": null});
+    } else {
+      next(e);
+    }
   });
 });
 
 router.get('/:appName/deployments/:deploymentName/history',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var deployments = new Deployments();
   accountManager.collaboratorCan(uid, appName)
-  .then(function(col){
+  .then((col) => {
     return deployments.findDeloymentByName(deploymentName, col.appid)
-    .then(function (deploymentInfo) {
+    .then((deploymentInfo) => {
       if (_.isEmpty(deploymentInfo)) {
-        throw new Error("does not find the deployment");
+        throw new AppError.AppError("does not find the deployment");
       }
       return deploymentInfo;
     });
   })
-  .then(function(deploymentInfo) {
+  .then((deploymentInfo) => {
     return deployments.getDeploymentHistory(deploymentInfo.id);
   })
-  .then(function (rs) {
+  .then((rs) => {
     res.send({history: rs});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.delete('/:appName/deployments/:deploymentName/history',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName)
-  .then(function(col){
+  .then((col) => {
     return deployments.findDeloymentByName(deploymentName, col.appid)
-    .then(function (deploymentInfo) {
+    .then((deploymentInfo) => {
       if (_.isEmpty(deploymentInfo)) {
-        throw new Error("does not find the deployment");
+        throw new AppError.AppError("does not find the deployment");
       }
       return deploymentInfo;
     });
   })
-  .then(function(deploymentInfo) {
+  .then((deploymentInfo) => {
     return deployments.deleteDeploymentHistory(deploymentInfo.id);
   })
-  .then(function (rs) {
+  .then((rs) => {
     res.send("ok");
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.patch('/:appName/deployments/:deploymentName',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var name = req.body.name;
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return deployments.renameDeloymentByName(deploymentName, col.appid, name);
   })
-  .then(function (data) {
+  .then((data) => {
     res.send({deployment: data});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.delete('/:appName/deployments/:deploymentName',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
   var deployments = new Deployments();
   accountManager.ownerCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return deployments.deleteDeloymentByName(deploymentName, col.appid);
   })
-  .then(function (data) {
+  .then((data) => {
     res.send({deployment: data});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.post('/:appName/deployments/:deploymentName/release',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
   var deployments = new Deployments();
   var packageManager = new PackageManager();
   accountManager.collaboratorCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     var pubType = '';
     if (REGEX_ANDROID.test(appName)) {
       pubType = 'android';
     } else if (REGEX_IOS.test(appName)) {
       pubType = 'ios';
     } else {
-      throw new Error(`you have to rename app name, eg. Demo-android Demo-ios`);
+      throw new AppError.AppError(`you have to rename app name, eg. Demo-android Demo-ios`);
     }
     return deployments.findDeloymentByName(deploymentName, col.appid)
-    .then(function (deploymentInfo) {
+    .then((deploymentInfo) => {
       if (_.isEmpty(deploymentInfo)) {
-        throw new Error("does not find the deployment");
+        throw new AppError.AppError("does not find the deployment");
       }
       return packageManager.parseReqFile(req)
-      .then(function (data) {
+      .then((data) => {
         return packageManager.releasePackage(deploymentInfo.id, data.packageInfo, data.package.type, data.package.path, uid, pubType)
-        .finally(function () {
+        .finally(() => {
           common.deleteFolderSync(data.package.path);
         });
       })
-      .then(function (packages) {
+      .then((packages) => {
         if (packages) {
           Promise.delay(2000)
-          .then(function () {
+          .then(() => {
             packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
-            .catch(function(e){
+            .catch((e) => {
               console.log(e);
             });
           });
@@ -243,7 +276,7 @@ router.post('/:appName/deployments/:deploymentName/release',
         //clear cache if exists.
         if (_.get(config, 'common.updateCheckCache', false) !== false) {
           Promise.delay(2500)
-          .then(function () {
+          .then(() => {
             var ClientManager = require('../core/services/client-manager');
             var clientManager = new ClientManager();
             clientManager.clearUpdateCheckCache(deploymentInfo.deployment_key, '*', '*', '*');
@@ -253,16 +286,20 @@ router.post('/:appName/deployments/:deploymentName/release',
       });
     });
   })
-  .then(function (data) {
+  .then((data) => {
     res.send("");
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.patch('/:appName/deployments/:deploymentName/release',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
     return res.status(406).send('Not supported currently');
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
@@ -270,26 +307,30 @@ router.patch('/:appName/deployments/:deploymentName/release',
     var deployments = new Deployments();
     var packageManager = new PackageManager();
     accountManager.collaboratorCan(uid, appName)
-    .then(function (col) {
+    .then((col) => {
       return deployments.findDeloymentByName(deploymentName, col.appid)
-      .then(function (deploymentInfo) {
+      .then((deploymentInfo) => {
         if (_.isEmpty(deploymentInfo)) {
-          throw new Error("does not find the deployment");
+          throw new AppError.AppError("does not find the deployment");
         }
         var label = deploymentInfo.label;
         var deploymentVersionId = deploymentInfo.last_deployment_version_id;
         return packageManager.modifyReleasePackage(deploymentInfo.id, deploymentVersionId, _.get(req, 'body.packageInfo'));
       });
-    }).then(function (data) {
+    }).then((data) => {
       res.send("");
     })
-    .catch(function (e) {
-      res.status(406).send(e.message);
+    .catch((e) => {
+      if (e instanceof AppError.AppError) {
+        res.status(406).send(e.message);
+      } else {
+        next(e);
+      }
     });
 });
 
 router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var sourceDeploymentName = _.trim(req.params.sourceDeploymentName);
   var destDeploymentName = _.trim(req.params.destDeploymentName);
@@ -297,23 +338,23 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
   var packageManager = new PackageManager();
   var deployments = new Deployments();
   accountManager.collaboratorCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     var appId = col.appid;
     return Promise.all([
       deployments.findDeloymentByName(sourceDeploymentName, appId),
       deployments.findDeloymentByName(destDeploymentName, appId)
     ])
-    .spread(function (sourceDeploymentInfo, destDeploymentInfo) {
+    .spread((sourceDeploymentInfo, destDeploymentInfo) => {
       if (!sourceDeploymentInfo) {
-        throw new Error(`${sourceDeploymentName}  does not exist.`);
+        throw new AppError.AppError(`${sourceDeploymentName}  does not exist.`);
       }
       if (!destDeploymentInfo) {
-        throw new Error(`${destDeploymentName}  does not exist.`);
+        throw new AppError.AppError(`${destDeploymentName}  does not exist.`);
       }
       //clear cache if exists.
       if (_.get(config, 'common.updateCheckCache', false) !== false) {
         Promise.delay(2500)
-        .then(function () {
+        .then(() => {
           var ClientManager = require('../core/services/client-manager');
           var clientManager = new ClientManager();
           clientManager.clearUpdateCheckCache(destDeploymentInfo.deployment_key, '*', '*', '*');
@@ -321,31 +362,35 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
       }
       return [sourceDeploymentInfo.id, destDeploymentInfo.id];
     })
-    .spread(function (sourceDeploymentId, destDeploymentId) {
+    .spread((sourceDeploymentId, destDeploymentId) => {
       return packageManager.promotePackage(sourceDeploymentId, destDeploymentId, uid);
     });
   })
-  .then(function (packages) {
+  .then((packages) => {
     if (packages) {
       Promise.delay(2000)
-      .then(function () {
+      .then(() => {
         packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
-        .catch(function(e){
+        .catch((e) => {
           console.log(e);
         });
       });
     }
     return null;
   })
-  .then(function () {
+  .then(() => {
      res.send('ok');
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
-var rollbackCb = function (req, res) {
+var rollbackCb = function (req, res, next) {
   var appName = _.trim(req.params.appName);
   var deploymentName = _.trim(req.params.deploymentName);
   var uid = req.users.id;
@@ -353,14 +398,14 @@ var rollbackCb = function (req, res) {
   var deployments = new Deployments();
   var packageManager = new PackageManager();
   accountManager.collaboratorCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return deployments.findDeloymentByName(deploymentName, col.appid);
   })
-  .then(function(dep){
+  .then((dep) => {
     //clear cache if exists.
     if (_.get(config, 'common.updateCheckCache', false) !== false) {
       Promise.delay(2500)
-      .then(function () {
+      .then(() => {
         var ClientManager = require('../core/services/client-manager');
         var clientManager = new ClientManager();
         clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
@@ -368,11 +413,15 @@ var rollbackCb = function (req, res) {
     }
     return packageManager.rollbackPackage(dep.last_deployment_version_id, targetLabel, uid);
   })
-  .then(function () {
+  .then(() => {
      res.send('ok');
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 };
 
@@ -383,15 +432,16 @@ router.post('/:appName/deployments/:deploymentName/rollback/:label',
   middleware.checkToken, rollbackCb);
 
 router.get('/:appName/collaborators',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
   var collaborators = new Collaborators();
-  accountManager.collaboratorCan(uid, appName).then(function (col) {
+  accountManager.collaboratorCan(uid, appName)
+  .then((col) => {
     return collaborators.listCollaborators(col.appid);
   })
-  .then(function (data) {
-    rs = _.reduce(data, function (result, value, key) {
+  .then((data) => {
+    rs = _.reduce(data, (result, value, key) => {
       if (_.eq(key, req.users.email)) {
         value.isCurrentAccount = true;
       }else {
@@ -402,13 +452,17 @@ router.get('/:appName/collaborators',
     },{});
     res.send({collaborators: rs});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.post('/:appName/collaborators/:email',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var email = _.trim(req.params.email);
   var uid = req.users.id;
@@ -417,21 +471,26 @@ router.post('/:appName/collaborators/:email',
   }
   var collaborators = new Collaborators();
   accountManager.ownerCan(uid, appName)
-  .then(function (col) {
-    return accountManager.findUserByEmail(email).then(function (data) {
+  .then((col) => {
+    return accountManager.findUserByEmail(email)
+    .then((data) => {
       return collaborators.addCollaborator(col.appid, data.id);
     });
   })
-  .then(function (data) {
+  .then((data) => {
     res.send(data);
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.delete('/:appName/collaborators/:email',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var email = _.trim(decodeURI(req.params.email));
   var uid = req.users.id;
@@ -440,42 +499,51 @@ router.delete('/:appName/collaborators/:email',
   }
   var collaborators = new Collaborators();
   accountManager.ownerCan(uid, appName)
-  .then(function (col) {
-    return accountManager.findUserByEmail(email).then(function (data) {
+  .then((col) => {
+    return accountManager.findUserByEmail(email)
+    .then((data) => {
       if (_.eq(data.id, uid)) {
-        throw new Error("can't delete yourself!");
+        throw new AppError.AppError("can't delete yourself!");
       } else {
         return collaborators.deleteCollaborator(col.appid, data.id);
       }
     });
   })
-  .then(function () {
+  .then(() => {
     res.send("");
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.delete('/:appName',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
   var appManager = new AppManager();
   accountManager.ownerCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return appManager.deleteApp(col.appid);
   })
-  .then(function (data) {
+  .then((data) => {
     res.send(data);
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
 router.patch('/:appName',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var newAppName = _.trim(req.body.name);
   var appName = _.trim(req.params.appName);
   var uid = req.users.id;
@@ -484,37 +552,41 @@ router.patch('/:appName',
   } else {
     var appManager = new AppManager();
     return accountManager.ownerCan(uid, appName)
-    .then(function (col) {
+    .then((col) => {
       if (REGEX_ANDROID.test(appName) || OLD_REGEX_ANDROID.test(appName)) {
         if (!REGEX_ANDROID.test(newAppName)) {
-          throw new Error(`new appName have to point -android suffix! eg. Demo-android`);
+          throw new AppError.AppError(`new appName have to point -android suffix! eg. Demo-android`);
         }
       } else if (REGEX_IOS.test(appName) || OLD_REGEX_IOS.test(appName)) {
         if (!REGEX_IOS.test(newAppName)) {
-          throw new Error(`new appName have to point -ios suffix! eg. Demo-ios`);
+          throw new AppError.AppError(`new appName have to point -ios suffix! eg. Demo-ios`);
         }
       } else {
-        throw new Error(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
+        throw new AppError.AppError(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
       }
       return appManager.findAppByName(uid, newAppName)
-      .then(function (appInfo) {
+      .then((appInfo) => {
         if (!_.isEmpty(appInfo)){
-          throw new Error(newAppName + " Exist!");
+          throw new AppError.AppError(newAppName + " Exist!");
         }
         return appManager.modifyApp(col.appid, {name: newAppName});
       });
     })
-    .then(function () {
+    .then(() => {
       res.send("");
     })
-    .catch(function (e) {
-      res.status(406).send(e.message);
+    .catch((e) => {
+      if (e instanceof AppError.AppError) {
+        res.status(406).send(e.message);
+      } else {
+        next(e);
+      }
     });
   }
 });
 
 router.post('/:appName/transfer/:email',
-  middleware.checkToken, function (req, res) {
+  middleware.checkToken, (req, res, next) => {
   var appName = _.trim(req.params.appName);
   var email = _.trim(req.params.email);
   var uid = req.users.id;
@@ -522,25 +594,29 @@ router.post('/:appName/transfer/:email',
     return res.status(406).send("Invalid Email!");
   }
   return accountManager.ownerCan(uid, appName)
-  .then(function (col) {
+  .then((col) => {
     return accountManager.findUserByEmail(email)
-    .then(function (data) {
+    .then((data) => {
       if (_.eq(data.id, uid)) {
-        throw new Error("You can't transfer to yourself!");
+        throw new AppError.AppError("You can't transfer to yourself!");
       }
       var appManager = new AppManager();
       return appManager.transferApp(col.appid, uid, data.id);
     });
   })
-  .then(function (data) {
+  .then((data) => {
     res.send(data);
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 
-router.post('/', middleware.checkToken, function (req, res) {
+router.post('/', middleware.checkToken, (req, res, next) => {
   var appName = req.body.name;
   var uid = req.users.id;
   var appManager = new AppManager();
@@ -548,23 +624,27 @@ router.post('/', middleware.checkToken, function (req, res) {
     return res.status(406).send("Please input name!");
   }
   appManager.findAppByName(uid, appName)
-  .then(function (appInfo) {
+  .then((appInfo) => {
     if (!_.isEmpty(appInfo)){
-      throw new Error(appName + " Exist!");
+      throw new AppError.AppError(appName + " Exist!");
     }
     if (!REGEX.test(appName)) {
-      throw new Error(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
+      throw new AppError.AppError(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
     }
     return appManager.addApp(uid, appName, req.users.identical)
-    .then(function () {
+    .then(() => {
       return {name: appName, collaborators: {[req.users.email]: {permission: "Owner"}}};
     });
   })
-  .then(function (data) {
+  .then((data) => {
     res.send({app: data});
   })
-  .catch(function (e) {
-    res.status(406).send(e.message);
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
   });
 });
 

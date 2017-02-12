@@ -19,7 +19,7 @@ var proto = module.exports = function (){
 proto.sendMail = function (options) {
   return new Promise(function (resolve, reject) {
     if(!_.get(options, 'to')) {
-      return reject(new Error("to是必传参数"));
+      return reject(new AppError.AppError("to是必传参数"));
     }
     var smtpConfig = _.get(config, 'smtpConfig');
     if (!smtpConfig) {
