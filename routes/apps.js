@@ -269,7 +269,7 @@ router.post('/:appName/deployments/:deploymentName/release',
           .then(() => {
             packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
             .catch((e) => {
-              console.log(e);
+              console.error(e);
             });
           });
         }

@@ -31,8 +31,11 @@ proto.collaboratorCan = function(uid, appName) {
 proto.ownerCan = function(uid, appName) {
   return this.getCollaborator(uid, appName)
   .then((data) => {
-    if (!data || !_.eq(_.get(data,'roles'), 'Owner') ) {
-      throw new AppError.AppError("Permission Deny!");
+    if (!data) {
+      throw new AppError.AppError(`App ${appName} not exists.`);
+    }
+    if (!_.eq(_.get(data,'roles'), 'Owner') ) {
+      throw new AppError.AppError("Permission Deny, You are not owner!");
     }
     return data;
   });

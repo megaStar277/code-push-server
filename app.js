@@ -20,7 +20,6 @@ var AppError = require('./core/app-error');
 var app = express();
 app.use(helmet());
 app.disable('x-powered-by');
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
