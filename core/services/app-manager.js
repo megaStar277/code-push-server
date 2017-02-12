@@ -18,14 +18,14 @@ proto.findAppByName = function (uid, appName) {
 };
 
 proto.addApp = function (uid, appName, identical) {
-  return models.sequelize.transaction(function (t) {
+  return models.sequelize.transaction((t) => {
     return models.Apps.create({
       name: appName,
       uid: uid
     },{
       transaction: t
     })
-    .then(function (apps) {
+    .then((apps) => {
       var appId = apps.id;
       var deployments = [];
       var deploymentKey = security.randToken(28) + identical;
@@ -53,7 +53,7 @@ proto.addApp = function (uid, appName, identical) {
 };
 
 proto.deleteApp = function (appId) {
-  return models.sequelize.transaction(function (t) {
+  return models.sequelize.transaction((t) => {
     return Promise.all([
       models.Apps.destroy({where: {id: appId}, transaction: t}),
       models.Collaborators.destroy({where: {appid: appId}, transaction: t}),
@@ -64,7 +64,7 @@ proto.deleteApp = function (appId) {
 
 proto.modifyApp = function (appId, params) {
   return models.Apps.update(params, {where: {id:appId}})
-  .spread(function (affectedCount, affectedRows) {
+  .spread((affectedCount, affectedRows) => {
     if (!_.gt(affectedCount, 0)) {
       throw AppError.AppError('modify errors');
     }
@@ -73,7 +73,7 @@ proto.modifyApp = function (appId, params) {
 };
 
 proto.transferApp = function (appId, fromUid, toUid) {
-  return models.sequelize.transaction(function (t) {
+  return models.sequelize.transaction((t) => {
     return Promise.all([
       models.Apps.update({uid: toUid}, {where: {id: appId}, transaction: t}),
       models.Collaborators.destroy({where: {appid: appId, uid: fromUid}, transaction: t}),
@@ -86,18 +86,18 @@ proto.transferApp = function (appId, fromUid, toUid) {
 proto.listApps = function (uid) {
   const self = this;
   return models.Collaborators.findAll({where : {uid: uid}})
-  .then(function(data){
+  .then((data) => {
     if (_.isEmpty(data)){
       return [];
     } else {
-      var appIds = _.map(data, function(v){ return v.appid });
+      var appIds = _.map(data, (v) => { return v.appid });
       return models.Apps.findAll({where: {id: {in: appIds}}});
     }
   })
-  .then(function (appInfos) {
-    var rs = Promise.map(_.values(appInfos), function(v){
+  .then((appInfos) => {
+    var rs = Promise.map(_.values(appInfos), (v) => {
       return self.getAppDetailInfo(v, uid)
-      .then(function (info) {
+      .then((info) => {
         return info;
       });
     });
@@ -111,11 +111,11 @@ proto.getAppDetailInfo  = function (appInfo, currentUid) {
     models.Deployments.findAll({where: {appid: appId}}),
     models.Collaborators.findAll({where: {appid: appId}}),
   ])
-  .spread(function (deploymentInfos, collaboratorInfos) {
+  .spread((deploymentInfos, collaboratorInfos) => {
     return Promise.props({
-      collaborators: Promise.reduce(collaboratorInfos, function (allCol, collaborator) {
+      collaborators: Promise.reduce(collaboratorInfos, (allCol, collaborator) => {
         return models.Users.findOne({where: {id: collaborator.get('uid')}})
-        .then(function (u) {
+        .then((u) => {
           var isCurrentAccount = false;
           if (_.eq(u.get('id'), currentUid)) {
             isCurrentAccount = true;
@@ -125,7 +125,7 @@ proto.getAppDetailInfo  = function (appInfo, currentUid) {
         });
       }, {}),
 
-      deployments: _.map(deploymentInfos, function (item) {
+      deployments: _.map(deploymentInfos, (item) => {
         return _.get(item, 'name');
       }),
 

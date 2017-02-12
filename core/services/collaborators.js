@@ -13,16 +13,16 @@ var proto = module.exports = function (){
 
 proto.listCollaborators = function (appId) {
   return models.Collaborators.findAll({where: {appid: appId}})
-  .then(function (data) {
+  .then((data) => {
     return _.reduce(data, function(result, value, key) {
       (result['uids'] || (result['uids'] = [])).push(value.uid);
       result[value.uid] = value;
       return result;
     }, []);
   })
-  .then(function (coInfo) {
+  .then((coInfo) => {
     return models.Users.findAll({where: {id: {in: coInfo.uids}}})
-    .then(function (data2) {
+    .then((data2) => {
       return _.reduce(data2, function (result, value, key) {
         var permission = "";
         if (!_.isEmpty(coInfo[value.id])) {
@@ -37,7 +37,7 @@ proto.listCollaborators = function (appId) {
 
 proto.addCollaborator = function (appId, uid) {
   return models.Collaborators.findOne({where: {appid: appId, uid: uid}})
-  .then(function (data) {
+  .then((data) => {
     if (_.isEmpty(data)){
       return models.Collaborators.create({
         appid: appId,
@@ -52,7 +52,7 @@ proto.addCollaborator = function (appId, uid) {
 
 proto.deleteCollaborator = function (appId, uid) {
   return models.Collaborators.findOne({where: {appid: appId, uid: uid}})
-  .then(function (data) {
+  .then((data) => {
     if (_.isEmpty(data)){
       throw new AppError.AppError('user is not a Collaborator');
     }else {

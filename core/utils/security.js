@@ -37,14 +37,14 @@ security.parseToken = function(token) {
 }
 
 security.fileSha256 = function (file) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var rs = fs.createReadStream(file);
     var hash = crypto.createHash('sha256');
     rs.on('data', hash.update.bind(hash));
-    rs.on('error', function(e){
+    rs.on('error', (e) => {
       reject(e);
     });
-    rs.on('end', function () {
+    rs.on('end', () => {
       resolve(hash.digest('hex'));
     });
   });
@@ -58,7 +58,7 @@ security.stringSha256Sync = function (contents) {
 
 security.packageHashSync = function (jsonData) {
   var sortedArr = security.sortJsonToArr(jsonData);
-  var manifestData = _.map(sortedArr, function(v){
+  var manifestData = _.map(sortedArr, (v) => {
     return v.path + ':' + v.hash;
   });
   var manifestString = JSON.stringify(manifestData.sort());
@@ -68,13 +68,13 @@ security.packageHashSync = function (jsonData) {
 
 //参数为buffer或者readableStream或者文件路径
 security.qetag = function (buffer) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     qetag(buffer, resolve);
   });
 }
 
 security.qetagString = function (contents) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var Readable = require('stream').Readable
     var buffer = new Readable
     buffer.push(contents)
@@ -84,13 +84,13 @@ security.qetagString = function (contents) {
 }
 
 security.sha256AllFiles = function (files) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var results = {};
     var length = files.length;
     var count = 0;
-    files.forEach(function (file) {
+    files.forEach((file) => {
       security.fileSha256(file)
-      .then(function (hash) {
+      .then((hash) => {
         results[file] = hash;
         count++;
         if (count == length) {
@@ -102,11 +102,11 @@ security.sha256AllFiles = function (files) {
 }
 
 security.isAndroidPackage = function (directoryPath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
-    recursiveFs.readdirr(directoryPath, function (error, directories, files) {
+    recursiveFs.readdirr(directoryPath, (error, directories, files) => {
       if (error) {
         reject(error);
       } else {
@@ -134,11 +134,11 @@ security.isAndroidPackage = function (directoryPath) {
 }
 
 security.calcAllFileSha256 = function (directoryPath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
-    recursiveFs.readdirr(directoryPath, function (error, directories, files) {
+    recursiveFs.readdirr(directoryPath, (error, directories, files) => {
       if (error) {
         reject(error);
       } else {
@@ -146,9 +146,9 @@ security.calcAllFileSha256 = function (directoryPath) {
           reject(new AppError.AppError("empty files"));
         }else {
           security.sha256AllFiles(files)
-          .then(function (results) {
+          .then((results) => {
             var data = {};
-            _.forIn(results, function (value, key) {
+            _.forIn(results, (value, key) => {
               var relativePath = path.relative(directoryPath, key);
               relativePath = slash(relativePath);
               data[relativePath] = value;
@@ -163,8 +163,8 @@ security.calcAllFileSha256 = function (directoryPath) {
 
 security.sortJsonToArr = function (json) {
   var rs = [];
-  _.forIn(json, function (value, key) {
+  _.forIn(json, (value, key) => {
     rs.push({path:key, hash: value})
   });
-  return _.sortBy(rs, function(o) { return o.path; });
+  return _.sortBy(rs, (o) => o.path);
 }

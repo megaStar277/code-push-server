@@ -11,7 +11,7 @@ var AppError = require('../app-error');
 module.exports = common;
 
 common.createFileFromRequest = function (url, filePath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     fs.exists(filePath, function (exists) {
       if (!exists) {
         var request = require('request');
@@ -40,7 +40,7 @@ common.createFileFromRequest = function (url, filePath) {
 }
 
 common.move = function (sourceDst, targertDst) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     fsextra.move(sourceDst, targertDst, {clobber: true, limit: 16}, function (err) {
       if (err) {
         return reject(err);
@@ -51,7 +51,7 @@ common.move = function (sourceDst, targertDst) {
 };
 
 common.deleteFolder = function (folderPath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     fsextra.remove(folderPath, function (err) {
       if (err) {
         reject(err);
@@ -68,8 +68,8 @@ common.deleteFolderSync = function (folderPath) {
 
 common.createEmptyFolder = function (folderPath) {
   return common.deleteFolder(folderPath)
-  .then(function (data) {
-    fsextra.mkdirs(folderPath, function (err) {
+  .then((data) => {
+    fsextra.mkdirs(folderPath, (err) => {
       if (err) {
         throw err;
       }
@@ -84,9 +84,9 @@ common.createEmptyFolderSync = function (folderPath) {
 };
 
 common.unzipFile = function (zipFile, outputPath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     try {
-      fs.exists(zipFile, function(exists){
+      fs.exists(zipFile, (exists) => {
         if (!exists) {
           reject(new AppError.AppError("zipfile not found!"))
         }
@@ -120,7 +120,7 @@ common.uploadFileToStorage = function (key, filePath) {
 };
 
 common.uploadFileToLocal = function (key, filePath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     var storageDir = _.get(config, 'local.storageDir');
     if (!storageDir) {
       throw new AppError.AppError('please set config local storageDir');
@@ -138,7 +138,7 @@ common.uploadFileToLocal = function (key, filePath) {
     if (!stats.isFile()) {
       throw new AppError.AppError(`${filePath} must be file`);
     }
-    fsextra.copy(filePath, `${storageDir}/${key}`, {clobber: true, limit: 16}, function (err) {
+    fsextra.copy(filePath, `${storageDir}/${key}`, {clobber: true, limit: 16}, (err) => {
       if (err) {
         return reject(err);
       }
@@ -163,12 +163,12 @@ common.getBlobDownloadUrl = function (blobUrl) {
 };
 
 common.uploadFileToQiniu = function (key, filePath) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     qiniu.conf.ACCESS_KEY = _.get(config, "qiniu.accessKey");
     qiniu.conf.SECRET_KEY = _.get(config, "qiniu.secretKey");
     var bucket = _.get(config, "qiniu.bucketName", "jukang");
     var client = new qiniu.rs.Client();
-    client.stat(bucket, key, function(err, ret) {
+    client.stat(bucket, key, (err, ret) => {
       if (!err) {
         resolve(ret.hash);
       } else {
@@ -178,7 +178,7 @@ common.uploadFileToQiniu = function (key, filePath) {
           reject(e);
         }
         var extra = new qiniu.io.PutExtra();
-        qiniu.io.putFile(uptoken, key, filePath, extra, function(err, ret) {
+        qiniu.io.putFile(uptoken, key, filePath, extra, (err, ret) => {
           if(!err) {
             // 上传成功， 处理返回值
             resolve(ret.hash);
@@ -195,19 +195,19 @@ common.uploadFileToQiniu = function (key, filePath) {
 common.uploadFileToS3 = function (key, filePath) {
   var AWS = require('aws-sdk');
   return (
-    new Promise(function(resolve, reject) {
+    new Promise((resolve, reject) => {
       AWS.config.update({
         region: _.get(config, 's3.region')
       });
       var s3 = new AWS.S3({
         params: {Bucket: _.get(config, 's3.bucketName')}
       });
-      fs.readFile(filePath, function(err, data) {
+      fs.readFile(filePath, (err, data) => {
         s3.upload({
           Key: key,
           Body: data,
           ACL:'public-read',
-        }, function(err, response) {
+        }, (err, response) => {
           if(err) {
             reject(new AppError.AppError(JSON.stringify(err)));
           } else {
@@ -232,12 +232,12 @@ common.uploadFileToOSS = function (key, filePath) {
     Key: `${_.get(config, 'oss.prefix')}/${key}`,
   });
 
-  return new Promise(function (resolve, reject) {
-    upload.on('error', function (error) {
+  return new Promise((resolve, reject) => {
+    upload.on('error', (error) => {
       reject(error);
     });
 
-    upload.on('uploaded', function (details) {
+    upload.on('uploaded', (details) => {
       resolve(details.ETag);
     });
     fs.createReadStream(filePath).pipe(upload);

@@ -64,7 +64,7 @@ proto.validateStore = function (providePackageHash) {
     return Promise.resolve(false);
   }
   return security.calcAllFileSha256(contentPath)
-  .then(function (manifestJson) {
+  .then((manifestJson) => {
     var packageHash = security.packageHashSync(manifestJson);
     try {
       var manifestJsonLocal = JSON.parse(fs.readFileSync(manifestFile));
@@ -85,7 +85,7 @@ proto.storePackage = function (sourceDst, force) {
   }
   var self = this;
   return security.calcAllFileSha256(sourceDst)
-  .then(function (manifestJson) {
+  .then((manifestJson) => {
     var packageHash = security.packageHashSync(manifestJson);
     var dataDir = self.getDataDir();
     var packageHashPath = `${dataDir}/${packageHash}`;
@@ -95,9 +95,9 @@ proto.storePackage = function (sourceDst, force) {
       return self.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
     } else {
       return common.createEmptyFolder(packageHashPath)
-      .then(function(){
+      .then(() => {
         return common.move(sourceDst, contentPath)
-        .then(function () {
+        .then(() => {
           var manifestString = JSON.stringify(manifestJson);
           fs.writeFileSync(manifestFile, manifestString);
           return self.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
