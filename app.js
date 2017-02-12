@@ -89,7 +89,7 @@ if (app.get('env') === 'development') {
   app.use(function(err, req, res) {
     res.status(err.status || 500);
     res.render('error', {
-      message: err.message,
+      message: '服务器繁忙，请稍后再试!',
       error: {}
     });
   });
