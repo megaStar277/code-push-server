@@ -16,6 +16,7 @@ var sessions = require('./routes/sessions');
 var account = require('./routes/account');
 var users = require('./routes/users');
 var apps = require('./routes/apps');
+var AppError = require('./core/services/app-error');
 var app = express();
 app.use(helmet());
 app.disable('x-powered-by');
@@ -69,29 +70,29 @@ app.use('/apps', apps);
 // will print stacktrace
 if (app.get('env') === 'development') {
   app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+    next(new AppError.NotFound());
   });
-  app.use(function(err, req, res) {
+  app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.render('error', {
       message: err.message,
       error: err
     });
+    console.error(err.stack);
   });
 } else {
   app.use(function(req, res, next) {
-    res.status(404).send('Not Found');
+    res.status(404).send(new AppError.NotFound());
   });
   // production error handler
   // no stacktraces leaked to user
-  app.use(function(err, req, res) {
-    res.status(err.status || 500);
-    res.render('error', {
-      message: '服务器繁忙，请稍后再试!',
-      error: {}
-    });
+  app.use(function(err, req, res, next) {
+    var status = err.status || 500;
+    res.status(status);
+    var error = new AppError.AppError(`服务器繁忙，请稍后再试!`);
+    error.status = status;
+    res.status(status).send(error);
+    console.error(err.stack);
   });
 }
 

@@ -4,6 +4,7 @@ var models = require('../../models');
 var _ = require('lodash');
 var common = require('../utils/common');
 var factory = require('../utils/factory');
+var AppError = require('./app-error');
 
 var proto = module.exports = function (){
   function ClientManager() {
@@ -77,12 +78,12 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
     shouldRunBinaryVersion: false
   };
   if (_.isEmpty(deploymentKey) || _.isEmpty(appVersion)) {
-    return Promise.reject(new Error("please input deploymentKey and appVersion"))
+    return Promise.reject(new AppError.AppError("please input deploymentKey and appVersion"))
   }
   return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
   .then(function (dep) {
     if (_.isEmpty(dep)) {
-      throw new Error('does not found deployment');
+      throw new AppError.AppError('does not found deployment');
     }
     return models.DeploymentsVersions.findOne({where: {deployment_id: dep.id, app_version: appVersion}});
   })
@@ -132,18 +133,18 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
 
 proto.getPackagesInfo = function (deploymentKey, label) {
   if (_.isEmpty(deploymentKey) || _.isEmpty(label)) {
-    return Promise.reject(new Error("please input deploymentKey and label"))
+    return Promise.reject(new AppError.AppError("please input deploymentKey and label"))
   }
   return models.Deployments.findOne({where: {deployment_key: deploymentKey}})
   .then(function (dep) {
     if (_.isEmpty(dep)) {
-      throw new Error('does not found deployment');
+      throw new AppError.AppError('does not found deployment');
     }
     return models.Packages.findOne({where: {deployment_id: dep.id, label: label}});
   })
   .then(function (packages) {
     if (_.isEmpty(packages)) {
-      throw new Error('does not found packages');
+      throw new AppError.AppError('does not found packages');
     }
     return packages;
   });
