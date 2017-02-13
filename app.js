@@ -1,7 +1,6 @@
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
-var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var helmet = require('helmet');
@@ -17,6 +16,8 @@ var account = require('./routes/account');
 var users = require('./routes/users');
 var apps = require('./routes/apps');
 var AppError = require('./core/app-error');
+var log4js = require('log4js');
+var log = log4js.getLogger("app");
 var app = express();
 app.use(helmet());
 app.disable('x-powered-by');
@@ -24,13 +25,7 @@ app.disable('x-powered-by');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-if (app.get('env') === 'development') {
-  app.use(logger('dev'));
-} else if (app.get('env') === 'production'){
-  app.use(logger('combined',{skip: function (req, res) { return res.statusCode < 400 }}));
-}
+app.use(log4js.connectLogger(log4js.getLogger("http"), {level: log4js.levels.INFO}));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -39,22 +34,42 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //use nginx in production
 if (app.get('env') === 'development') {
+  log.debug("set Access-Control Header");
   app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
+    log.debug("use set Access-Control Header");
     next();
   });
 }
 
-if (_.get(config, 'common.storageType') === 'local'
-  && _.get(config, 'local.storageDir')
-  ) {
-  if (!fs.existsSync(_.get(config, 'local.storageDir'))) {
-    var dir = _.get(config, 'local.storageDir');
-    throw new Error(`Please create dir ${dir}`);
+log.debug("config common.storageType value: " + _.get(config, 'common.storageType'));
+
+if (_.get(config, 'common.storageType') === 'local') {
+  var localStorageDir = _.get(config, 'local.storageDir');
+  if (localStorageDir) {
+
+    log.debug("config common.storageDir value: " + localStorageDir);
+
+    if (!fs.existsSync(localStorageDir)) {
+      var e = new Error(`Please create dir ${localStorageDir}`);
+      log.error(e);
+      throw e;
+    }
+    try {
+      log.debug('checking storageDir fs.W_OK | fs.R_OK');
+      fs.accessSync(localStorageDir, fs.W_OK | fs.R_OK);
+      log.debug('storageDir fs.W_OK | fs.R_OK is ok');
+    } catch (e) {
+      log.error(e);
+      throw e;
+    }
+    log.debug("static download uri value: " + _.get(config, 'local.public', '/download'));
+    app.use(_.get(config, 'local.public', '/download'), express.static(localStorageDir));
+  } else {
+    log.error('please config local storageDir');
   }
-  app.use(_.get(config, 'local.public', '/download'), express.static(_.get(config, 'local.storageDir')));
 }
 
 app.use('/', routes);
@@ -75,23 +90,26 @@ if (app.get('env') === 'development') {
       message: err.message,
       error: err
     });
-    console.error(err.stack);
+    log.error(err);
   });
   app.use(function(err, req, res, next) {
     if (err instanceof AppError.AppError) {
       res.send(err);
+      log.debug(err);
     } else {
       res.status(err.status || 500);
       res.render('error', {
         message: err.message,
         error: err
       });
-      console.error(err.stack);
+      log.error(err);
     }
   });
 } else {
   app.use(function(req, res, next) {
-    res.status(404).send(new AppError.NotFound());
+    var e = new AppError.NotFound();
+    res.status(404).send(e);
+    log.debug(e);
   });
   // production error handler
   // no stacktraces leaked to user
@@ -103,7 +121,7 @@ if (app.get('env') === 'development') {
       var error = new AppError.AppError(`服务器繁忙，请稍后再试!`);
       error.status = status;
       res.status(status).send(error);
-      console.error(err.stack);
+      log.error(err);
     }
   });
 }

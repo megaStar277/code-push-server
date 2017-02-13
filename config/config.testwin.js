@@ -47,4 +47,13 @@ config.test = {
     }
   }
 }
+config.test.log4js = {
+  appenders: [
+    { type: 'console'}
+  ],
+  levels : {
+    "[all]": "ERROR",
+    "http" : "INFO"
+  }
+}
 module.exports = config;

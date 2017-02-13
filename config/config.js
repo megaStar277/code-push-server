@@ -98,5 +98,16 @@ config.development = {
     }
   }
 }
+
+config.development.log4js = {
+  appenders: [
+    { type: 'console'}
+  ],
+  levels : {
+    "[all]": "ERROR",
+    "http" : "INFO"
+  }
+}
+
 config.production = Object.assign({}, config.development);
 module.exports = config;
