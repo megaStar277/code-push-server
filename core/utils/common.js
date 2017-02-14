@@ -2,12 +2,14 @@
 var Promise = require('bluebird');
 var fs = require("fs");
 var fsextra = require("fs-extra");
-var unzip = require('node-unzip-2');
+var extract = require('extract-zip')
 var config    = require('../config');
 var _ = require('lodash');
 var qiniu = require("qiniu");
 var common = {};
 var AppError = require('../app-error');
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:utils:common");
 module.exports = common;
 
 common.createFileFromRequest = function (url, filePath) {
@@ -43,9 +45,10 @@ common.move = function (sourceDst, targertDst) {
   return new Promise((resolve, reject) => {
     fsextra.move(sourceDst, targertDst, {clobber: true, limit: 16}, function (err) {
       if (err) {
-        return reject(err);
+        reject(err);
+      } else {
+        resolve();
       }
-      resolve();
     });
   });
 };
@@ -67,13 +70,18 @@ common.deleteFolderSync = function (folderPath) {
 };
 
 common.createEmptyFolder = function (folderPath) {
-  return common.deleteFolder(folderPath)
-  .then((data) => {
-    fsextra.mkdirs(folderPath, (err) => {
-      if (err) {
-        throw err;
-      }
-      return folderPath;
+  return new Promise((resolve, reject) => {
+    log.debug(`createEmptyFolder Create dir ${folderPath}`);
+    return common.deleteFolder(folderPath)
+    .then((data) => {
+      fsextra.mkdirs(folderPath, (err) => {
+        if (err) {
+          log.error(err);
+          reject(new AppError.AppError(err.message));
+        } else {
+          resolve(folderPath);
+        }
+      });
     });
   });
 };
@@ -86,20 +94,22 @@ common.createEmptyFolderSync = function (folderPath) {
 common.unzipFile = function (zipFile, outputPath) {
   return new Promise((resolve, reject) => {
     try {
-      fs.exists(zipFile, (exists) => {
-        if (!exists) {
-          reject(new AppError.AppError("zipfile not found!"))
-        }
-        var readStream = fs.createReadStream(zipFile);
-        var extract = unzip.Extract({ path: outputPath });
-        readStream.pipe(extract);
-        extract.on("close", function () {
-          resolve(outputPath);
-        });
-      })
+      log.debug(`unzipFile check zipFile ${zipFile} fs.R_OK`);
+      fs.accessSync(zipFile, fs.R_OK);
+      log.debug(`Pass unzipFile file ${zipFile}`);
     } catch (e) {
-      reject(e)
+      log.error(e);
+      return reject(new AppError.AppError(e.message))
     }
+    extract(zipFile, {dir: outputPath}, function(err){
+      if (err) {
+        log.error(err);
+        reject(new AppError.AppError(`it's not a zipFile`))
+      } else {
+        log.debug(`unzipFile success`);
+        resolve(outputPath);
+      }
+    });
   });
 };
 
@@ -175,7 +185,7 @@ common.uploadFileToQiniu = function (key, filePath) {
         try {
           var uptoken = common.uptoken(bucket, key);
         } catch (e) {
-          reject(e);
+          return reject(e);
         }
         var extra = new qiniu.io.PutExtra();
         qiniu.io.putFile(uptoken, key, filePath, extra, (err, ret) => {

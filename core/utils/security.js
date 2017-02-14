@@ -5,6 +5,9 @@ var fs = require('fs');
 var Promise = require('bluebird');
 var qetag = require('../utils/qetag');
 var _ = require('lodash');
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:utils:security");
+var AppError = require('../app-error');
 
 var randToken = require('rand-token').generator({
   chars: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -68,18 +71,22 @@ security.packageHashSync = function (jsonData) {
 
 //参数为buffer或者readableStream或者文件路径
 security.qetag = function (buffer) {
+  if (typeof buffer === 'string') {
+    try {
+      log.debug(`Check upload file ${buffer} fs.R_OK`);
+      fs.accessSync(buffer, fs.R_OK);
+      log.debug(`Pass upload file ${buffer}`);
+    } catch (e) {
+      log.error(e);
+      return Promise.reject(new AppError.AppError(e.message))
+    }
+  }
+  log.debug(`generate file identical`)
   return new Promise((resolve, reject) => {
-    qetag(buffer, resolve);
-  });
-}
-
-security.qetagString = function (contents) {
-  return new Promise((resolve, reject) => {
-    var Readable = require('stream').Readable
-    var buffer = new Readable
-    buffer.push(contents)
-    buffer.push(null)
-    qetag(buffer, resolve);
+    qetag(buffer, (data)=>{
+      log.debug('identical:', data);
+      resolve(data)
+    });
   });
 }
 

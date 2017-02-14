@@ -43,7 +43,7 @@ proto.parseReqFile = function (req) {
           reject(new AppError.AppError("upload info lack"));
         } else {
           log.debug('parseReqFile is ok');
-          resolve({packageInfo:JSON.parse(fields.packageInfo), package: files.package});
+          resolve({packageInfo: JSON.parse(fields.packageInfo), package: files.package});
         }
       }
     });
@@ -293,7 +293,8 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   }
   var description = packageInfo.description;
   var isMandatory = packageInfo.isMandatory;
-  var directoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
+  var tmpDir = os.tmpdir();
+  var directoryPath = path.join(tmpDir, 'codepush_' + security.randToken(32));
   log.debug(`releasePackage generate an random dir path: ${directoryPath}`);
   return Promise.all([
     security.qetag(filePath),
