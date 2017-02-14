@@ -17,6 +17,8 @@ const REGEX_ANDROID = /^(\w+)(-android)$/;
 const REGEX_IOS = /^(\w+)(-ios)$/;
 const OLD_REGEX_ANDROID = /^(android_)/;
 const OLD_REGEX_IOS = /^(ios_)/;
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:apps");
 
 router.get('/',
   middleware.checkToken, (req, res, next) => {
@@ -85,7 +87,6 @@ router.get('/:appName/deployments/:deploymentName/metrics',
   var deploymentName = _.trim(req.params.deploymentName);
   var deployments = new Deployments();
   var packageManager = new PackageManager();
-
   accountManager.collaboratorCan(uid, appName)
   .then((col) => {
     return deployments.findDeloymentByName(deploymentName, col.appid)
@@ -244,16 +245,20 @@ router.post('/:appName/deployments/:deploymentName/release',
   accountManager.collaboratorCan(uid, appName)
   .then((col) => {
     var pubType = '';
+    log.debug(`check publish type`);
     if (REGEX_ANDROID.test(appName)) {
       pubType = 'android';
     } else if (REGEX_IOS.test(appName)) {
       pubType = 'ios';
     } else {
+      log.debug(`you have to rename app name, eg. Demo-android Demo-ios`);
       throw new AppError.AppError(`you have to rename app name, eg. Demo-android Demo-ios`);
     }
+    log.debug(`publish type is ${pubType}`);
     return deployments.findDeloymentByName(deploymentName, col.appid)
     .then((deploymentInfo) => {
       if (_.isEmpty(deploymentInfo)) {
+        log.debug(`does not find the deployment`);
         throw new AppError.AppError("does not find the deployment");
       }
       return packageManager.parseReqFile(req)

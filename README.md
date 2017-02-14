@@ -58,6 +58,24 @@ $ ./bin/db init --dbhost localhost --dbuser root --dbpassword #初始化mysql数
 $ ./bin/www #启动服务 浏览器中打开 http://127.0.0.1:3000
 ```
 
+## UPGRADE
+
+*from source code*
+
+```shell
+$ cd /path/to/code-push-server
+$ git pull --rebase origin master
+$ ./bin/db upgrade --dbhost localhost --dbuser root --dbpassword #升级codepush数据库
+$ #restart code-push-server
+```
+
+*from npm package*
+
+```shell
+$ code-push-server-db upgrade --dbhost localhost --dbuser root --dbpassword #升级codepush数据库
+$ #restart code-push-server
+```
+
 ## CONFIG
 ```shell
 $ vim config/config.js
@@ -219,9 +237,9 @@ use [pm2](http://pm2.keymetrics.io/) to manage process.
 $ npm install pm2 -g
 $ cp config/config.js /path/to/production/config.js
 $ vim /path/to/production/config.js #configure your env.
-$ cp docs/process.yml /path/to/production/process.yml
-$ vim /path/to/production/process.yml #configure your env.
-$ pm2 start /path/to/production/process.yml
+$ cp docs/process.json /path/to/production/process.json
+$ vim /path/to/production/process.json #configure your env.
+$ pm2 start /path/to/production/process.json
 ```
 
 ## Use [CodePush Web](https://github.com/lisong/code-push-web) manage apps

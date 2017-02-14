@@ -4,15 +4,15 @@
  * Module dependencies.
  */
 
-var app = require('../app');
 var log4js = require('log4js');
 var http = require('http');
 var validator = require('validator')
 var _ = require('lodash')
 var config = require('../core/config');
-
 log4js.configure(_.get(config, 'log4js', {appenders: [{ type: 'console'}], levels : {"[all]": "ERROR", http: "ERROR"} }));
 var log = log4js.getLogger("startup")
+
+var app = require('../app');
 
 /**
  * Get port from environment and store in Express.

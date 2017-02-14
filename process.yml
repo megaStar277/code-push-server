@@ -1,5 +1,5 @@
 apps:
-  - script : /path/to/code-push-server/bin/www
+  - script : /Users/tablee/workspaces/code-push-server/bin/www
     name   : code-push-server
     instances : "max"  #开启实例数量，max为cpu核数
     exec_mode : "cluster" #集群模式，最大提升网站并发
@@ -7,4 +7,3 @@ apps:
     env    :
       NODE_ENV: production
       PORT: 3001
-      CONFIG_FILE: /path/to/production/config.js

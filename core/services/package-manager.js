@@ -12,6 +12,8 @@ var common = require('../utils/common');
 var os = require('os');
 var path = require('path');
 var AppError = require('../app-error');
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:PackageManager");
 
 var proto = module.exports = function (){
   function PackageManager() {
@@ -26,15 +28,21 @@ proto.getMetricsbyPackageId= function(packageId) {
 }
 
 proto.parseReqFile = function (req) {
+  log.debug('parseReqFile');
   return new Promise((resolve, reject) => {
     var form = new formidable.IncomingForm();
     form.parse(req, (err, fields, files) => {
       if (err) {
+        log.debug('parseReqFile:', err);
         reject(new AppError.AppError("upload error"));
       } else {
-        if (_.isEmpty(fields.packageInfo) || _.isEmpty(files.package)) {
+        log.debug('parseReqFile fields:', fields);
+        log.debug('parseReqFile file location:', _.get(files,'package.path'));
+        if (_.isEmpty(fields.packageInfo) || _.isEmpty(_.get(files,'package'))) {
+          log.debug('parseReqFile upload info lack');
           reject(new AppError.AppError("upload info lack"));
         } else {
+          log.debug('parseReqFile is ok');
           resolve({packageInfo:JSON.parse(fields.packageInfo), package: files.package});
         }
       }
@@ -280,11 +288,13 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
   var self = this;
   var appVersion = packageInfo.appVersion;
   if (!/^([0-9.]+)$/.test(appVersion)) {
+    log.debug(`releasePackage targetBinaryVersion ${appVersion} not support.`);
     return Promise.reject(new AppError.AppError(`targetBinaryVersion ${appVersion} not support.`))
   }
   var description = packageInfo.description;
   var isMandatory = packageInfo.isMandatory;
   var directoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
+  log.debug(`releasePackage generate an random dir path: ${directoryPath}`);
   return Promise.all([
     security.qetag(filePath),
     common.createEmptyFolder(directoryPath)

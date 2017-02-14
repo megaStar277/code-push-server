@@ -7,15 +7,20 @@ var models = require('../models');
 var middleware = require('../core/middleware');
 var accountManager = require('../core/services/account-manager')();
 var AppError = require('../core/app-error')
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:accessKey");
 
 router.get('/', middleware.checkToken, (req, res, next) => {
+  log.debug('request get acceesKeys')
   var uid = req.users.id;
   accountManager.getAllAccessKeyByUid(uid)
   .then((accessKeys) => {
-    res.send({accessKeys:accessKeys});
+    log.debug('acceesKeys:', accessKeys)
+    res.send({accessKeys: accessKeys});
   })
   .catch((e) => {
     if (e instanceof AppError.AppError) {
+      log.debug('request get acceesKeys AppError', e)
       res.status(406).send(e.message);
     } else {
       next(e);

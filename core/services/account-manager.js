@@ -9,6 +9,8 @@ var moment = require('moment');
 var EmailManager = require('./email-manager');
 var config = require('../config');
 var AppError = require('../app-error');
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:AccountManager");
 
 var proto = module.exports = function (){
   function AccountManager() {
@@ -22,8 +24,10 @@ proto.collaboratorCan = function(uid, appName) {
   return this.getCollaborator(uid, appName)
   .then((data) => {
     if (!data) {
+      log.debug(`collaboratorCan App ${appName} not exists.`);
       throw new AppError.AppError(`App ${appName} not exists.`);
     }
+    log.debug('collaboratorCan yes');
     return data;
   });
 };
@@ -32,9 +36,11 @@ proto.ownerCan = function(uid, appName) {
   return this.getCollaborator(uid, appName)
   .then((data) => {
     if (!data) {
+      log.debug(`ownerCan App ${appName} not exists.`);
       throw new AppError.AppError(`App ${appName} not exists.`);
     }
     if (!_.eq(_.get(data,'roles'), 'Owner') ) {
+      log.debug(`ownerCan Permission Deny, You are not owner!`);
       throw new AppError.AppError("Permission Deny, You are not owner!");
     }
     return data;

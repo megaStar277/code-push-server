@@ -17,7 +17,7 @@ var users = require('./routes/users');
 var apps = require('./routes/apps');
 var AppError = require('./core/app-error');
 var log4js = require('log4js');
-var log = log4js.getLogger("app");
+var log = log4js.getLogger("cps:app");
 var app = express();
 app.use(helmet());
 app.disable('x-powered-by');
@@ -25,7 +25,7 @@ app.disable('x-powered-by');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(log4js.connectLogger(log4js.getLogger("http"), {level: log4js.levels.INFO}));
+app.use(log4js.connectLogger(log4js.getLogger("http"), {level: log4js.levels.INFO, nolog:'\\.gif|\\.jpg|\\.js|\\.css$' }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

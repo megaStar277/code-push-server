@@ -7,6 +7,8 @@ var PackageManager = require('./package-manager');
 var _ = require('lodash');
 var moment = require('moment');
 var AppError = require('../app-error');
+var log4js = require('log4js');
+var log = log4js.getLogger("cps:deployments");
 
 var proto = module.exports = function (){
   function Deployments() {
@@ -84,6 +86,7 @@ proto.deleteDeloymentByName = function (deploymentName, appId) {
 };
 
 proto.findDeloymentByName = function (deploymentName, appId) {
+  log.debug(`findDeloymentByName name:${deploymentName},appId: ${appId}`);
   return models.Deployments.findOne({
     where: {name: deploymentName, appid: appId}
   });
