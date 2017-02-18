@@ -50,35 +50,35 @@ proto.parseReqFile = function (req) {
   });
 };
 
-proto.getDeploymentsVersions = function (deploymentId, appVersion) {
-  return models.DeploymentsVersions.findOne({
-    where: {deployment_id: deploymentId, app_version: appVersion}
+proto.createDeploymentsVersionIfNotExist = function (deploymentId, appVersion, t) {
+  return models.DeploymentsVersions.findOrCreate({
+    where: {deployment_id: deploymentId, app_version: appVersion},
+    defaults: {current_package_id: 0},
+    transaction: t
+  })
+  .spread((data, created)=>{
+    if (created) {
+      log.debug(`createDeploymentsVersionIfNotExist findOrCreate version ${appVersion}`);
+    }
+    log.debug(`createDeploymentsVersionIfNotExist version data:`, data.get());
+    return data;
   });
 };
 
-proto.existPackageHashAndCreateVersions = function (deploymentId, appVersion, packageHash) {
-  return this.getDeploymentsVersions(deploymentId, appVersion)
+proto.isMatchPackageHash = function (packageId, packageHash) {
+  if (_.lt(packageId, 0)) {
+    log.debug(`isMatchPackageHash packageId is 0`);
+    return Promise.resolve(false);
+  }
+  return models.Packages.findById(packageId)
   .then((data) => {
-    if (_.isEmpty(data)){
-      return models.DeploymentsVersions.create({
-        deployment_id: deploymentId,
-        app_version: appVersion,
-      })
-      .then(() => false);
-    } else {
-      var packageId = data.current_package_id;
-      if (_.gt(packageId, 0)) {
-        return models.Packages.findById(packageId)
-        .then((data) => {
-          if (_.eq(_.get(data,"package_hash"), packageHash)){
-            return true;
-          }else {
-            return false;
-          }
-        });
-      } else {
-        return false
-      }
+    if (data && _.eq(data.get('package_hash'), packageHash)){
+      log.debug(`isMatchPackageHash data:`, data.get());
+      log.debug(`isMatchPackageHash packageHash exist`);
+      return true;
+    }else {
+      log.debug(`isMatchPackageHash package is null`);
+      return false;
     }
   });
 };
@@ -91,20 +91,11 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
   var description = params.description || "";
   var originalLabel = params.originalLabel || "";
   var originalDeployment = params.originalDeployment || "";
+  var self = this;
   return models.Deployments.generateLabelId(deploymentId)
   .then((labelId) => {
     return models.sequelize.transaction((t) => {
-      return models.DeploymentsVersions.findOne({where: {deployment_id: deploymentId, app_version: appVersion}})
-      .then((deploymentsVersions) => {
-        if (!deploymentsVersions) {
-          return models.DeploymentsVersions.create({
-            current_package_id: 0,
-            deployment_id: deploymentId,
-            app_version: appVersion
-          },{transaction: t});
-        }
-        return deploymentsVersions;
-      })
+      return self.createDeploymentsVersionIfNotExist(deploymentId, appVersion, t)
       .then((deploymentsVersions) => {
         return models.Packages.create({
           deployment_version_id: deploymentsVersions.id,
@@ -216,6 +207,7 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
       .then((data) => {
         return security.qetag(data.path)
         .then((diffHash) => {
+          log.debug('diff');
           return common.uploadFileToStorage(diffHash, fileName)
           .then(() => {
             var stats = fs.statSync(fileName);
@@ -303,28 +295,34 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
       if (fileType == "application/zip") {
         return common.unzipFile(filePath, directoryPath)
       } else {
+        log.debug(`上传的文件格式不对`);
         throw new AppError.AppError("上传的文件格式不对");
       }
     })
   ])
   .spread((blobHash) => {
-    return security.isAndroidPackage(directoryPath)
+    return security.uploadPackageType(directoryPath)
     .then((type) => {
       if (type === 1) {
         //android
         if (pubType == 'ios' ) {
-          throw new AppError.AppError("it must be publish it by ios type");
+          var e = new AppError.AppError("it must be publish it by ios type");
+          log.debug(e);
+          throw e;
         }
       } else if (type === 2) {
         //ios
         if (pubType == 'android'){
-          throw new AppError.AppError("it must be publish it by android type");
+          var e = new AppError.AppError("it must be publish it by android type");
+          log.debug(e);
+          throw e;
         }
       } else {
         //不验证
+        log.debug(`Unknown package type`);
       }
-    })
-    .then(() => blobHash)
+      return blobHash;
+    });
   })
   .then((blobHash) => {
     var dataCenterManager = require('./datacenter-manager')();
@@ -332,10 +330,15 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
     .then((dataCenter) => {
       var packageHash = dataCenter.packageHash;
       var manifestFile = dataCenter.manifestFilePath;
-      return self.existPackageHashAndCreateVersions(deploymentId, appVersion, packageHash)
+      return self.createDeploymentsVersionIfNotExist(deploymentId, appVersion)
+      .then((deploymentsVersions) => {
+        return self.isMatchPackageHash(deploymentsVersions.get('current_package_id'), packageHash);
+      })
       .then((isExist) => {
         if (isExist){
-          throw new AppError.AppError("The uploaded package is identical to the contents of the specified deployment's current release.");
+          var e = new AppError.AppError("The uploaded package is identical to the contents of the specified deployment's current release.");
+          log.debug(e.message);
+          throw e;
         }
         return security.qetag(manifestFile);
       })
@@ -345,7 +348,7 @@ proto.releasePackage = function (deploymentId, packageInfo, fileType, filePath, 
           common.uploadFileToStorage(blobHash, filePath)
         ])
         .then(() => [packageHash, manifestHash, blobHash]);
-      });
+      })
     });
   })
   .spread((packageHash, manifestHash, blobHash) => {
@@ -411,7 +414,10 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, promoteUi
         if (!packages) {
           throw new AppError.AppError('does not exist packages.');
         }
-        return self.existPackageHashAndCreateVersions(destDeploymentId, deploymentsVersions.app_version, packages.package_hash)
+        return self.createDeploymentsVersionIfNotExist(destDeploymentId, deploymentsVersions.app_version)
+        .then((deploymentsVersions) => {
+          return self.isMatchPackageHash(deploymentsVersions.get('current_package_id'), packages.package_hash);
+        })
         .then((isExist) => {
           if (isExist){
             throw new AppError.AppError("The uploaded package is identical to the contents of the specified deployment's current release.");

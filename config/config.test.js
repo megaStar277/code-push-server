@@ -52,6 +52,7 @@ config.test.log4js = {
   ],
   levels : {
     "[all]": "ERROR",
+    "startup": "INFO",
     "http" : "INFO"
   }
 }

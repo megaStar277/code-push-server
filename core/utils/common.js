@@ -45,8 +45,10 @@ common.move = function (sourceDst, targertDst) {
   return new Promise((resolve, reject) => {
     fsextra.move(sourceDst, targertDst, {clobber: true, limit: 16}, function (err) {
       if (err) {
+        log.error(err);
         reject(err);
       } else {
+        log.debug(`move success sourceDst:${sourceDst} targertDst:${targertDst}`);
         resolve();
       }
     });
@@ -57,8 +59,10 @@ common.deleteFolder = function (folderPath) {
   return new Promise((resolve, reject) => {
     fsextra.remove(folderPath, function (err) {
       if (err) {
+        log.error(err);
         reject(err);
       }else {
+        log.debug(`deleteFolder delete ${folderPath} success.`);
         resolve(null);
       }
     });
@@ -135,23 +139,41 @@ common.uploadFileToLocal = function (key, filePath) {
     if (!storageDir) {
       throw new AppError.AppError('please set config local storageDir');
     }
-    if (!fs.existsSync(storageDir)) {
-      throw new AppError.AppError(`please create dir ${storageDir}`);
+    try {
+      log.debug(`uploadFileToLocal check directory ${storageDir} fs.R_OK`);
+      fs.accessSync(storageDir, fs.W_OK);
+      log.debug(`uploadFileToLocal directory ${storageDir} fs.R_OK is ok`);
+    } catch (e) {
+      log.error(e);
+      throw new AppError.AppError(e.message);
     }
-    fs.accessSync(storageDir, fs.W_OK);
+    if (fs.existsSync(`${storageDir}/${key}`)) {
+      return resolve(key);
+    }
     var stats = fs.statSync(storageDir);
     if (!stats.isDirectory()) {
-      throw new AppError.AppError(`${storageDir} must be directory`);
+      var e = new AppError.AppError(`${storageDir} must be directory`);
+      log.error(e);
+      throw e;
     }
-    fs.accessSync(filePath, fs.R_OK);
+    try {
+     fs.accessSync(filePath, fs.R_OK);
+    } catch (e) {
+      log.error(e);
+      throw new AppError.AppError(e.message);
+    }
     stats = fs.statSync(filePath);
     if (!stats.isFile()) {
-      throw new AppError.AppError(`${filePath} must be file`);
+      var e = new AppError.AppError(`${filePath} must be file`);
+      log.debug(e);
+      throw e;
     }
-    fsextra.copy(filePath, `${storageDir}/${key}`, {clobber: true, limit: 16}, (err) => {
+    fsextra.copy(filePath, `${storageDir}/${key}`,(err) => {
       if (err) {
-        return reject(err);
+        log.error(new AppError.AppError(err.message));
+        return reject(new AppError.AppError(err.message));
       }
+      log.debug(`uploadFileToLocal copy file ${key} success.`);
       resolve(key);
     });
   });

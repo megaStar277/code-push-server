@@ -64,8 +64,10 @@ security.packageHashSync = function (jsonData) {
   var manifestData = _.map(sortedArr, (v) => {
     return v.path + ':' + v.hash;
   });
+  log.debug('packageHashSync manifestData:', manifestData);
   var manifestString = JSON.stringify(manifestData.sort());
   manifestString = _.replace(manifestString, /\\\//g, '/');
+  log.debug('packageHashSync manifestString:', manifestData);
   return security.stringSha256Sync(manifestString);
 }
 
@@ -108,32 +110,35 @@ security.sha256AllFiles = function (files) {
   });
 }
 
-security.isAndroidPackage = function (directoryPath) {
+security.uploadPackageType = function (directoryPath) {
   return new Promise((resolve, reject) => {
     var recursiveFs = require("recursive-fs");
     var path = require('path');
     var slash = require("slash");
-    recursiveFs.readdirr(directoryPath, (error, directories, files) => {
-      if (error) {
-        reject(error);
+    recursiveFs.readdirr(directoryPath, (err, directories, files) => {
+      if (err) {
+        log.error(new AppError.AppError(err.message));
+        reject(err);
       } else {
         if (files.length == 0) {
+          log.debug(`uploadPackageType empty files`);
           reject(new AppError.AppError("empty files"));
         } else {
           const AREGEX=/android\.bundle/
           const AREGEX_IOS=/main\.jsbundle/
-          var isAndroid = 0;
+          var packageType = 0;
           _.forIn(files, function (value) {
             if (AREGEX.test(value)) {
-              isAndroid = 1;
+              packageType = 1;
               return false;
             }
             if (AREGEX_IOS.test(value)) {
-              isAndroid = 2;
+              packageType = 2;
               return false;
             }
           });
-          resolve(isAndroid);
+          log.debug(`uploadPackageType packageType: ${packageType}`);
+          resolve(packageType);
         }
       }
     });
@@ -147,9 +152,11 @@ security.calcAllFileSha256 = function (directoryPath) {
     var slash = require("slash");
     recursiveFs.readdirr(directoryPath, (error, directories, files) => {
       if (error) {
+        log.error(error);
         reject(error);
       } else {
         if (files.length == 0) {
+          log.debug(`calcAllFileSha256 empty files in directoryPath:`, directoryPath);
           reject(new AppError.AppError("empty files"));
         }else {
           security.sha256AllFiles(files)
@@ -160,6 +167,7 @@ security.calcAllFileSha256 = function (directoryPath) {
               relativePath = slash(relativePath);
               data[relativePath] = value;
             });
+            log.debug(`calcAllFileSha256 files:`, data);
             resolve(data);
           });
         }
