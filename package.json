@@ -25,7 +25,7 @@
     "code-push-server-db": "./bin/db"
   },
   "engines": {
-    "node": ">= 5.0",
+    "node": ">= 6.0",
     "npm": ">= 3.10.8"
   },
   "scripts": {
