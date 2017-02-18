@@ -88,7 +88,7 @@ if (command === 'init') {
         }
         if (version_no == '0.2.15') {
             console.log('Everything up-to-date.');
-            process.exit(1);
+            process.exit(0);
         }
         var allSqlFile = [
             {version:'0.2.14', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.14.sql')},
