@@ -229,6 +229,8 @@ common.uploadFileToS3 = function (key, filePath) {
   return (
     new Promise((resolve, reject) => {
       AWS.config.update({
+        accessKeyId: _.get(config, 's3.accessKeyId'),
+        secretAccessKey: _.get(config, 's3.secretAccessKey'),
         region: _.get(config, 's3.region')
       });
       var s3 = new AWS.S3({

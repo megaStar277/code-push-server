@@ -19,6 +19,8 @@ config.development = {
   },
   // Config for Amazon s3 (https://aws.amazon.com/cn/s3/) storage when storageType value is "s3".
   s3: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     bucketName: process.env.BUCKET_NAME,
     region: process.env.REGION,
     downloadUrl: process.env.DOWNLOAD_URL, // binary files download host address.
