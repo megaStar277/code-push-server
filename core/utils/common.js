@@ -259,9 +259,12 @@ common.uploadFileToOSS = function (key, filePath) {
     endpoint: _.get(config, 'oss.endpoint'),
     apiVersion: '2013-10-15',
   }));
+  if (!_.isEmpty(_.get(config, 'oss.prefix', ""))) {
+    key = `${_.get(config, 'oss.prefix')}/${key}`;
+  }
   var upload = ossStream.upload({
     Bucket: _.get(config, 'oss.bucketName'),
-    Key: `${_.get(config, 'oss.prefix')}/${key}`,
+    Key: key,
   });
 
   return new Promise((resolve, reject) => {
