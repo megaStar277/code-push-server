@@ -21,6 +21,7 @@ config.development = {
   s3: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    sessionToken: process.env.AWS_SESSION_TOKEN, //(optional)
     bucketName: process.env.BUCKET_NAME,
     region: process.env.REGION,
     downloadUrl: process.env.DOWNLOAD_URL, // binary files download host address.
