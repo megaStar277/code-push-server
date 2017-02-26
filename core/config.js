@@ -10,5 +10,6 @@ if (process.env.CONFIG_FILE) {
   log.info(`process.env.CONFIG_FILE value: ` +process.env.CONFIG_FILE)
 }
 log.info(`use config file ${CONFIG_PATH}`)
+log.info(`use env ${env}`)
 config = _.get(require(CONFIG_PATH), env);
 module.exports = config;
