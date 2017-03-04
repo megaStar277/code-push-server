@@ -58,6 +58,31 @@ router.get('/:appName/deployments',
   });
 });
 
+router.get('/:appName/deployments/:deploymentName',
+  middleware.checkToken, (req, res, next) => {
+  var uid = req.users.id;
+  var appName = _.trim(req.params.appName);
+  var deploymentName = _.trim(req.params.deploymentName);
+  var deployments = new Deployments();
+  accountManager.collaboratorCan(uid, appName)
+  .then((col) => {
+    return deployments.findDeloymentByName(deploymentName, col.appid)
+  })
+  .then((deploymentInfo) => {
+    if (_.isEmpty(deploymentInfo)) {
+      throw new AppError.AppError("does not find the deployment");
+    }
+    res.send({deployment: deployments.listDeloyment(deploymentInfo)});
+  })
+  .catch((e) => {
+    if (e instanceof AppError.AppError) {
+      res.status(406).send(e.message);
+    } else {
+      next(e);
+    }
+  });
+});
+
 router.post('/:appName/deployments',
   middleware.checkToken, (req, res, next) => {
   var uid = req.users.id;

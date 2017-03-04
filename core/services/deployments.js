@@ -164,16 +164,21 @@ proto.listDeloyments = function (appId) {
       return [];
     }
     return Promise.map(deploymentsInfos, (v) => {
-      return Promise.props({
-        createdTime: parseInt(moment(v.created_at).format('x')),
-        id: `${v.id}`,
-        key: v.deployment_key,
-        name: v.name,
-        package: self.findDeloymentsPackages([v.last_deployment_version_id]).then(self.formatPackage)
-      });
+      return self.listDeloyment(v);
     })
   });
 };
+
+proto.listDeloyment = function (deploymentInfo) {
+  const self = this;
+  return Promise.props({
+    createdTime: parseInt(moment(deploymentInfo.created_at).format('x')),
+    id: `${deploymentInfo.id}`,
+    key: deploymentInfo.deployment_key,
+    name: deploymentInfo.name,
+    package: self.findDeloymentsPackages([deploymentInfo.last_deployment_version_id]).then(self.formatPackage)
+  });
+}
 
 proto.getDeploymentHistory = function (deploymentId) {
   var self = this;

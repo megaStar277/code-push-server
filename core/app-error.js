@@ -20,7 +20,7 @@ var NotFoundError = function(msg) {
 util.inherits(NotFoundError, AppError)
 
 var UnauthorizedError = function(msg) {
-  NotFoundError.super_.call(this, msg, this.constructor)
+  UnauthorizedError.super_.call(this, msg, this.constructor)
   this.message = msg || `401 Unauthorized`;
   this.name = 'UnauthorizedError'
   this.status = 401
