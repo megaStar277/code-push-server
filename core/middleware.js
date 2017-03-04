@@ -39,7 +39,11 @@ var checkAccessToken = function (accessToken) {
     var config = require('../core/config');
     var tokenSecret = _.get(config, 'jwt.tokenSecret');
     var jwt = require('jsonwebtoken');
-    var authData = jwt.verify(accessToken, tokenSecret);
+    try {
+      var authData = jwt.verify(accessToken, tokenSecret);
+    } catch (e) {
+      reject(new AppError.Unauthorized());
+    }
     var uid = _.get(authData, 'uid', null);
     var hash = _.get(authData, 'hash', null);
     if (parseInt(uid) > 0) {
