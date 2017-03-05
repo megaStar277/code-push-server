@@ -22,17 +22,17 @@ CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in
 - 每次向App Store提交新的版本时，也应该基于该提交版本同时向code-push-server发布一个初始版本。(因为后面每次向code-push-server发布版本时，code-puse-server都会和初始版本比较，生成补丁版本)
 
 ## EXAMPLE 
-codepush.19910225.com 只是一个测试server，不要将自己生产环境的项目放在上面，服务器的宽带只有1M，而且服务没有做负载均衡和监控，稳定性不能保证，烦请大家自己搭建自己的服务。
+api.code-push.com 只是一个测试server，不要将自己生产环境的项目放在上面，服务器的宽带只有1M，而且服务没有做负载均衡和监控，稳定性不能保证，烦请大家自己搭建自己的服务。
 
 ### shell命令行端
 
 ```shell
-$ code-push login http://codepush.19910225.com:8080 #登录
+$ code-push login http://api.code-push.com:8080 #登录
 ```
 
-### [web](http://codepush-managerment.19910225.com:8080) 
+### [web](http://www.code-push.com:8080) 
 
-访问：http://codepush-managerment.19910225.com:8080
+访问：http://www.code-push.com:8080
 
 ### 客户端eg.
 
@@ -222,11 +222,11 @@ edit config.xml. add code below.
 ```xml
 <platform name="android">
     <preference name="CodePushDeploymentKey" value="nVHPr6asLSusnWoLBNCSktk9FWbiqLF160UDg" />
-    <preference name="CodePushServerUrl" value="http://codepush.19910225.com:8080/" />
+    <preference name="CodePushServerUrl" value="http://api.code-push.com:8080/" />
 </platform>
 <platform name="ios">
     <preference name="CodePushDeploymentKey" value="Iw5DMZSIrCOS7hbLsY5tHAHNITFQqLF160UDg" />
-    <preference name="CodePushServerUrl" value="http://codepush.19910225.com:8080/" />
+    <preference name="CodePushServerUrl" value="http://api.code-push.com:8080/" />
 </platform>
 ```
 
