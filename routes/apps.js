@@ -73,6 +73,7 @@ router.get('/:appName/deployments/:deploymentName',
       throw new AppError.AppError("does not find the deployment");
     }
     res.send({deployment: deployments.listDeloyment(deploymentInfo)});
+    return true;
   })
   .catch((e) => {
     if (e instanceof AppError.AppError) {

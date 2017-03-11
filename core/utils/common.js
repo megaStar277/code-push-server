@@ -139,6 +139,10 @@ common.uploadFileToLocal = function (key, filePath) {
     if (!storageDir) {
       throw new AppError.AppError('please set config local storageDir');
     }
+    if (key.length < 3) {
+      log.error(`generate key is too short, key value:${key}`);
+      throw new AppError.AppError('generate key is too short.');
+    }
     try {
       log.debug(`uploadFileToLocal check directory ${storageDir} fs.R_OK`);
       fs.accessSync(storageDir, fs.W_OK);
@@ -147,7 +151,10 @@ common.uploadFileToLocal = function (key, filePath) {
       log.error(e);
       throw new AppError.AppError(e.message);
     }
-    if (fs.existsSync(`${storageDir}/${key}`)) {
+    var subDir = key.substr(0, 2).toLowerCase();
+    var finalDir = `${storageDir}/${subDir}`;
+    var fileName = `${finalDir}/${key}`;
+    if (fs.existsSync(fileName)) {
       return resolve(key);
     }
     var stats = fs.statSync(storageDir);
@@ -155,6 +162,10 @@ common.uploadFileToLocal = function (key, filePath) {
       var e = new AppError.AppError(`${storageDir} must be directory`);
       log.error(e);
       throw e;
+    }
+    if (!fs.existsSync(`${finalDir}`)) {
+      fs.mkdirSync(`${finalDir}`);
+      log.debug(`uploadFileToLocal mkdir:${finalDir}`);
     }
     try {
      fs.accessSync(filePath, fs.R_OK);
@@ -168,7 +179,7 @@ common.uploadFileToLocal = function (key, filePath) {
       log.debug(e);
       throw e;
     }
-    fsextra.copy(filePath, `${storageDir}/${key}`,(err) => {
+    fsextra.copy(filePath, fileName,(err) => {
       if (err) {
         log.error(new AppError.AppError(err.message));
         return reject(new AppError.AppError(err.message));
@@ -179,26 +190,25 @@ common.uploadFileToLocal = function (key, filePath) {
   });
 };
 
-common.getDownloadUrl = function () {
-  if (_.get(config, 'common.storageType') === 'local') {
-    return _.get(config, 'local.downloadUrl');
-  } else if (_.get(config, 'common.storageType') === 's3') {
-    return _.get(config, 's3.downloadUrl');
-  } else if (_.get(config, 'common.storageType') === 'oss') {
-    return _.get(config, 'oss.downloadUrl');
-  }
-  return _.get(config, 'qiniu.downloadUrl');
-}
-
 common.getBlobDownloadUrl = function (blobUrl) {
-  return `${common.getDownloadUrl()}/${blobUrl}`
+  var downloadUrl = '';
+  var fileName = blobUrl;
+  if (_.get(config, 'common.storageType') === 'local') {
+    downloadUrl = _.get(config, 'local.downloadUrl');
+    fileName = blobUrl.substr(0, 2).toLowerCase() + '/' + blobUrl;
+  } else if (_.get(config, 'common.storageType') === 's3') {
+    downloadUrl = _.get(config, 's3.downloadUrl');
+  } else if (_.get(config, 'common.storageType') === 'oss') {
+    downloadUrl = _.get(config, 'oss.downloadUrl');
+  }
+  return `${downloadUrl}/${fileName}`
 };
 
 common.uploadFileToQiniu = function (key, filePath) {
   return new Promise((resolve, reject) => {
     qiniu.conf.ACCESS_KEY = _.get(config, "qiniu.accessKey");
     qiniu.conf.SECRET_KEY = _.get(config, "qiniu.secretKey");
-    var bucket = _.get(config, "qiniu.bucketName", "jukang");
+    var bucket = _.get(config, "qiniu.bucketName", "");
     var client = new qiniu.rs.Client();
     client.stat(bucket, key, (err, ret) => {
       if (!err) {
