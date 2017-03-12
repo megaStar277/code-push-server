@@ -112,13 +112,13 @@ security.sha256AllFiles = function (files) {
 
 security.uploadPackageType = function (directoryPath) {
   return new Promise((resolve, reject) => {
-    var recursiveFs = require("recursive-fs");
+    var recursive = require("recursive-readdir");
     var path = require('path');
     var slash = require("slash");
-    recursiveFs.readdirr(directoryPath, (err, directories, files) => {
+    recursive(directoryPath, (err, files) => {
       if (err) {
         log.error(new AppError.AppError(err.message));
-        reject(err);
+        reject(new AppError.AppError(err.message));
       } else {
         if (files.length == 0) {
           log.debug(`uploadPackageType empty files`);
@@ -147,13 +147,13 @@ security.uploadPackageType = function (directoryPath) {
 
 security.calcAllFileSha256 = function (directoryPath) {
   return new Promise((resolve, reject) => {
-    var recursiveFs = require("recursive-fs");
+    var recursive = require("recursive-readdir");
     var path = require('path');
     var slash = require("slash");
-    recursiveFs.readdirr(directoryPath, (error, directories, files) => {
+    recursive(directoryPath, (error, files) => {
       if (error) {
         log.error(error);
-        reject(error);
+        reject(new AppError.AppError(error.message));
       } else {
         if (files.length == 0) {
           log.debug(`calcAllFileSha256 empty files in directoryPath:`, directoryPath);

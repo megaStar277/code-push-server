@@ -65,7 +65,7 @@
     "pug": "^2.0.0-beta6",
     "qiniu": "^7.0.4",
     "rand-token": "^0.3.0",
-    "recursive-fs": "^1.0.0",
+    "recursive-readdir": "^2.1.1",
     "redis": "^2.6.2",
     "request": "^2.72.0",
     "sequelize": "^4.2.1",
