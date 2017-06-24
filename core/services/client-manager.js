@@ -67,6 +67,7 @@ proto.updateCheckFromCache = function(deploymentKey, appVersion, label, packageH
 proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
   var rs = {
     downloadURL: "",
+    downloadUrl: "",
     description: "",
     isAvailable: false,
     isMandatory: false,
@@ -98,6 +99,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {
         && _.eq(packages.deployment_id, deploymentsVersions.deployment_id)
         && !_.eq(packages.package_hash, packageHash)) {
         rs.downloadURL = common.getBlobDownloadUrl(_.get(packages, 'blob_url'));
+        rs.downloadUrl = common.getBlobDownloadUrl(_.get(packages, 'blob_url'));
         rs.description = _.get(packages, 'description', '');
         rs.isAvailable = true;
         rs.isMandatory = _.eq(packages.is_mandatory, 1) ? true : false;
