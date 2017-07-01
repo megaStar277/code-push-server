@@ -78,7 +78,8 @@ describe('api/users/users.test.js', function() {
       .then(function (t) {
         storageToken = t;
         done();
-      });
+      })
+      .finally(() => client.quit());
     });
 
     it('should not check register code successful when email already exists', function(done) {
@@ -131,7 +132,8 @@ describe('api/users/users.test.js', function() {
       .then(function (t) {
         storageToken = t;
         done();
-      });
+      })
+      .finally(() => client.quit());
     });
 
     it('should not sign up successful when password length invalid', function(done) {

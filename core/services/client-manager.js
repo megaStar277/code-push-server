@@ -32,7 +32,8 @@ proto.clearUpdateCheckCache = function(deploymentKey, appVersion, label, package
       });
     }
     return null;
-  });
+  })
+  .finally(() => client.quit());
 }
 
 proto.updateCheckFromCache = function(deploymentKey, appVersion, label, packageHash) {
@@ -62,6 +63,7 @@ proto.updateCheckFromCache = function(deploymentKey, appVersion, label, packageH
       return rs;
     });
   })
+  .finally(() => client.quit());
 }
 
 proto.updateCheck = function(deploymentKey, appVersion, label, packageHash) {

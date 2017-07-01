@@ -132,7 +132,8 @@ proto.login = function (account, password) {
           throw new AppError.AppError(`您输入密码错误次数超过限制，帐户已经锁定`);
         }
         return users;
-      });
+      })
+      .finally(() => client.quit());
     } else {
       return users;
     }
@@ -152,7 +153,8 @@ proto.login = function (account, password) {
         })
         .then(() => {
           return client.incrAsync(loginKey);
-        });
+        })
+        .finally(() => client.quit());
       }
       throw new AppError.AppError("您输入的邮箱或密码有误");
     } else {
@@ -178,10 +180,12 @@ proto.sendRegisterCode = function (email) {
   .then(() => {
     //将token临时存储到redis
     var token = security.randToken(40);
-    return factory.getRedisClient("default").setexAsync(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
+    var client = factory.getRedisClient("default");
+    return client.setexAsync(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
     .then(() => {
       return token;
-    });
+    })
+    .finally(() => client.quit());
   })
   .then((token) => {
     //将token发送到用户邮箱
@@ -213,6 +217,7 @@ proto.checkRegisterCode = function (email, token) {
           }
           return ttl;
         })
+        .finally(() => client.quit());
         throw new AppError.AppError(`您输入的验证码不正确，请重新输入`);
       }
       return storageToken;
