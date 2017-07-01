@@ -1,5 +1,5 @@
 var config = require('../../../core/config');
-var mysql = require('mysql');
+var mysql = require('mysql2');
 var redis = require('redis');
 var should = require('should');
 var fs = require('fs');
