@@ -129,7 +129,8 @@ proto.getAppDetailInfo  = function (appInfo, currentUid) {
         return _.get(item, 'name');
       }),
 
-      name: appInfo.get('name')
+      name: appInfo.get('name'),
+      id: appInfo.get('id')
     });
   });
 };
