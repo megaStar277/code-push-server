@@ -36,7 +36,7 @@ $ npm install code-push-cli@latest -g
 ```shell
 $ react-native init CodePushDemo #初始化一个react-native项目
 $ cd CodePushDemo
-$ npm install --save react-native-code-push  #安装react-native-code-push
+$ npm install --save react-native-code-push@latest  #安装react-native-code-push
 $ react-native link react-native-code-push  #连接到项目中，提示输入配置可以先行忽略
 ```
 
