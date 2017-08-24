@@ -117,9 +117,12 @@ common.unzipFile = function (zipFile, outputPath) {
   });
 };
 
-common.uptoken = function (bucket, key) {
-  var putPolicy = new qiniu.rs.PutPolicy(bucket+":"+key);
-  return putPolicy.token();
+common.getUploadTokenQiniu = function (mac, bucket, key) {
+  var options = {
+    scope: bucket + ":" + key
+  }
+  var putPolicy = new qiniu.rs.PutPolicy(options);
+  return putPolicy.uploadToken(mac);
 };
 
 common.uploadFileToStorage = function (key, filePath) {
@@ -209,27 +212,43 @@ common.getBlobDownloadUrl = function (blobUrl) {
 
 common.uploadFileToQiniu = function (key, filePath) {
   return new Promise((resolve, reject) => {
-    qiniu.conf.ACCESS_KEY = _.get(config, "qiniu.accessKey");
-    qiniu.conf.SECRET_KEY = _.get(config, "qiniu.secretKey");
+    var accessKey = _.get(config, "qiniu.accessKey");
+    var secretKey = _.get(config, "qiniu.secretKey");
     var bucket = _.get(config, "qiniu.bucketName", "");
-    var client = new qiniu.rs.Client();
-    client.stat(bucket, key, (err, ret) => {
-      if (!err) {
-        resolve(ret.hash);
+    var mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
+    var conf = new qiniu.conf.Config();
+    var bucketManager = new qiniu.rs.BucketManager(mac, conf);
+    bucketManager.stat(bucket, key, (respErr, respBody, respInfo) => {
+      if (respErr) {
+        log.debug('uploadFileToQiniu file stat:', respErr);
+        return reject(new AppError.AppError(respErr.message));
+      }
+      log.debug('uploadFileToQiniu file stat respBody:', respBody);
+      log.debug('uploadFileToQiniu file stat respInfo:', respInfo);
+      if (respInfo.statusCode == 200) {
+        resolve(respBody.hash);
       } else {
         try {
-          var uptoken = common.uptoken(bucket, key);
+          var uploadToken = common.getUploadTokenQiniu(mac, bucket, key);
         } catch (e) {
-          return reject(e);
+          return reject(new AppError.AppError(e.message));
         }
-        var extra = new qiniu.io.PutExtra();
-        qiniu.io.putFile(uptoken, key, filePath, extra, (err, ret) => {
-          if(!err) {
-            // 上传成功， 处理返回值
-            resolve(ret.hash);
-          } else {
+        var formUploader = new qiniu.form_up.FormUploader(conf);
+        var putExtra = new qiniu.form_up.PutExtra();
+        formUploader.putFile(uploadToken, key, filePath, putExtra, (respErr, respBody, respInfo) => {
+          if(respErr) {
+            log.error('uploadFileToQiniu putFile:', respErr);
             // 上传失败， 处理返回代码
-            reject(new AppError.AppError(JSON.stringify(err)));
+            return reject(new AppError.AppError(JSON.stringify(respErr)));
+          } else {
+            log.debug('uploadFileToQiniu putFile respBody:', respBody);
+            log.debug('uploadFileToQiniu putFile respInfo:', respInfo);
+            // 上传成功， 处理返回值
+            if (respInfo.statusCode == 200) {
+              return resolve(respBody.hash);
+            } else {
+              return reject(new AppError.AppError(respBody.error));
+            }
           }
         });
       }
