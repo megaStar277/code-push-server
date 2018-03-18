@@ -8,7 +8,8 @@ config.development = {
     host: process.env.RDS_HOST || "127.0.0.1",
     port: process.env.RDS_PORT || 3306,
     dialect: "mysql",
-    logging: false
+    logging: false,
+    operatorsAliases: false,
   },
   // Config for qiniu (http://www.qiniu.com/) cloud storage when storageType value is "qiniu".
   qiniu: {

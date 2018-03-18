@@ -91,7 +91,8 @@ proto.listApps = function (uid) {
       return [];
     } else {
       var appIds = _.map(data, (v) => { return v.appid });
-      return models.Apps.findAll({where: {id: {in: appIds}}});
+      var Sequelize = require('sequelize');
+      return models.Apps.findAll({where: {id: {[Sequelize.Op.in]: appIds}}});
     }
   })
   .then((appInfos) => {

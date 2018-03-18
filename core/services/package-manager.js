@@ -232,18 +232,19 @@ proto.createDiffPackagesByLastNums = function (packageId, num) {
     if (_.isEmpty(originalPackage)) {
       throw AppError.AppError('can\'t find Package');
     }
+    var Sequelize = require('sequelize');
     return Promise.all([
       models.Packages.findAll({
         where:{
           deployment_version_id: originalPackage.deployment_version_id,
-          id: {$lt: packageId}},
+          id: {[Sequelize.Op.lt]: packageId}},
           order: [['id','desc']],
           limit: num
       }),
       models.Packages.findAll({
         where:{
           deployment_version_id: originalPackage.deployment_version_id,
-          id: {$lt: packageId}},
+          id: {[Sequelize.Op.lt]: packageId}},
           order: [['id','asc']],
           limit: 2
       })
@@ -495,7 +496,8 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
 }
 
 proto.getCanRollbackPackages = function (deploymentVersionId) {
+  var Sequelize = require('sequelize');
   return models.Packages.findAll({
-    where: {deployment_version_id: deploymentVersionId, release_method: {$in: ['Upload', 'Promote'] }}, order: [['id','desc']], limit: 2
+    where: {deployment_version_id: deploymentVersionId, release_method: {[Sequelize.Op.in]: ['Upload', 'Promote'] }}, order: [['id','desc']], limit: 2
   });
 }
