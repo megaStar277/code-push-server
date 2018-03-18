@@ -40,7 +40,7 @@ config.development = {
     // Binary files storage dir, Do not use tmpdir and it's public download dir.
     storageDir: process.env.STORAGE_DIR || "/Users/tablee/workspaces/storage",
     // Binary files download host address which Code Push Server listen to. the files storage in storageDir.
-    downloadUrl: process.env.LOCAL_DOWNLOAD_URL || "http://localhost:3000/download",
+    downloadUrl: process.env.LOCAL_DOWNLOAD_URL || "http://127.0.0.1:3000/download",
     // public static download spacename.
     public: process.env.PUBLIC || '/download'
   },
@@ -57,7 +57,7 @@ config.development = {
      */
     tryLoginTimes: 0,
     // CodePush Web(https://github.com/lisong/code-push-web) login address.
-    //codePushWebUrl: "http://localhost:3001/login",
+    //codePushWebUrl: "http://127.0.0.1:3001/login",
     // create patch updates's number. default value is 3
     diffNums: 3,
     // data dir for caclulate diff files. it's optimization.
@@ -103,13 +103,11 @@ config.development = {
 }
 
 config.development.log4js = {
-  appenders: [
-    { type: 'console'}
-  ],
-  levels : {
-    "[all]": "ERROR",
-    "startup": "INFO",
-    "http" : "INFO"
+  appenders: {console: { type: 'console'}},
+  categories : {
+    "default": { appenders: ['console'], level:'error'},
+    "startup": { appenders: ['console'], level:'info'},
+    "http": { appenders: ['console'], level:'info'}
   }
 }
 

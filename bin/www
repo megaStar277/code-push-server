@@ -9,7 +9,10 @@ var http = require('http');
 var validator = require('validator')
 var _ = require('lodash')
 var config = require('../core/config');
-log4js.configure(_.get(config, 'log4js', {appenders: [{ type: 'console'}], levels : {"[all]": "ERROR", http: "ERROR"} }));
+log4js.configure(_.get(config, 'log4js', {
+    appenders: {console: { type: 'console'}},
+    categories : { default: { appenders: ['console'], level: 'info' }}
+}));
 var log = log4js.getLogger("startup")
 
 var app = require('../app');

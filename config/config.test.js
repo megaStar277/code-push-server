@@ -13,7 +13,7 @@ config.test = {
   },
   local: {
     storageDir: os.tmpdir(),
-    downloadUrl: "http://localhost:3000/download",
+    downloadUrl: "http://127.0.0.1:3000/download",
     public: '/download'
   },
   jwt: {
@@ -47,13 +47,11 @@ config.test = {
   }
 }
 config.test.log4js = {
-  appenders: [
-    { type: 'console'}
-  ],
-  levels : {
-    "[all]": "ERROR",
-    "startup": "INFO",
-    "http" : "INFO"
+  appenders: {console: { type: 'console'}},
+  categories : {
+    "default": { appenders: ['console'], level:'error'},
+    "startup": { appenders: ['console'], level:'info'},
+    "http": { appenders: ['console'], level:'info'}
   }
 }
 module.exports = config;

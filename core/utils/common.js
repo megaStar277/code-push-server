@@ -5,6 +5,7 @@ var fsextra = require("fs-extra");
 var extract = require('extract-zip')
 var config    = require('../config');
 var _ = require('lodash');
+var validator = require('validator');
 var qiniu = require("qiniu");
 var common = {};
 var AppError = require('../app-error');
@@ -17,6 +18,7 @@ common.createFileFromRequest = function (url, filePath) {
     fs.exists(filePath, function (exists) {
       if (!exists) {
         var request = require('request');
+        log.debug(`createFileFromRequest url:${url}`)
         request(url).on('error', function (error) {
           reject(error);
         })
@@ -179,7 +181,7 @@ common.uploadFileToLocal = function (key, filePath) {
     stats = fs.statSync(filePath);
     if (!stats.isFile()) {
       var e = new AppError.AppError(`${filePath} must be file`);
-      log.debug(e);
+      log.error(e);
       throw e;
     }
     fsextra.copy(filePath, fileName,(err) => {
@@ -194,17 +196,16 @@ common.uploadFileToLocal = function (key, filePath) {
 };
 
 common.getBlobDownloadUrl = function (blobUrl) {
-  var downloadUrl = '';
   var fileName = blobUrl;
-  if (_.get(config, 'common.storageType') === 'local') {
-    downloadUrl = _.get(config, 'local.downloadUrl');
+  var storageType = _.get(config, 'common.storageType');
+  var downloadUrl = _.get(config, `${storageType}.downloadUrl`);
+  if ( storageType === 'local') {
     fileName = blobUrl.substr(0, 2).toLowerCase() + '/' + blobUrl;
-  } else if (_.get(config, 'common.storageType') === 's3') {
-    downloadUrl = _.get(config, 's3.downloadUrl');
-  } else if (_.get(config, 'common.storageType') === 'oss') {
-    downloadUrl = _.get(config, 'oss.downloadUrl');
-  }else if (_.get(config, 'common.storageType') === 'qiniu') {
-    downloadUrl = _.get(config, 'qiniu.downloadUrl');
+  }
+  if (!validator.isURL(downloadUrl)) {
+    var e = new AppError.AppError(`Please config ${storageType}.downloadUrl in config.js`);
+    log.error(e);
+    throw e;
   }
   return `${downloadUrl}/${fileName}`
 };
