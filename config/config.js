@@ -62,7 +62,7 @@ config.development = {
     // create patch updates's number. default value is 3
     diffNums: 3,
     // data dir for caclulate diff files. it's optimization.
-    dataDir: process.env.DATA_DIR || "/Users/tablee/workspaces/data",
+    dataDir: process.env.DATA_DIR || os.tmpdir(),
     // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3")
     storageType: process.env.STORAGE_TYPE || "local",
     // options value is (true | false), when it's true, it will cache updateCheck results in redis.

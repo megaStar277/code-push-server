@@ -11,7 +11,6 @@ var fs = require('fs');
 var routes = require('./routes/index');
 var auth = require('./routes/auth');
 var accessKeys = require('./routes/accessKeys');
-var sessions = require('./routes/sessions');
 var account = require('./routes/account');
 var users = require('./routes/users');
 var apps = require('./routes/apps');
@@ -75,7 +74,6 @@ if (_.get(config, 'common.storageType') === 'local') {
 app.use('/', routes);
 app.use('/auth', auth);
 app.use('/accessKeys', accessKeys);
-app.use('/sessions', sessions);
 app.use('/account', account);
 app.use('/users', users);
 app.use('/apps', apps);
@@ -93,34 +91,27 @@ if (app.get('env') === 'development') {
     log.error(err);
   });
   app.use(function(err, req, res, next) {
-    if (err instanceof AppError.AppError) {
-      res.send(err);
-      log.debug(err);
-    } else {
-      res.status(err.status || 500);
-      res.render('error', {
-        message: err.message,
-        error: err
-      });
-      log.error(err);
-    }
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error: err
+    });
+    log.error(err);
   });
 } else {
   app.use(function(req, res, next) {
     var e = new AppError.NotFound();
-    res.status(404).send(e);
+    res.status(404).send(e.message);
     log.debug(e);
   });
   // production error handler
   // no stacktraces leaked to user
   app.use(function(err, req, res, next) {
     if (err instanceof AppError.AppError) {
-      res.send(err);
+      res.send(err.message);
+      log.debug(err);
     } else {
-      var status = err.status || 500;
-      var error = new AppError.AppError(`服务器繁忙，请稍后再试!`);
-      error.status = status;
-      res.status(status).send(error);
+      res.status(err.status || 500).send(`服务器繁忙，请稍后再试!`);
       log.error(err);
     }
   });
