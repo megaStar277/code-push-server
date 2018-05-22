@@ -13,7 +13,9 @@
 
 CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use local storage, just modify config.js file, it's simple configure.
 
-## qq交流群 535491067
+## qq交流群 
+- 628921445
+- 535491067
 
 ## 正确使用code-push热更新
 
