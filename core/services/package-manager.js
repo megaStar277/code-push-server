@@ -392,10 +392,16 @@ proto.modifyReleasePackage = function(packageId, params) {
     }
     var new_params = {
       description: description || packageInfo.description,
-      is_mandatory: isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO,
-      is_disabled: isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO,
-      rollout: rollout || 100
     };
+    if (_.isInteger(rollout)) {
+      new_params.rollout = rollout;
+    }
+    if (_.isBoolean(isMandatory)) {
+      new_params.is_mandatory = isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO;
+    }
+    if (_.isBoolean(isDisabled)) {
+      new_params.is_disabled = isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO;
+    }
     return models.Packages.update(new_params,{where: {id: packageId}});
   });
 };
@@ -447,14 +453,22 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, params) {
     var create_params = {
       releaseMethod: constConfig.RELEAS_EMETHOD_PROMOTE,
       releaseUid: params.promoteUid || 0,
-      isMandatory: params.isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO,
-      isDisabled: params.isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO,
-      rollout: params.rollout || packages.rollout,
+      rollout: params.rollout || 100,
       size: packages.size,
-      description: packages.description,
+      description: params.description || packages.description,
       originalLabel: packages.label,
       originalDeployment: sourceDeployment.name
     };
+    if (_.isBoolean(isMandatory)) {
+      create_params.is_mandatory = params.isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO;
+    } else {
+      create_params.is_mandatory = packages.is_mandatory
+    }
+    if (_.isBoolean(isDisabled)) {
+      create_params.is_disabled = params.isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO;
+    } else {
+      create_params.is_disabled = packages.is_disabled
+    }
     return self.createPackage(destDeploymentId, deploymentsVersions.app_version, packages.package_hash, packages.manifest_blob_url, packages.blob_url, create_params);
   });
 };
