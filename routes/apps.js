@@ -15,8 +15,6 @@ var config    = require('../core/config');
 const REGEX = /^(\w+)(-android|-ios)$/;
 const REGEX_ANDROID = /^(\w+)(-android)$/;
 const REGEX_IOS = /^(\w+)(-ios)$/;
-const OLD_REGEX_ANDROID = /^(android_)/;
-const OLD_REGEX_IOS = /^(ios_)/;
 var log4js = require('log4js');
 var log = log4js.getLogger("cps:apps");
 
@@ -584,14 +582,10 @@ router.patch('/:appName',
     var appManager = new AppManager();
     return accountManager.ownerCan(uid, appName)
     .then((col) => {
-      if (REGEX_ANDROID.test(appName) || OLD_REGEX_ANDROID.test(appName)) {
-        if (!REGEX_ANDROID.test(newAppName)) {
-          throw new AppError.AppError(`new appName have to point -android suffix! eg. Demo-android`);
-        }
-      } else if (REGEX_IOS.test(appName) || OLD_REGEX_IOS.test(appName)) {
-        if (!REGEX_IOS.test(newAppName)) {
-          throw new AppError.AppError(`new appName have to point -ios suffix! eg. Demo-ios`);
-        }
+      if (REGEX_ANDROID.test(appName) && !REGEX_ANDROID.test(newAppName)) {
+        throw new AppError.AppError(`new appName have to point -android suffix! eg. Demo-android`);
+      } else if (REGEX_IOS.test(appName) && !REGEX_IOS.test(newAppName)) {
+        throw new AppError.AppError(`new appName have to point -ios suffix! eg. Demo-ios`);
       } else {
         throw new AppError.AppError(`appName have to point -android or -ios suffix! eg. ${appName}-android ${appName}-ios`);
       }
