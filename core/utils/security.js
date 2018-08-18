@@ -124,16 +124,17 @@ security.uploadPackageType = function (directoryPath) {
           log.debug(`uploadPackageType empty files`);
           reject(new AppError.AppError("empty files"));
         } else {
+          var constName = require('../const');
           const AREGEX=/android\.bundle/
           const AREGEX_IOS=/main\.jsbundle/
           var packageType = 0;
           _.forIn(files, function (value) {
             if (AREGEX.test(value)) {
-              packageType = 1;
+              packageType = constName.ANDROID;
               return false;
             }
             if (AREGEX_IOS.test(value)) {
-              packageType = 2;
+              packageType = constName.IOS;
               return false;
             }
           });

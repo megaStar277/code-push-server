@@ -22,6 +22,7 @@ proto.getUpdateCheckCacheKey = function(deploymentKey, appVersion, label, packag
 }
 
 proto.clearUpdateCheckCache = function(deploymentKey, appVersion, label, packageHash) {
+  log.debug('clear cache Deployments key:', deploymentKey);
   let redisCacheKey = this.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
   var client = factory.getRedisClient("default");
   return client.keysAsync(redisCacheKey)
