@@ -93,13 +93,14 @@ if (command === 'init') {
             version_no = _.get(rs,'0.version', '0.0.1');
         } catch (e) {
         }
-        if (version_no == '0.2.15') {
+        if (version_no == '0.3.0') {
             console.log('Everything up-to-date.');
             process.exit(0);
         }
         var allSqlFile = [
-            {version:'0.2.14', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.14.sql')},
-            {version:'0.2.15', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.15.sql')}
+            {version:'0.2.14', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.14-patch.sql')},
+            {version:'0.2.15', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.15-patch.sql')},
+            {version:'0.3.0', 'path':path.resolve(__dirname, '../sql/codepush-v0.3.0-patch.sql')}
         ];
         for (var i = 0; i < allSqlFile.length; i++) {
             if(!_.gt(allSqlFile[i]['version'], version_no)) {

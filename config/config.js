@@ -66,7 +66,9 @@ config.development = {
     // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3")
     storageType: process.env.STORAGE_TYPE || "local",
     // options value is (true | false), when it's true, it will cache updateCheck results in redis.
-    updateCheckCache: false
+    updateCheckCache: false,
+    // options value is (true | false), when it's true, it will cache rollout results in redis
+    rolloutClientUniqueIdCache: false,
   },
   // Config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
   smtpConfig:{

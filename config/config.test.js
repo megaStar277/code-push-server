@@ -25,7 +25,8 @@ config.test = {
     diffNums: 3,
     dataDir: os.tmpdir(),
     storageType: "local",
-    updateCheckCache: true
+    updateCheckCache: true,
+    rolloutClientUniqueIdCache: false,
   },
   smtpConfig: false,
   redis: {

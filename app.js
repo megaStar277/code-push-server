@@ -111,7 +111,7 @@ if (app.get('env') === 'development') {
       res.send(err.message);
       log.debug(err);
     } else {
-      res.status(err.status || 500).send(`服务器繁忙，请稍后再试!`);
+      res.status(err.status || 500).send(err.message);
       log.error(err);
     }
   });

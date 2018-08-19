@@ -53,7 +53,7 @@ describe('api/apps/release.test.js', function() {
     it('should add apps successful', function(done) {
       request.post(`/apps`)
       .set('Authorization', `Bearer ${bearerToken}`)
-      .send({name: appName})
+      .send({name: appName, os:'iOS', platform:'React-Native'})
       .end(function(err, res) {
         should.not.exist(err);
         res.status.should.equal(200);
@@ -99,7 +99,6 @@ describe('api/apps/release.test.js', function() {
       .set('Authorization', `Bearer ${bearerToken}`)
       .send()
       .end(function(err, res) {
-        should.not.exist(err);
         res.status.should.equal(200);
         done();
       });

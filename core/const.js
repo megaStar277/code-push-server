@@ -34,5 +34,8 @@ define("IS_DISABLED_NO", 0);
 define("RELEAS_EMETHOD_PROMOTE", 'Promote');
 define("RELEAS_EMETHOD_UPLOAD", 'Upload');
 
+define("DEPLOYMENT_SUCCEEDED", 1);
+define("DEPLOYMENT_FAILED", 2);
+
 
 

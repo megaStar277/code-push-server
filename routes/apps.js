@@ -382,7 +382,7 @@ router.patch('/:appName/deployments/:deploymentName/release',
 
 router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',
   middleware.checkToken, (req, res, next) => {
-  log.debug('promote:', req.body);
+  log.debug('req.body:', req.body);
   var appName = _.trim(req.params.appName);
   var sourceDeploymentName = _.trim(req.params.sourceDeploymentName);
   var destDeploymentName = _.trim(req.params.destDeploymentName);
@@ -661,6 +661,9 @@ router.post('/', middleware.checkToken, (req, res, next) => {
   log.debug("addApp params:",req.body);
   var constName = require('../core/const');
   var appName = req.body.name;
+  if (_.isEmpty(appName)) {
+    return res.status(406).send("Please input name!");
+  }
   var osName = _.toLower(req.body.os);
   var os;
   if (osName == _.toLower(constName.IOS_NAME)) {
@@ -684,9 +687,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
   var manuallyProvisionDeployments = req.body.manuallyProvisionDeployments;
   var uid = req.users.id;
   var appManager = new AppManager();
-  if (_.isEmpty(appName)) {
-    return res.status(406).send("Please input name!");
-  }
+
   appManager.findAppByName(uid, appName)
   .then((appInfo) => {
     if (!_.isEmpty(appInfo)){

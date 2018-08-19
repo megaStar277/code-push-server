@@ -12,8 +12,8 @@ var common = require('../utils/common');
 var os = require('os');
 var path = require('path');
 var AppError = require('../app-error');
-var log4js = require('log4js');
 var constConfig = require('../const');
+var log4js = require('log4js');
 var log = log4js.getLogger("cps:PackageManager");
 
 var proto = module.exports = function (){
@@ -459,15 +459,15 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, params) {
       originalLabel: packages.label,
       originalDeployment: sourceDeployment.name
     };
-    if (_.isBoolean(isMandatory)) {
-      create_params.is_mandatory = params.isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO;
+    if (_.isBoolean(params.isMandatory)) {
+      create_params.isMandatory = params.isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO;
     } else {
-      create_params.is_mandatory = packages.is_mandatory
+      create_params.isMandatory = packages.is_mandatory
     }
-    if (_.isBoolean(isDisabled)) {
-      create_params.is_disabled = params.isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO;
+    if (_.isBoolean(params.isDisabled)) {
+      create_params.isMandatory = params.isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO;
     } else {
-      create_params.is_disabled = packages.is_disabled
+      create_params.isMandatory = packages.is_disabled
     }
     return self.createPackage(destDeploymentId, deploymentsVersions.app_version, packages.package_hash, packages.manifest_blob_url, packages.blob_url, create_params);
   });
@@ -509,8 +509,8 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
         releaseMethod: 'Rollback',
         releaseUid: rollbackUid,
         isMandatory: rollbackPackage.is_mandatory,
-        isDisabled: packages.is_disabled,
-        rollout: packages.rollout,
+        isDisabled: rollbackPackage.is_disabled,
+        rollout: rollbackPackage.rollout,
         size: rollbackPackage.size,
         description: rollbackPackage.description,
         originalLabel: rollbackPackage.label,
