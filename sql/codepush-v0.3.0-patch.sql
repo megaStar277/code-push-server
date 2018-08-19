@@ -14,7 +14,6 @@ CREATE TABLE `log_report_deploy` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `log_report_download`;
 CREATE TABLE `log_report_download` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `package_id` int(10) unsigned NOT NULL DEFAULT '0',
