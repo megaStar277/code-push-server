@@ -60,13 +60,17 @@ DROP TABLE IF EXISTS `deployments_versions`;
 CREATE TABLE `deployments_versions` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `deployment_id` int(11) unsigned NOT NULL DEFAULT '0',
-  `app_version` varchar(14) NOT NULL DEFAULT '',
+  `app_version` varchar(100) NOT NULL DEFAULT '',
   `current_package_id` int(10) unsigned NOT NULL DEFAULT '0',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
+  `min_version` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `max_version` bigint(20) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `idx_did_appversion` (`deployment_id`,`app_version`)
+  KEY `idx_did_minversion` (`deployment_id`,`min_version`),
+  KEY `idx_did_maxversion` (`deployment_id`,`max_version`),
+  KEY `idx_did_appversion` (`deployment_id`,`app_version`(30))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `packages`;
@@ -174,7 +178,7 @@ CREATE TABLE `versions` (
 LOCK TABLES `versions` WRITE;
 INSERT INTO `versions` (`id`, `type`, `version`)
 VALUES
-	(1,1,'0.3.0');
+	(1,1,'0.4.0');
 UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `log_report_deploy`;

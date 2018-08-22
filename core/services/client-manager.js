@@ -8,6 +8,7 @@ var AppError = require('../app-error');
 var config    = require('../config');
 var log4js = require('log4js');
 var log = log4js.getLogger("cps:ClientManager");
+var Sequelize = require('sequelize');
 
 var proto = module.exports = function (){
   function ClientManager() {
@@ -141,7 +142,29 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash, clie
     if (_.isEmpty(dep)) {
       throw new AppError.AppError('Not found deployment, check deployment key is right.');
     }
-    return models.DeploymentsVersions.findOne({where: {deployment_id: dep.id, app_version: appVersion}});
+    var version = common.parseVersion(appVersion);
+    return models.DeploymentsVersions.findAll({where: {
+      deployment_id: dep.id,
+      min_version: { [Sequelize.Op.lte]: version },
+      max_version: { [Sequelize.Op.gt]: version }
+    }})
+    .then((deploymentsVersionsMore) => {
+      var distance = 0;
+      var item = null;
+      _.map(deploymentsVersionsMore, function(value, index) {
+        if (index == 0) {
+          item = value;
+          distance = value.max_version - value.min_version;
+        } else {
+          if (distance > (value.max_version - value.min_version)) {
+            distance = value.max_version - value.min_version;
+            item = value;
+          }
+        }
+      });
+      log.debug(item);
+      return item;
+    });
   })
   .then((deploymentsVersions) => {
     var packageId = _.get(deploymentsVersions, 'current_package_id', 0);

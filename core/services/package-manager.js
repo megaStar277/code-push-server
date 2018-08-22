@@ -68,9 +68,9 @@ proto.parseReqFile = function (req) {
   });
 };
 
-proto.createDeploymentsVersionIfNotExist = function (deploymentId, appVersion, t) {
+proto.createDeploymentsVersionIfNotExist = function (deploymentId, appVersion, minVersion, maxVersion, t) {
   return models.DeploymentsVersions.findOrCreate({
-    where: {deployment_id: deploymentId, app_version: appVersion},
+    where: {deployment_id: deploymentId, app_version: appVersion, min_version:minVersion, max_version:maxVersion},
     defaults: {current_package_id: 0},
     transaction: t
   })
@@ -115,7 +115,7 @@ proto.createPackage = function (deploymentId, appVersion, packageHash, manifestH
   return models.Deployments.generateLabelId(deploymentId)
   .then((labelId) => {
     return models.sequelize.transaction((t) => {
-      return self.createDeploymentsVersionIfNotExist(deploymentId, appVersion, t)
+      return self.createDeploymentsVersionIfNotExist(deploymentId, appVersion, params.min_version, params.max_version, t)
       .then((deploymentsVersions) => {
         return models.Packages.create({
           deployment_version_id: deploymentsVersions.id,
@@ -302,7 +302,8 @@ proto.createDiffPackages = function (originalPackage, destPackages) {
 proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, releaseUid) {
   var self = this;
   var appVersion = packageInfo.appVersion;
-  if (!/^([0-9.]+)$/.test(appVersion)) {
+  var versionInfo = common.validatorVersion(appVersion);
+  if (!versionInfo[0]) {
     log.debug(`releasePackage targetBinaryVersion ${appVersion} not support.`);
     return Promise.reject(new AppError.AppError(`targetBinaryVersion ${appVersion} not support.`))
   }
@@ -342,8 +343,11 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
     .then((dataCenter) => {
       var packageHash = dataCenter.packageHash;
       var manifestFile = dataCenter.manifestFilePath;
-      return self.createDeploymentsVersionIfNotExist(deploymentId, appVersion)
+      return models.DeploymentsVersions.findOne({where: {deployment_id: deploymentId, app_version:appVersion}})
       .then((deploymentsVersions) => {
+        if (!deploymentsVersions) {
+          return false;
+        }
         return self.isMatchPackageHash(deploymentsVersions.get('current_package_id'), packageHash);
       })
       .then((isExist) => {
@@ -372,7 +376,9 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
       isDisabled: isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO,
       rollout: rollout,
       size: stats.size,
-      description: description
+      description: description,
+      min_version: versionInfo[1],
+      max_version: versionInfo[2],
     }
     return self.createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params);
   })
@@ -437,8 +443,11 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, params) {
       if (!packages) {
         throw new AppError.AppError('does not exist packages.');
       }
-      return self.createDeploymentsVersionIfNotExist(destDeploymentId, deploymentsVersions.app_version)
+      return models.DeploymentsVersions.findOne({where: {deployment_id: destDeploymentId, app_version:deploymentsVersions.app_version}})
       .then((deploymentsVersions) => {
+        if (!deploymentsVersions) {
+          return false;
+        }
         return self.isMatchPackageHash(deploymentsVersions.get('current_package_id'), packages.package_hash);
       })
       .then((isExist) => {
@@ -457,7 +466,9 @@ proto.promotePackage = function (sourceDeploymentId, destDeploymentId, params) {
       size: packages.size,
       description: params.description || packages.description,
       originalLabel: packages.label,
-      originalDeployment: sourceDeployment.name
+      originalDeployment: sourceDeployment.name,
+      min_version: deploymentsVersions.min_version,
+      max_version: deploymentsVersions.max_version,
     };
     if (_.isBoolean(params.isMandatory)) {
       create_params.isMandatory = params.isMandatory ? constConfig.IS_MANDATORY_YES : constConfig.IS_MANDATORY_NO;
@@ -514,7 +525,9 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
         size: rollbackPackage.size,
         description: rollbackPackage.description,
         originalLabel: rollbackPackage.label,
-        originalDeployment: ''
+        originalDeployment: '',
+        min_version: deploymentsVersions.min_version,
+        max_version: deploymentsVersions.max_version,
       };
       return self.createPackage(deploymentsVersions.deployment_id,
         deploymentsVersions.app_version,
