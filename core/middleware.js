@@ -35,7 +35,7 @@ var checkAuthToken = function (authToken) {
 var checkAccessToken = function (accessToken) {
   return new Promise((resolve, reject) => {
     if (_.isEmpty(accessToken)) {
-      throw new AppError.Unauthorized();
+      reject(new AppError.Unauthorized());
     }
     var config = require('../core/config');
     var tokenSecret = _.get(config, 'jwt.tokenSecret');
