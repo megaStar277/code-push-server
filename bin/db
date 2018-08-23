@@ -103,7 +103,7 @@ if (command === 'init') {
         var allSqlFile = [
             {version:'0.2.14', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.14-patch.sql')},
             {version:'0.2.15', 'path':path.resolve(__dirname, '../sql/codepush-v0.2.15-patch.sql')},
-            {version:'0.3.0', 'path':path.resolve(__dirname, '../sql/codepush-v0.3.0-patch.sql')}
+            {version:'0.3.0', 'path':path.resolve(__dirname, '../sql/codepush-v0.3.0-patch.sql')},
             {version:'0.4.0', 'path':path.resolve(__dirname, '../sql/codepush-v0.4.0-patch.sql')}
         ];
         for (var i = 0; i < allSqlFile.length; i++) {
