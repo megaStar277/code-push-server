@@ -99,7 +99,6 @@ describe('api/apps/release.test.js', function() {
       .set('Authorization', `Bearer ${bearerToken}`)
       .send()
       .end(function(err, res) {
-        console.log(res);
         res.status.should.equal(200);
         done();
       });
