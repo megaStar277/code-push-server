@@ -444,8 +444,8 @@ proto.modifyReleasePackage = function(packageId, params) {
 
 proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, params) {
   var self = this;
-  var appVersion = params.appVersion;
-  var label = params.label;
+  var appVersion = _.get(params,'appVersion', null);
+  var label = _.get(params,'label', null);
   return new Promise((resolve, reject) => {
     if (label) {
       return models.Packages.findOne({where: {deployment_id: sourceDeploymentInfo.id, label:label}})

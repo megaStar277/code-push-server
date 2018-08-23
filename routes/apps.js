@@ -415,8 +415,8 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
       return [sourceDeploymentInfo, destDeploymentInfo];
     })
     .spread((sourceDeploymentInfo, destDeploymentInfo) => {
-      var params = _.get(req.body, 'packageInfo');
-      params.promoteUid = uid;
+      var params = _.get(req.body, 'packageInfo', {});
+      _.set(params, 'promoteUid', uid);
       return packageManager.promotePackage(sourceDeploymentInfo, destDeploymentInfo, params);
     });
   })
