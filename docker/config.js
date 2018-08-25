@@ -31,7 +31,7 @@ config.development = {
      * if value is 0, no limit for login auth, it may not safe for account. when it's a number, it means you can
      * try that times today. but it need config redis server.
      */
-    tryLoginTimes: 0,
+    tryLoginTimes: 4,
     // CodePush Web(https://github.com/lisong/code-push-web) login address.
     //codePushWebUrl: "http://127.0.0.1:3001/login",
     // create patch updates's number. default value is 3
@@ -58,8 +58,8 @@ config.development = {
   // Config for redis (register module, tryLoginTimes module)
   redis: {
     default: {
-      host: "127.0.0.1",
-      port: 6379,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT || 6379,
       retry_strategy: function (options) {
         if (options.error.code === 'ECONNREFUSED') {
           // End reconnecting on a specific error and flush all commands with a individual error

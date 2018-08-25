@@ -17,6 +17,8 @@ services:
       DATA_DIR: "/data/tmp"
       NODE_ENV: "production"
       CONFIG_FILE: "/config.js"
+      REDIS_HOST: "YOU_MACHINE_IP"
+      REDIS_PORT: "6388"
     deploy:
       replicas: 5
       resources:
@@ -30,7 +32,8 @@ services:
     networks:
       - servernet
     depends_on:
-      - "db"
+      - db
+      - redis
   db:
     image: mysql:5.7.23
     volumes:
@@ -40,6 +43,12 @@ services:
       - "3308:3306"
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "On"
+    networks:
+      - dbnet
+  redis:
+    image: redis:3.2
+    ports:
+      - "6388:6379"
     networks:
       - dbnet
 networks:

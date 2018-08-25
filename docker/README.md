@@ -1,6 +1,6 @@
 # docker 部署 code-push-server
 
->该文档用于描述docker部署code-push-server，实例包含两个部分
+>该文档用于描述docker部署code-push-server，实例包含三个部分
 
 - code-push-server部分
   - 更新包默认采用`local`存储(即存储在本地机器上)。使用docker volume存储方式，容器销毁不会导致数据丢失，除非人为删除volume。
@@ -9,7 +9,10 @@
 - mysql部分
   - 数据使用docker volume存储方式，容器销毁不会导致数据丢失，除非人为删除volume。
   - 默认应用使用root用户，为了安全可以创建权限相对较小的权限供code-push-server使用
-
+- redis部分
+  - `tryLoginTimes` 登录错误次数限制
+  - `updateCheckCache` 提升应用性能提升 
+  - `updateCheckCache` 灰度发布 
 
 ## 安装docker
 
@@ -67,6 +70,7 @@ $ docker stack deploy -c docker-compose.yml code-push-server
 ```
 $ docker service ls
 $ docker service ps code-push-server_db
+$ docker service ps code-push-server_redis
 $ docker service ps code-push-server_server
 ```
 
@@ -98,6 +102,7 @@ Connection: keep-alive
 ```shell
 $ docker service logs code-push-server_server
 $ docker service logs code-push-server_db
+$ docker service logs code-push-server_redis
 ```
 
 ## 查看存储 `docker volume ls`

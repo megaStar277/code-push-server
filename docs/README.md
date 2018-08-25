@@ -111,6 +111,15 @@ Connection: keep-alive
 ```
 
 
+## Use redis impove concurrent and security
+
+> config redis in config.js
+
+- `updateCheckCache`
+- `rolloutClientUniqueIdCache`
+- `tryLoginTimes`
+
+
 ## UPGRADE
 
 *from npm package*

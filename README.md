@@ -26,10 +26,8 @@ CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in
 - 推荐使用code-push release-react 命令发布应用，该命令合并了打包和发布命令(eg. code-push release-react CodePushDemo-ios ios -d Production)
 - 每次向App Store提交新的版本时，也应该基于该提交版本同时向code-push-server发布一个初始版本。(因为后面每次向code-push-server发布版本时，code-puse-server都会和初始版本比较，生成补丁版本)
 
-## EXAMPLE 
-api.code-push.com 只是一个测试server，不要将自己生产环境的项目放在上面，服务器的宽带只有1M，而且服务没有做负载均衡和监控，稳定性不能保证，烦请大家自己搭建自己的服务。
 
-### shell命令行端
+### shell login
 
 ```shell
 $ code-push login http://api.code-push.com #登录
@@ -39,7 +37,7 @@ $ code-push login http://api.code-push.com #登录
 
 访问：http://www.code-push.com
 
-### 客户端eg.
+### client eg.
 
 [ReactNative CodePushDemo](https://github.com/lisong/code-push-demo-app)
 
@@ -53,12 +51,12 @@ $ code-push login http://api.code-push.com #登录
 ## HOW TO USE
 
 - [normal](./docs/react-native-code-push.md)
-- [eact-native-code-push](https://github.com/Microsoft/react-native-code-push)
+- [react-native-code-push](https://github.com/Microsoft/react-native-code-push)
 - [code-push](https://github.com/Microsoft/code-push)
 
 
 ## ISSUES
-[code-push-server 使用](https://github.com/lisong/code-push-server/issues/135)
+[code-push-server normal problem](https://github.com/lisong/code-push-server/issues/135)
 
 ## License
 MIT License [read](https://github.com/lisong/code-push-server/blob/master/LICENSE)
