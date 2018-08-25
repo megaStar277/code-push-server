@@ -5,7 +5,7 @@
 - code-push-server部分
   - 更新包默认采用`local`存储(即存储在本地机器上)。使用docker volume存储方式，容器销毁不会导致数据丢失，除非人为删除volume。
   - 默认开启5个实例，使用swarm内部默认负载均衡策略，可以根据自己机器配置设置docker-compose.yml文件中deploy参数。
-  - docker-compose.yml只提供了应用部分参数设置，如需要其他特定配置，可以修改文件config.js。
+  - docker-compose.yml只提供了应用的一部分参数设置，如需要设置其他配置，可以修改文件config.js。
 - mysql部分
   - 数据使用docker volume存储方式，容器销毁不会导致数据丢失，除非人为删除volume。
   - 默认应用使用root用户，为了安全可以创建权限相对较小的权限供code-push-server使用
