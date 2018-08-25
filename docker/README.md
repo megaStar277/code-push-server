@@ -55,7 +55,7 @@ $ vim docker-compose.yml
 
 > code-push-server 验证登录验证方式使用的json web token加密方式,该对称加密算法是公开的，所以修改config.js中tokenSecret值很重要。
 
-* 非常重要！非常重要！ 非常重要！*
+*非常重要！非常重要！ 非常重要！*
 
 > 可以打开连接`https://www.grc.com/passwords.htm`获取 `63 random alpha-numeric characters`类型的随机生成数作为密钥
 
