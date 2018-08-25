@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS `codepush`;
+
+use `codepush`;
 CREATE TABLE IF NOT EXISTS `apps` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL DEFAULT '',
@@ -24,6 +27,7 @@ CREATE TABLE IF NOT EXISTS `collaborators` (
   KEY `idx_uid` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
 CREATE TABLE IF NOT EXISTS `deployments` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `appid` int(10) unsigned NOT NULL DEFAULT '0',
@@ -49,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `deployments_history` (
   PRIMARY KEY (`id`),
   KEY `idx_deployment_id` (`deployment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 CREATE TABLE IF NOT EXISTS `deployments_versions` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -152,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `identical`, `ack_code`, `updated_at`, `created_at`)
 VALUES
 	(1,'admin','$2a$12$mvUY9kTqW4kSoGuZFDW0sOSgKmNY8SPHVyVrSckBTLtXKf6vKX3W.','lisong2010@gmail.com','4ksvOXqog','oZmGE','2016-11-14 10:46:55','2016-02-29 21:24:49');
+
 
 CREATE TABLE IF NOT EXISTS `versions` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,

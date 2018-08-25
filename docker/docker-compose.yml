@@ -1,0 +1,51 @@
+version: "3.3"
+services:
+  server:
+    image: tablee/code-push-server:v0.4.3
+    volumes:
+      - data-storage:/data/storage
+      - data-tmp:/data/tmp
+      - ./config.js:/config.js
+    environment:
+      DOWNLOAD_URL: "http://YOU_MACHINE_IP:3000/download"
+      MYSQL_HOST: "YOU_MACHINE_IP"
+      MYSQL_PORT: "3308"
+      MYSQL_USERNAME: "root"
+      MYSQL_PASSWORD: null
+      MYSQL_DATABASE: "codepush"
+      STORAGE_DIR: "/data/storage"
+      DATA_DIR: "/data/tmp"
+      NODE_ENV: "production"
+      CONFIG_FILE: "/config.js"
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1000M
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "3000:3000"
+    networks:
+      - servernet
+    depends_on:
+      - "db"
+  db:
+    image: mysql:5.7.23
+    volumes:
+      - data-mysql:/var/lib/mysql
+      - ./sql/codepush-all.sql:/docker-entrypoint-initdb.d/codepush-all.sql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "On"
+    networks:
+      - dbnet
+networks:
+  servernet:
+  dbnet:
+volumes:
+  data-storage:
+  data-tmp:
+  data-mysql:
