@@ -8,7 +8,7 @@
   - docker-compose.yml只提供了应用的一部分参数设置，如需要设置其他配置，可以修改文件config.js。
 - mysql部分
   - 数据使用docker volume存储方式，容器销毁不会导致数据丢失，除非人为删除volume。
-  - 默认应用使用root用户，为了安全可以创建权限相对较小的权限供code-push-server使用
+  - 默认应用使用root用户，为了安全可以创建权限相对较小的权限供code-push-server使用，只需要给予`select``update``insert`权限即可
 - redis部分
   - `tryLoginTimes` 登录错误次数限制
   - `updateCheckCache` 提升应用性能提升 
