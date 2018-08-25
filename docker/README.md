@@ -46,7 +46,10 @@ $ vim docker-compose.yml
 ```
 
 *将`DOWNLOAD_URL`中`YOU_MACHINE_IP`替换成本机ip*
+
 *将`MYSQL_HOST`中`YOU_MACHINE_IP`替换成本机ip*
+
+*将`REDIS_HOST`中`YOU_MACHINE_IP`替换成本机ip*
 
 ## jwt.tokenSecret修改
 
