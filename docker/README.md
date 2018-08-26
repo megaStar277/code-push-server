@@ -20,7 +20,7 @@
 
 - [>>mac点这里](https://docs.docker.com/docker-for-mac/install/)
 - [>>windows点这里](https://docs.docker.com/docker-for-windows/install/)
-- linux基本都自带，但是需要启动，如果版本太老，请更新到最新稳定版
+- [>>linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
 
 
 `$ docker info` 能成功输出相关信息，则安装成功，才能继续下面步骤
