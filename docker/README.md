@@ -120,4 +120,5 @@ local  | code-push-server_data-tmp | 用于计算更新包差异文件临时目�
 
 ```bash
 $ docker stack rm code-push-server
+$ docker swarm leave --force
 ```
