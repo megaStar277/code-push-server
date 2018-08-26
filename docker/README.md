@@ -27,21 +27,21 @@
 
 ## 启动swarm
 
-```bash
-$ docker swarm init
+```shell
+$ sudo docker swarm init
 ```
 
 
 ## 获取代码
 
-```bash
+```shell
 $ git clone https://github.com/lisong/code-push-server.git
 $ cd code-push-server/docker
 ```
 
 ## 修改配置文件
 
-```bash
+```shell
 $ vim docker-compose.yml
 ```
 
@@ -61,8 +61,8 @@ $ vim docker-compose.yml
 
 ## 部署
 
-```
-$ docker stack deploy -c docker-compose.yml code-push-server
+```shell
+$ sudo docker stack deploy -c docker-compose.yml code-push-server
 ```
 
 > 如果网速不佳，需要漫长而耐心的等待。。。去和妹子聊会天吧^_^
@@ -70,11 +70,11 @@ $ docker stack deploy -c docker-compose.yml code-push-server
 
 ## 查看进展
 
-```
-$ docker service ls
-$ docker service ps code-push-server_db
-$ docker service ps code-push-server_redis
-$ docker service ps code-push-server_server
+```shell
+$ sudo docker service ls
+$ sudo docker service ps code-push-server_db
+$ sudo docker service ps code-push-server_redis
+$ sudo docker service ps code-push-server_server
 ```
 
 > 确认`CURRENT STATE` 为 `Running about ...`, 则已经部署完成
@@ -115,9 +115,9 @@ $ redis-cli -p6388  # 进入redis
 ## 查看服务日志
 
 ```shell
-$ docker service logs code-push-server_server
-$ docker service logs code-push-server_db
-$ docker service logs code-push-server_redis
+$ sudo docker service logs code-push-server_server
+$ sudo docker service logs code-push-server_db
+$ sudo docker service logs code-push-server_redis
 ```
 
 ## 查看存储 `docker volume ls`
@@ -132,6 +132,6 @@ local  | code-push-server_data-redis | redis落地数据
 ## 销毁退出应用
 
 ```bash
-$ docker stack rm code-push-server
-$ docker swarm leave --force
+$ sudo docker stack rm code-push-server
+$ sudo docker swarm leave --force
 ```
