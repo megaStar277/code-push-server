@@ -1,7 +1,7 @@
-version: "3.3"
+version: "3.7"
 services:
   server:
-    image: tablee/code-push-server:v0.4.3
+    image: tablee/code-push-server:v0.4.4
     volumes:
       - data-storage:/data/storage
       - data-tmp:/data/tmp
@@ -10,8 +10,8 @@ services:
       DOWNLOAD_URL: "http://YOU_MACHINE_IP:3000/download"
       MYSQL_HOST: "YOU_MACHINE_IP"
       MYSQL_PORT: "3308"
-      MYSQL_USERNAME: "root"
-      MYSQL_PASSWORD: null
+      MYSQL_USERNAME: "codepush"
+      MYSQL_PASSWORD: "123456"
       MYSQL_DATABASE: "codepush"
       STORAGE_DIR: "/data/storage"
       DATA_DIR: "/data/tmp"
@@ -20,7 +20,6 @@ services:
       REDIS_HOST: "YOU_MACHINE_IP"
       REDIS_PORT: "6388"
     deploy:
-      replicas: 5
       resources:
         limits:
           cpus: "2"
@@ -52,10 +51,11 @@ services:
     ports:
       - "6388:6379"
     networks:
-      - dbnet
+      - redisnet
 networks:
   servernet:
   dbnet:
+  redisnet:
 volumes:
   data-storage:
   data-tmp:
