@@ -47,6 +47,8 @@ services:
       - dbnet
   redis:
     image: redis:4.0.11-alpine
+    volumes:
+      - data-redis:/data
     ports:
       - "6388:6379"
     networks:
@@ -58,3 +60,4 @@ volumes:
   data-storage:
   data-tmp:
   data-mysql:
+  data-redis:

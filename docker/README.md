@@ -100,6 +100,18 @@ Date: Sat, 25 Aug 2018 15:45:46 GMT
 Connection: keep-alive
 ```
 
+## 浏览器登录
+
+> 默认用户名:admin 密码:123456 记得要修改默认密码哦
+> 如果登录连续输错密码超过一定次数，会限定无法再登录. 需要清空redis缓存
+
+```shell
+$ redis-cli -p6388  # 进入redis
+> flushall
+> quit
+```
+
+
 ## 查看服务日志
 
 ```shell
@@ -115,6 +127,7 @@ DRIVER | VOLUME NAME |  描述
 local  | code-push-server_data-mysql | 数据库存储数据目录
 local  | code-push-server_data-storage | 存储打包文件目录
 local  | code-push-server_data-tmp | 用于计算更新包差异文件临时目录
+local  | code-push-server_data-redis | redis落地数据
 
 ## 销毁退出应用
 
