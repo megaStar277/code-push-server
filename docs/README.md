@@ -62,7 +62,7 @@ some config have to change:
 
 ## CONFIGURE for pm2
 
-save the file [config.js](./process.json)
+save the file [process.json](./process.json)
 
 some config have to change:
 
