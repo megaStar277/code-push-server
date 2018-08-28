@@ -1,5 +1,5 @@
 
-## INSTALL NPM
+## INSTALL NODE AND NPM
 
 [see](https://nodejs.org/en/download/)
 
