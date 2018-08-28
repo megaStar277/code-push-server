@@ -40,22 +40,19 @@ $ npm install --save react-native-code-push@latest  #安装react-native-code-pus
 $ react-native link react-native-code-push  #连接到项目中，提示输入配置可以先行忽略
 ```
 
-#### 4. [code-push-server](https://github.com/lisong/code-push-server) 微软云服务在中国太慢，可以用它搭建自己的服务端。具体配置参考该项目
+#### 4. [code-push-server](https://github.com/lisong/code-push-server) 微软云服务在中国太慢，可以用它搭建自己的服务端。
 
-```shell
-$ npm install code-push-server -g
-$ code-push-server-db init --dbhost localhost --dbuser root --dbpassword #初始化数据库
-$ code-push-server #启动服务 浏览器中打开 http://127.0.0.1:3000
-```
+- [docker](../docker/README.md) (recommend)
+- [manual operation](./README.md)
 
 ## 创建服务端应用
 
 基于code-push-server服务
 
 ```shell
-$ code-push login http://127.0.0.1:3000  #浏览器中登录获取token，用户名:admin, 密码:123456
-$ code-push app add CodePushDemo-ios #创建iOS版, 获取Production DeploymentKey
-$ code-push app add CodePushDemo-android #创建android版，获取获取Production DeploymentKey
+$ code-push login http://YOUR_CODE_PUSH_SERVER_IP:3000  #浏览器中登录获取token，用户名:admin, 密码:123456
+$ code-push app add CodePushDemoiOS ios react-native #创建iOS版, 获取Production DeploymentKey
+$ code-push app add CodePushDemoAndroid andriod react-native #创建android版，获取获取Production DeploymentKey
 ```
 
 ## 配置CodePushDemo react-native项目
@@ -66,7 +63,7 @@ $ code-push app add CodePushDemo-android #创建android版，获取获取Product
 
 1. `CodePushDeploymentKey`值设置为CodePushDemo-ios的Production DeploymentKey值。
 
-2. `CodePushServerURL`值设置为code-push-server服务地址 http://127.0.0.1:3000/ 不在同一台机器的时候，请将127.0.0.1改成外网ip或者域名地址。
+2. `CodePushServerURL`值设置为code-push-server服务地址 http://YOUR_CODE_PUSH_SERVER_IP:3000/ 不在同一台机器的时候，请将YOUR_CODE_PUSH_SERVER_IP改成外网ip或者域名地址。
 
 3. 将默认版本号1.0改成三位1.0.0
 
@@ -85,11 +82,9 @@ $ code-push app add CodePushDemo-android #创建android版，获取获取Product
 
 1. `YourKey`替换成CodePushDemo-android的Production DeploymentKey值
 
-2. `YourCodePushServerUrl`值设置为code-push-server服务地址 http://127.0.0.1:3000/ 不在同一台机器的时候，请将127.0.0.1改成外网ip或者域名地址。
+2. `YourCodePushServerUrl`值设置为code-push-server服务地址 http://YOUR_CODE_PUSH_SERVER_IP:3000/ 不在同一台机器的时候，请将YOUR_CODE_PUSH_SERVER_IP改成外网ip或者域名地址。
 
 3. 将默认版本号1.0改成三位1.0.0
-
-4. android模拟器和code-push-server在同一台机器上时，需要额外运行命令`adb reverse tcp:3000 tcp:3000` 代理端口，否则无法访问127.0.0.1:3000端口
 
 ```java
 @Override
@@ -108,7 +103,7 @@ protected List<ReactPackage> getPackages() {
 
 ## 添加更新检查
 
-可以参考[demo.js](https://github.com/lisong/code-push-demo-app/blob/master/demo.js)
+可以参考[code-push-demo-app](https://github.com/lisong/code-push-demo-app/)
 可以在入口componentDidMount添加
 
 ```javascript
@@ -123,16 +118,6 @@ CodePush.sync({
 ```javascript
 import CodePush from "react-native-code-push" 
 ```
-
-> notice: 
-> 
-> demo.js中用到ECMAScript中Decorators语法,需要安装`$ npm install babel-preset-react-native-stage-0 --save`，
-> 同时在.babelrc中添加'react-native-stage-0/decorator-support'.
-> 
-> eg.
-> {
-> "presets": ["react-native", "react-native-stage-0/decorator-support"]
-> }
 
 ## 运行CodePushDemo react-native项目
 
@@ -163,16 +148,11 @@ $ code-push release-react CodePushDemo-ios ios -d Production #iOS版
 $ code-push release-react CodePushDemo-android android -d Production #android版
 ```
 
-
-## 注意事项
-
-- 苹果允许使用热更新[Apple's developer agreement](https://developer.apple.com/programs/ios/information/iOS_Program_Information_4_3_15.pdf), 但是规定不能弹框提示用户更新，影响用户体验。 而Google Play恰好相反，必须弹框告知用户更新。然而中国的android市场都必须关闭更新弹框，否则会在审核应用时以“请上传最新版本的二进制应用包”驳回应用。
-- react-native 不同平台bundle包不一样，在使用code-push-server的时候必须创建不同的应用来区分(eg. CodePushDemo-ios 和 CodePushDemo-android)
-- react-native-code-push只更新资源文件,不会更新java和Objective C，所以npm升级依赖包版本的时候，如果依赖包使用的本地化实现, 这时候必须更改应用版本号(ios修改Info.plist中的CFBundleShortVersionString, android修改build.gradle中的versionName), 然后重新编译app发布到应用商店。
-- 推荐使用code-push release-react 命令发布应用，该命令合并了打包和发布命令(eg. code-push release-react CodePushDemo-ios ios -d Production)
-- 每次向App Store提交新的版本时，也应该基于该提交版本同时向code-push-server发布一个初始版本。(因为后面每次向code-push-server发布版本时，code-puse-server都会和初始版本比较，生成补丁版本)
-
 ## 例子
 
 [code-push-demo-app](https://github.com/lisong/code-push-demo-app)
+
+
+### 更多信息参考[code-push-server](https://github.com/lisong/code-push-server)
+
 
