@@ -13,10 +13,10 @@ $ sudo npm i -g pm2
 
 ## INSTALL MYSQL
 
-[Linux](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
-[macOS](https://dev.mysql.com/doc/refman/8.0/en/osx-installation.html)
-[Microsoft Windows](https://dev.mysql.com/doc/refman/8.0/en/windows-installation.html)
-[Others](https://dev.mysql.com/doc/refman/8.0/en/installing.html)
+- [Linux](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
+- [macOS](https://dev.mysql.com/doc/refman/8.0/en/osx-installation.html)
+- [Microsoft Windows](https://dev.mysql.com/doc/refman/8.0/en/windows-installation.html)
+- [Others](https://dev.mysql.com/doc/refman/8.0/en/installing.html)
 
 
 ## GET code-push-server FROM NPM
