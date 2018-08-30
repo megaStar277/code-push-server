@@ -15,8 +15,8 @@ CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in
 
 ## qq交流群 
 
-- NO.2群: 628921445
-- NO.1群: 535491067 
+- NO.2QQ群: 628921445
+- NO.1QQ群: 535491067 
 
 ## 正确使用code-push热更新
 
