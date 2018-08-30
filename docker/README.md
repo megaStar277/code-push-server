@@ -11,8 +11,8 @@
   - 默认应用使用root用户，为了安全可以创建权限相对较小的权限供code-push-server使用，只需要给予`select,update,insert`权限即可
 - redis部分
   - `tryLoginTimes` 登录错误次数限制
-  - `updateCheckCache` 提升应用性能提升 
-  - `updateCheckCache` 灰度发布 
+  - `updateCheckCache` 提升应用性能 
+  - `rolloutClientUniqueIdCache` 灰度发布 
 
 ## 安装docker
 
@@ -20,7 +20,7 @@
 
 - [>>mac点这里](https://docs.docker.com/docker-for-mac/install/)
 - [>>windows点这里](https://docs.docker.com/docker-for-windows/install/)
-- [>>linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
+- [>>linux点这里](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
 
 
 `$ docker info` 能成功输出相关信息，则安装成功，才能继续下面步骤
