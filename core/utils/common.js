@@ -183,14 +183,19 @@ common.getUploadTokenQiniu = function (mac, bucket, key) {
 };
 
 common.uploadFileToStorage = function (key, filePath) {
-  if (_.get(config, 'common.storageType') === 'local') {
+  var storageType = _.get(config, 'common.storageType');
+  if ( storageType === 'local') {
     return common.uploadFileToLocal(key, filePath);
-  } else if (_.get(config, 'common.storageType') === 's3') {
+  } else if (storageType === 's3') {
     return common.uploadFileToS3(key, filePath);
-  } else if (_.get(config, 'common.storageType') === 'oss') {
+  } else if (storageType === 'oss') {
     return common.uploadFileToOSS(key, filePath);
+  } else if (storageType === 'qiniu') {
+    return common.uploadFileToQiniu(key, filePath);
+  } else if (storageType === 'tencentcloud') {
+    return common.uploadFileToTencentCloud(key, filePath);
   }
-  return common.uploadFileToQiniu(key, filePath);
+  throw new AppError.AppError(`${storageType} storageType does not support.`);
 };
 
 common.uploadFileToLocal = function (key, filePath) {
@@ -360,15 +365,40 @@ common.uploadFileToOSS = function (key, filePath) {
 
   return new Promise((resolve, reject) => {
     upload.on('error', (error) => {
+      log.debug("uploadFileToOSS", error);
       reject(error);
     });
 
     upload.on('uploaded', (details) => {
+      log.debug("uploadFileToOSS", details);
       resolve(details.ETag);
     });
     fs.createReadStream(filePath).pipe(upload);
   });
 };
+
+common.uploadFileToTencentCloud = function (key, filePath) {
+  return new Promise((resolve, reject) => {
+    var COS = require('cos-nodejs-sdk-v5');
+    var cosIn = new COS({
+        SecretId: _.get(config, 'tencentcloud.accessKeyId'),
+        SecretKey: _.get(config, 'tencentcloud.secretAccessKey')
+    });
+    cosIn.sliceUploadFile({
+        Bucket: _.get(config, 'tencentcloud.bucketName'),
+        Region: _.get(config, 'tencentcloud.region'),
+        Key: key,
+        FilePath: filePath
+    }, function (err, data) {
+      log.debug("uploadFileToTencentCloud", err, data);
+      if (err) {
+        reject(new AppError.AppError(JSON.stringify(err)));
+      }else {
+        resolve(data.Key);
+      }
+    });
+  });
+}
 
 common.diffCollectionsSync = function (collection1, collection2) {
   var diffFiles = [];

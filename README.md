@@ -11,12 +11,20 @@
 [![Known Vulnerabilities](https://snyk.io/test/npm/code-push-server/badge.svg)](https://snyk.io/test/npm/code-push-server)
 [![Licenses](https://img.shields.io/npm/l/code-push-server.svg)](https://spdx.org/licenses/MIT)
 
-CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use [local/s3/oss] storage, just modify config.js file, it's simple configure.
+CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use [local/s3/oss/tencentcloud] storage, just modify config.js file, it's simple configure.
+
+## Support Storage mode 
+
+- local *storage bundle file in local machine*
+- qiniu *storage bundle file in [qiniu](http://www.qiniu.com/)*
+- s3 *storage bundle file in [aws](https://aws.amazon.com/)*
+- oss *storage bundle file in [aliyun](https://www.aliyun.com/product/oss)*
+- tencentcloud *storage bundle file in [tencentcloud](https://cloud.tencent.com/product/cos)*
 
 ## qq交流群 
 
-- NO.2QQ群: 628921445
-- NO.1QQ群: 535491067 
+- QQ群: 628921445
+- QQ群: 535491067
 
 ## 正确使用code-push热更新
 
@@ -56,7 +64,12 @@ $ code-push login http://api.code-push.com #登录
 
 
 ## ISSUES
-[code-push-server normal problem](https://github.com/lisong/code-push-server/issues/135)
+
+[code-push-server normal solution](https://github.com/lisong/code-push-server/issues/135)
+
+[An unknown error occurred](https://github.com/lisong/code-push-server/issues?utf8=%E2%9C%93&q=unknown)
+
+[modify password](https://github.com/lisong/code-push-server/issues/43)
 
 ## License
 MIT License [read](https://github.com/lisong/code-push-server/blob/master/LICENSE)

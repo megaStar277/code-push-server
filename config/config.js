@@ -38,6 +38,14 @@ config.development = {
     prefix: "", // Key prefix in object key
     downloadUrl: "", // binary files download host address.
   },
+  // Config for tencentyun COS (https://cloud.tencent.com/product/cos) when storageType value is "oss".
+  tencentcloud: {
+    accessKeyId: "",
+    secretAccessKey: "",
+    bucketName: "",
+    region: "",
+    downloadUrl: "", // binary files download host address.
+  },
   // Config for local storage when storageType value is "local".
   local: {
     // Binary files storage dir, Do not use tmpdir and it's public download dir.
@@ -65,7 +73,7 @@ config.development = {
     diffNums: 3,
     // data dir for caclulate diff files. it's optimization.
     dataDir: process.env.DATA_DIR || os.tmpdir(),
-    // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3")
+    // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3"| "oss" || "tencentcloud")
     storageType: process.env.STORAGE_TYPE || "local",
     // options value is (true | false), when it's true, it will cache updateCheck results in redis.
     updateCheckCache: false,

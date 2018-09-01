@@ -156,6 +156,7 @@ $ tail -f "output file path"
 - qiniu (qiniu)
 - s3 (aws)
 - oss (aliyun)
+- tencentcloud
 
 ## Default listen Host/Port  0.0.0.0/3000 
 
