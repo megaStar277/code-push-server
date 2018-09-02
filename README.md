@@ -53,12 +53,12 @@ $ code-push login http://api.code-push.com #登录
 
 ## HOW TO INSTALL code-push-server
 
-- [docker](./docker/README.md) (recommend)
-- [manual operation](./docs/README.md)
+- [docker](https://github.com/lisong/code-push-server/blob/master/docker/README.md) (recommend)
+- [manual operation](https://github.com/lisong/code-push-server/blob/master/docs/README.md)
 
 ## HOW TO USE
 
-- [normal](./docs/react-native-code-push.md)
+- [normal](https://github.com/lisong/code-push-server/blob/master/docs/react-native-code-push.md)
 - [react-native-code-push](https://github.com/Microsoft/react-native-code-push)
 - [code-push](https://github.com/Microsoft/code-push)
 

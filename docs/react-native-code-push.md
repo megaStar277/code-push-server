@@ -42,8 +42,8 @@ $ react-native link react-native-code-push  #连接到项目中，提示输入�
 
 #### 4. [code-push-server](https://github.com/lisong/code-push-server) 微软云服务在中国太慢，可以用它搭建自己的服务端。
 
-- [docker](../docker/README.md) (recommend)
-- [manual operation](./README.md)
+- [docker](https://github.com/lisong/code-push-server/blob/master/docker/README.md) (recommend)
+- [manual operation](https://github.com/lisong/code-push-server/blob/master/docs/README.md)
 
 ## 创建服务端应用
 

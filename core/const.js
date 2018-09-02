@@ -37,5 +37,6 @@ define("RELEAS_EMETHOD_UPLOAD", 'Upload');
 define("DEPLOYMENT_SUCCEEDED", 1);
 define("DEPLOYMENT_FAILED", 2);
 
+define("DIFF_MANIFEST_FILE_NAME", 'hotcodepush.json');
 
 

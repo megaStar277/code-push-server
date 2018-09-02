@@ -195,7 +195,7 @@ proto.zipDiffPackage = function (fileName, files, baseDirectoryPath, hotCodePush
       var file = files[i];
       zipFile.addFile(`${baseDirectoryPath}/${file}`, slash(file));
     }
-    zipFile.addFile(hotCodePushFile, 'hotcodepush.json');
+    zipFile.addFile(hotCodePushFile, constConfig.DIFF_MANIFEST_FILE_NAME);
     zipFile.end();
   });
 }

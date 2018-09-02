@@ -50,7 +50,7 @@ $ ./bin/db init --dbhost "your mysql host" --dbport "your mysql port"  --dbuser 
 
 ## CONFIGURE for code-push-server
 
-save the file [config.js](../config/config.js)
+save the file [config.js](https://github.com/lisong/code-push-server/blob/master/config/config.js)
 
 some config have to change:
 
@@ -62,7 +62,7 @@ some config have to change:
 
 ## CONFIGURE for pm2
 
-save the file [process.json](./process.json)
+save the file [process.json](https://github.com/lisong/code-push-server/blob/master/docs/process.json)
 
 some config have to change:
 
@@ -90,7 +90,7 @@ $ pm2 stop process.json
 ## CHECK SERVICE IS OK 
 
 ```shell
-$ curl -I http://127.0.0.1:3000/
+$ curl -I http://YOUR_CODE_PUSH_SERVER_IP:3000/
 ```
 
 > return httpCode `200 OK`

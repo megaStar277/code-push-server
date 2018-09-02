@@ -81,7 +81,7 @@ $ sudo docker service ps code-push-server_server
 
 ## 访问接口简单验证
 
-`$ curl -I http://127.0.0.1:3000/`
+`$ curl -I http://YOUR_CODE_PUSH_SERVER_IP:3000/`
 
 返回`200 OK`
 
