@@ -235,7 +235,13 @@ proto.reportStatusDownload = function(deploymentKey, label, clientUniqueId) {
   return this.getPackagesInfo(deploymentKey, label)
   .then((packages) => {
     return Promise.all([
-      models.PackagesMetrics.addOneOnDownloadById(packages.id),
+      models.PackagesMetrics.findOne({where: {package_id: packages.id}})
+      .then((metrics)=>{
+        if (metrics) {
+          return metrics.increment('downloaded');
+        }
+        return;
+      }),
       models.LogReportDownload.create({
         package_id: packages.id,
         client_unique_id: clientUniqueId
@@ -248,40 +254,62 @@ proto.reportStatusDeploy = function (deploymentKey, label, clientUniqueId, other
   return this.getPackagesInfo(deploymentKey, label)
   .then((packages) => {
     var constConfig = require('../const');
-    var status =  _.get(others, "status");
+    var statusText =  _.get(others, "status");
+    var status = 0;
+    if (_.eq(statusText, "DeploymentSucceeded")) {
+      status = constConfig.DEPLOYMENT_SUCCEEDED;
+    } else if (_.eq(statusText, "DeploymentFailed")) {
+      status = constConfig.DEPLOYMENT_FAILED;
+    }
     var packageId = packages.id;
     var previous_deployment_key = _.get(others, 'previousDeploymentKey');
     var previous_label = _.get(others, 'previousLabelOrAppVersion');
-    if (_.eq(status, "DeploymentSucceeded")) {
+    if (status > 0) {
       return Promise.all([
         models.LogReportDeploy.create({
           package_id: packageId,
           client_unique_id: clientUniqueId,
           previous_label: previous_label,
           previous_deployment_key: previous_deployment_key,
-          status: constConfig.DEPLOYMENT_SUCCEEDED
-        })
-        .then(() => {
-          if (previous_deployment_key && previous_label) {
-
+          status: status
+        }),
+        models.PackagesMetrics.findOne({where: {package_id: packageId}})
+        .then((metrics)=>{
+          if (_.isEmpty(metrics)) {
+            return;
           }
-        }),
-        models.PackagesMetrics.addOneOnInstalledById(packageId),
-        models.PackagesMetrics.addOneOnActiveById(packageId),
-      ]);
-    } else if (_.eq(status, "DeploymentFailed")) {
-      return Promise.all([
-        models.LogReportDeploy.create({
-          package_id: packageId,
-          client_unique_id: clientUniqueId,
-          previous_label: previous_label,
-          previous_deployment_key: previous_deployment_key,
-          status: constConfig.DEPLOYMENT_FAILED
-        }),
-        models.PackagesMetrics.addOneOnInstalledById(packageId),
-        models.PackagesMetrics.addOneOnFailedById(packageId),
-      ]);
-    }else {
+          if (constConfig.DEPLOYMENT_SUCCEEDED) {
+            return metrics.increment(['installed', 'active'],{by: 1});
+          } else {
+            return metrics.increment(['installed', 'failed'],{by: 1});
+          }
+        })
+      ])
+      .then(()=>{
+        if (previous_deployment_key && previous_label) {
+          return models.Deployments.findOne({where: {deployment_key: previous_deployment_key}})
+          .then((dep)=>{
+            if (_.isEmpty(dep)) {
+              return;
+            }
+            return models.Packages.findOne({where: {deployment_id: dep.id, label: previous_label}})
+            .then((p)=>{
+              if (_.isEmpty(p)) {
+                return;
+              }
+              return models.PackagesMetrics.findOne({where:{package_id: p.id}});
+            });
+          })
+          .then((metrics)=>{
+            if (metrics) {
+              return metrics.decrement('active');
+            }
+            return;
+          });
+        }
+        return;
+      });
+    } else {
       return;
     }
   });
