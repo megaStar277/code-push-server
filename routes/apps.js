@@ -288,7 +288,7 @@ router.post('/:appName/deployments/:deploymentName/release',
       })
       .then((packages) => {
         if (packages) {
-          Promise.delay(2000)
+          Promise.delay(1000)
           .then(() => {
             packageManager.createDiffPackagesByLastNums(deploymentInfo.appid, packages, _.get(config, 'common.diffNums', 1))
             .catch((e) => {
@@ -403,15 +403,6 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
       if (!destDeploymentInfo) {
         throw new AppError.AppError(`${destDeploymentName}  does not exist.`);
       }
-      //clear cache if exists.
-      if (_.get(config, 'common.updateCheckCache', false) !== false) {
-        Promise.delay(2500)
-        .then(() => {
-          var ClientManager = require('../core/services/client-manager');
-          var clientManager = new ClientManager();
-          clientManager.clearUpdateCheckCache(destDeploymentInfo.deployment_key, '*', '*', '*');
-        });
-      }
       return [sourceDeploymentInfo, destDeploymentInfo];
     })
     .spread((sourceDeploymentInfo, destDeploymentInfo) => {
@@ -421,12 +412,21 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
     })
     .spread((packages, destDeploymentInfo) => {
       if (packages) {
-        Promise.delay(2000)
+        Promise.delay(1000)
         .then(() => {
           packageManager.createDiffPackagesByLastNums(destDeploymentInfo.appid, packages, _.get(config, 'common.diffNums', 1))
           .catch((e) => {
             log.error(e);
           });
+        });
+      }
+      //clear cache if exists.
+      if (_.get(config, 'common.updateCheckCache', false) !== false) {
+        Promise.delay(2500)
+        .then(() => {
+          var ClientManager = require('../core/services/client-manager');
+          var clientManager = new ClientManager();
+          clientManager.clearUpdateCheckCache(destDeploymentInfo.deployment_key, '*', '*', '*');
         });
       }
       return packages;
@@ -456,16 +456,28 @@ var rollbackCb = function (req, res, next) {
     return deployments.findDeloymentByName(deploymentName, col.appid);
   })
   .then((dep) => {
-    //clear cache if exists.
-    if (_.get(config, 'common.updateCheckCache', false) !== false) {
-      Promise.delay(2500)
-      .then(() => {
-        var ClientManager = require('../core/services/client-manager');
-        var clientManager = new ClientManager();
-        clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
-      });
-    }
-    return packageManager.rollbackPackage(dep.last_deployment_version_id, targetLabel, uid);
+    return packageManager.rollbackPackage(dep.last_deployment_version_id, targetLabel, uid)
+    .then((packageInfo)=>{
+      if (packageInfo) {
+        Promise.delay(1000)
+        .then(() => {
+          packageManager.createDiffPackagesByLastNums(dep.appid, packageInfo, 1)
+          .catch((e) => {
+            log.error(e);
+          });
+        });
+      }
+      //clear cache if exists.
+      if (_.get(config, 'common.updateCheckCache', false) !== false) {
+        Promise.delay(2500)
+        .then(() => {
+          var ClientManager = require('../core/services/client-manager');
+          var clientManager = new ClientManager();
+          clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
+        });
+      }
+      return packageInfo;
+    });
   })
   .then(() => {
      res.send('ok');
