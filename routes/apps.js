@@ -290,7 +290,7 @@ router.post('/:appName/deployments/:deploymentName/release',
         if (packages) {
           Promise.delay(2000)
           .then(() => {
-            packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
+            packageManager.createDiffPackagesByLastNums(deploymentInfo.appid, packages, _.get(config, 'common.diffNums', 1))
             .catch((e) => {
               log.error(e);
             });
@@ -417,20 +417,20 @@ router.post('/:appName/deployments/:sourceDeploymentName/promote/:destDeployment
     .spread((sourceDeploymentInfo, destDeploymentInfo) => {
       var params = _.get(req.body, 'packageInfo', {});
       _.set(params, 'promoteUid', uid);
-      return packageManager.promotePackage(sourceDeploymentInfo, destDeploymentInfo, params);
-    });
-  })
-  .then((packages) => {
-    if (packages) {
-      Promise.delay(2000)
-      .then(() => {
-        packageManager.createDiffPackagesByLastNums(packages.id, _.get(config, 'common.diffNums', 1))
-        .catch((e) => {
-          log.error(e);
+      return [packageManager.promotePackage(sourceDeploymentInfo, destDeploymentInfo, params),destDeploymentInfo];
+    })
+    .spread((packages, destDeploymentInfo) => {
+      if (packages) {
+        Promise.delay(2000)
+        .then(() => {
+          packageManager.createDiffPackagesByLastNums(destDeploymentInfo.appid, packages, _.get(config, 'common.diffNums', 1))
+          .catch((e) => {
+            log.error(e);
+          });
         });
-      });
-    }
-    return packages;
+      }
+      return packages;
+    })
   })
   .then((packages) => {
      res.send({package:packages});

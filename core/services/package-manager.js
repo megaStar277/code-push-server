@@ -166,9 +166,9 @@ proto.downloadPackageAndExtract = function (workDirectoryPath, packageHash, blob
       return dataCenterManager.getPackageInfo(packageHash);
     } else {
       var downloadURL = common.getBlobDownloadUrl(blobHash);
-      return common.createFileFromRequest(downloadURL, `${workDirectoryPath}/${blobHash}`)
+      return common.createFileFromRequest(downloadURL, path.join(workDirectoryPath, blobHash))
       .then((download) => {
-        return common.unzipFile(`${workDirectoryPath}/${blobHash}`, `${workDirectoryPath}/current`)
+        return common.unzipFile(path.join(workDirectoryPath, blobHash), path.join(workDirectoryPath, 'current'))
         .then((outputPath) => {
           return dataCenterManager.storePackage(outputPath, true);
         });
@@ -193,14 +193,22 @@ proto.zipDiffPackage = function (fileName, files, baseDirectoryPath, hotCodePush
     });
     for (var i = 0; i < files.length; ++i) {
       var file = files[i];
-      zipFile.addFile(`${baseDirectoryPath}/${file}`, slash(file));
+      zipFile.addFile(path.join(baseDirectoryPath, file), slash(file));
     }
     zipFile.addFile(hotCodePushFile, constConfig.DIFF_MANIFEST_FILE_NAME);
     zipFile.end();
   });
 }
 
-proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCenter, diffPackageHash, diffManifestBlobHash) {
+proto.generateOneDiffPackage = function (
+  workDirectoryPath,
+  packageId,
+  originDataCenter,
+  oldPackageDataCenter,
+  diffPackageHash,
+  diffManifestBlobHash,
+  isUseDiffText
+) {
   var self = this;
   return models.PackagesDiff.findOne({
     where:{
@@ -212,24 +220,53 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
     if (!_.isEmpty(diffPackage)) {
       return;
     }
+    log.debug('originDataCenter', originDataCenter);
+    log.debug('oldPackageDataCenter', oldPackageDataCenter);
     var downloadURL = common.getBlobDownloadUrl(diffManifestBlobHash);
-    return common.createFileFromRequest(downloadURL, `${workDirectoryPath}/${diffManifestBlobHash}`)
+    return common.createFileFromRequest(downloadURL, path.join(workDirectoryPath,diffManifestBlobHash))
     .then(() => {
-      var originContentPath = dataCenter.contentPath;
-      var originManifestJson = JSON.parse(fs.readFileSync(dataCenter.manifestFilePath, "utf8"))
-      var diffManifestJson = JSON.parse(fs.readFileSync(`${workDirectoryPath}/${diffManifestBlobHash}`, "utf8"))
+      var dataCenterContentPath = path.join(workDirectoryPath, 'dataCenter');
+      common.copySync(originDataCenter.contentPath, dataCenterContentPath);
+      var oldPackageDataCenterContentPath = oldPackageDataCenter.contentPath;
+      var originManifestJson = JSON.parse(fs.readFileSync(originDataCenter.manifestFilePath, "utf8"))
+      var diffManifestJson = JSON.parse(fs.readFileSync(path.join(workDirectoryPath, diffManifestBlobHash), "utf8"))
       var json = common.diffCollectionsSync(originManifestJson, diffManifestJson);
       var files = _.concat(json.diff, json.collection1Only);
-      var hotcodepush = {deletedFiles: json.collection2Only};
-      var hotCodePushFile = `${workDirectoryPath}/${diffManifestBlobHash}_hotcodepush`;
+      var hotcodepush = {deletedFiles: json.collection2Only, patchedFiles:[]};
+      if (isUseDiffText == constConfig.IS_USE_DIFF_TEXT_YES) {
+        //使用google diff-match-patch
+        _.forEach(json.diff, function(tmpFilePath) {
+          var dataCenterContentPathTmpFilePath = path.join(dataCenterContentPath, tmpFilePath);
+          var oldPackageDataCenterContentPathTmpFilePath = path.join(oldPackageDataCenterContentPath, tmpFilePath);
+          if (
+            fs.existsSync(dataCenterContentPathTmpFilePath)
+            && fs.existsSync(oldPackageDataCenterContentPathTmpFilePath)
+            && common.detectIsTextFile(dataCenterContentPathTmpFilePath)
+            && common.detectIsTextFile(oldPackageDataCenterContentPathTmpFilePath)
+          ) {
+            var textOld = fs.readFileSync(oldPackageDataCenterContentPathTmpFilePath, 'utf-8');
+            var textNew = fs.readFileSync(dataCenterContentPathTmpFilePath, 'utf-8');
+            if (!textOld || !textNew) {
+                return;
+            }
+            var DiffMatchPatch = require('diff-match-patch');
+            var dmp = new DiffMatchPatch();
+            var patchs = dmp.patch_make(textOld, textNew);
+            var patchText = dmp.patch_toText(patchs);
+            if (patchText && patchText.length < _.parseInt(textNew.length * 0.8)) {
+              fs.writeFileSync(dataCenterContentPathTmpFilePath, patchText);
+              hotcodepush.patchedFiles.push(tmpFilePath);
+            }
+          }
+        });
+      }
+      var hotCodePushFile = path.join(workDirectoryPath,`${diffManifestBlobHash}_hotcodepush`);;
       fs.writeFileSync(hotCodePushFile, JSON.stringify(hotcodepush));
-      var fileName = `${workDirectoryPath}/${diffManifestBlobHash}.zip`;
-
-      return self.zipDiffPackage(fileName, files, originContentPath, hotCodePushFile)
+      var fileName = path.join(workDirectoryPath,`${diffManifestBlobHash}.zip`);;
+      return self.zipDiffPackage(fileName, files, dataCenterContentPath, hotCodePushFile)
       .then((data) => {
         return security.qetag(data.path)
         .then((diffHash) => {
-          log.debug('diff');
           return common.uploadFileToStorage(diffHash, fileName)
           .then(() => {
             var stats = fs.statSync(fileName);
@@ -246,40 +283,36 @@ proto.generateOneDiffPackage = function (workDirectoryPath, packageId, dataCente
   });
 };
 
-proto.createDiffPackagesByLastNums = function (packageId, num) {
+proto.createDiffPackagesByLastNums = function (appId, originalPackage, num) {
   var self = this;
-  return models.Packages.findById(packageId)
-  .then((originalPackage) => {
-    if (_.isEmpty(originalPackage)) {
-      throw AppError.AppError('can\'t find Package');
-    }
-    var Sequelize = require('sequelize');
-    return Promise.all([
-      models.Packages.findAll({
-        where:{
-          deployment_version_id: originalPackage.deployment_version_id,
-          id: {[Sequelize.Op.lt]: packageId}},
-          order: [['id','desc']],
-          limit: num
-      }),
-      models.Packages.findAll({
-        where:{
-          deployment_version_id: originalPackage.deployment_version_id,
-          id: {[Sequelize.Op.lt]: packageId}},
-          order: [['id','asc']],
-          limit: 2
-      })
-    ])
-    .spread((lastNumsPackages, basePackages) => {
-      return _.unionBy(lastNumsPackages, basePackages, 'id');
-    })
-    .then((lastNumsPackages) => {
-      return self.createDiffPackages(originalPackage, lastNumsPackages);
-    });
+  var Sequelize = require('sequelize');
+  var packageId = originalPackage.id;
+  return Promise.all([
+    models.Packages.findAll({
+      where:{
+        deployment_version_id: originalPackage.deployment_version_id,
+        id: {[Sequelize.Op.lt]: packageId}},
+        order: [['id','desc']],
+        limit: num
+    }),
+    models.Packages.findAll({
+      where:{
+        deployment_version_id: originalPackage.deployment_version_id,
+        id: {[Sequelize.Op.lt]: packageId}},
+        order: [['id','asc']],
+        limit: 2
+    }),
+    models.Apps.findById(appId),
+  ])
+  .spread((lastNumsPackages, basePackages, appInfo) => {
+    return [_.uniqBy(_.unionBy(lastNumsPackages, basePackages, 'id'), 'package_hash'), appInfo];
+  })
+  .spread((lastNumsPackages, appInfo) => {
+    return self.createDiffPackages(originalPackage, lastNumsPackages, _.get(appInfo, 'is_use_diff_text', constConfig.IS_USE_DIFF_TEXT_NO));
   });
 };
 
-proto.createDiffPackages = function (originalPackage, destPackages) {
+proto.createDiffPackages = function (originalPackage, destPackages, isUseDiffText) {
   if (!_.isArray(destPackages)) {
     return Promise.reject(new AppError.AppError('第二个参数必须是数组'));
   }
@@ -291,10 +324,26 @@ proto.createDiffPackages = function (originalPackage, destPackages) {
   var manifest_blob_url = _.get(originalPackage, 'manifest_blob_url');
   var blob_url = _.get(originalPackage, 'blob_url');
   var workDirectoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
+  log.debug('workDirectoryPath', workDirectoryPath);
   return common.createEmptyFolder(workDirectoryPath)
   .then(() => self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url))
-  .then((dataCenter) => Promise.map(destPackages,
-    (v) => self.generateOneDiffPackage(workDirectoryPath, originalPackage.id, dataCenter, v.package_hash, v.manifest_blob_url)
+  .then((originDataCenter) => Promise.map(destPackages,
+    (v) => {
+      var diffWorkDirectoryPath = path.join(workDirectoryPath, _.get(v, 'package_hash'));
+      common.createEmptyFolderSync(diffWorkDirectoryPath);
+      return self.downloadPackageAndExtract(diffWorkDirectoryPath, _.get(v, 'package_hash'), _.get(v, 'blob_url'))
+      .then((oldPackageDataCenter) =>
+        self.generateOneDiffPackage(
+          diffWorkDirectoryPath,
+          originalPackage.id,
+          originDataCenter,
+          oldPackageDataCenter,
+          v.package_hash,
+          v.manifest_blob_url,
+          isUseDiffText
+        )
+      )
+    }
   ))
   .finally(() => common.deleteFolderSync(workDirectoryPath));
 }
@@ -312,7 +361,8 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
   var rollout = packageInfo.rollout; //灰度百分比
   var isMandatory = packageInfo.isMandatory; //是否强制更新，无法跳过
   var tmpDir = os.tmpdir();
-  var directoryPath = path.join(tmpDir, 'codepush_' + security.randToken(32));
+  var directoryPathParent = path.join(tmpDir, 'codepuh_' + security.randToken(32));
+  var directoryPath = path.join(directoryPathParent, 'current');
   log.debug(`releasePackage generate an random dir path: ${directoryPath}`);
   return Promise.all([
     security.qetag(filePath),
@@ -382,7 +432,7 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
     }
     return self.createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params);
   })
-  .finally(() => common.deleteFolderSync(directoryPath))
+  .finally(() => common.deleteFolderSync(directoryPathParent))
 };
 
 proto.modifyReleasePackage = function(packageId, params) {

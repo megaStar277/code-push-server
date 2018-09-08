@@ -9,9 +9,24 @@ var validator = require('validator');
 var qiniu = require("qiniu");
 var common = {};
 var AppError = require('../app-error');
+var jschardet = require("jschardet");
 var log4js = require('log4js');
+var path = require('path');
 var log = log4js.getLogger("cps:utils:common");
 module.exports = common;
+
+common.detectIsTextFile = function(filePath) {
+  var fd = fs.openSync(filePath, 'r');
+  var buffer = new Buffer(4096);
+  fs.readSync(fd, buffer, 0, 4096, 0);
+  fs.closeSync(fd);
+  var rs = jschardet.detect(buffer);
+  log.debug('detectIsTextFile:', filePath, rs);
+  if (rs.confidence == 1) {
+    return true;
+  }
+  return false;
+}
 
 common.parseVersion = function (versionNo) {
   var version = '0';
@@ -98,9 +113,27 @@ common.createFileFromRequest = function (url, filePath) {
   });
 };
 
+common.copySync = function (sourceDst, targertDst) {
+  return fsextra.copySync(sourceDst, targertDst, {overwrite: true});
+};
+
+common.copy = function (sourceDst, targertDst) {
+  return new Promise((resolve, reject) => {
+    fsextra.copy(sourceDst, targertDst, {overwrite: true}, function (err) {
+      if (err) {
+        log.error(err);
+        reject(err);
+      } else {
+        log.debug(`copy success sourceDst:${sourceDst} targertDst:${targertDst}`);
+        resolve();
+      }
+    });
+  });
+};
+
 common.move = function (sourceDst, targertDst) {
   return new Promise((resolve, reject) => {
-    fsextra.move(sourceDst, targertDst, {clobber: true, limit: 16}, function (err) {
+    fsextra.move(sourceDst, targertDst, {overwrite: true}, function (err) {
       if (err) {
         log.error(err);
         reject(err);
@@ -217,8 +250,8 @@ common.uploadFileToLocal = function (key, filePath) {
       throw new AppError.AppError(e.message);
     }
     var subDir = key.substr(0, 2).toLowerCase();
-    var finalDir = `${storageDir}/${subDir}`;
-    var fileName = `${finalDir}/${key}`;
+    var finalDir = path.join(storageDir, subDir);
+    var fileName = path.join(finalDir, key);
     if (fs.existsSync(fileName)) {
       return resolve(key);
     }

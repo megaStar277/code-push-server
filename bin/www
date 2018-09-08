@@ -9,6 +9,7 @@ var http = require('http');
 var validator = require('validator')
 var _ = require('lodash')
 var config = require('../core/config');
+var constConfig = require('../core/const');
 log4js.configure(_.get(config, 'log4js', {
     appenders: {console: { type: 'console'}},
     categories : { default: { appenders: ['console'], level: 'info' }}
@@ -48,8 +49,8 @@ var server = http.createServer(app);
 var models = require('../models');
 models.Versions.findOne({where:{type:1}})
 .then(function(v){
-    if (!v || v.get('version') != '0.4.0') {
-        throw new Error(`Please upgrade your database. usage bin/db upgrade or code-push-server-db upgrade`);
+    if (!v || v.get('version') != constConfig.CURRENT_DB_VERSION) {
+        throw new Error('Please upgrade your database. usage `npm run upgrade` or `code-push-server-db upgrade`');
     }
     server.listen(port, host);
     server.on('error', onError);

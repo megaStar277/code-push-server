@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS `apps` (
   `uid` bigint(20) unsigned NOT NULL DEFAULT '0',
   `os` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `platform` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `is_use_diff_text` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `created_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
@@ -164,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `versions` (
 LOCK TABLES `versions` WRITE;
 INSERT INTO `versions` (`id`, `type`, `version`)
 VALUES
-	(1,1,'0.4.0');
+	(1,1,'0.5.0');
 UNLOCK TABLES;
 
 CREATE TABLE IF NOT EXISTS `log_report_deploy` (

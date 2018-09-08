@@ -11,6 +11,7 @@ const CONTENTS_NAME = 'contents';
 var AppError = require('../app-error');
 var log4js = require('log4js');
 var log = log4js.getLogger("cps:DataCenterManager");
+var path = require('path');
 
 var proto = module.exports = function (){
   function DataCenterManager() {
@@ -30,18 +31,18 @@ proto.getDataDir = function () {
 
 proto.hasPackageStoreSync = function (packageHash) {
   var dataDir = this.getDataDir();
-  var packageHashPath = `${dataDir}/${packageHash}`;
-  var manifestFile = `${packageHashPath}/${MANIFEST_FILE_NAME}`;
-  var contentPath = `${packageHashPath}/${CONTENTS_NAME}`;
+  var packageHashPath = path.join(dataDir, packageHash);
+  var manifestFile = path.join(packageHashPath, MANIFEST_FILE_NAME);
+  var contentPath = path.join(packageHashPath, CONTENTS_NAME);
   return fs.existsSync(manifestFile) && fs.existsSync(contentPath);
 }
 
 proto.getPackageInfo = function (packageHash) {
   if (this.hasPackageStoreSync(packageHash)){
     var dataDir = this.getDataDir();
-    var packageHashPath = `${dataDir}/${packageHash}`;
-    var manifestFile = `${packageHashPath}/${MANIFEST_FILE_NAME}`;
-    var contentPath = `${packageHashPath}/${CONTENTS_NAME}`;
+    var packageHashPath = path.join(dataDir, packageHash);
+    var manifestFile = path.join(packageHashPath, MANIFEST_FILE_NAME);
+    var contentPath = path.join(packageHashPath, CONTENTS_NAME);
     return this.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
   } else {
     throw new AppError.AppError('can\'t get PackageInfo');
@@ -59,9 +60,9 @@ proto.buildPackageInfo = function (packageHash, packageHashPath, contentPath, ma
 
 proto.validateStore = function (providePackageHash) {
   var dataDir = this.getDataDir();
-  var packageHashPath = `${dataDir}/${providePackageHash}`;
-  var manifestFile = `${packageHashPath}/${MANIFEST_FILE_NAME}`;
-  var contentPath = `${packageHashPath}/${CONTENTS_NAME}`;
+  var packageHashPath = path.join(dataDir, providePackageHash);
+  var manifestFile = path.join(packageHashPath, MANIFEST_FILE_NAME);
+  var contentPath = path.join(packageHashPath, CONTENTS_NAME);
   if (!this.hasPackageStoreSync(providePackageHash)) {
     log.debug(`validateStore providePackageHash not exist`);
     return Promise.resolve(false);
@@ -98,9 +99,9 @@ proto.storePackage = function (sourceDst, force) {
     var packageHash = security.packageHashSync(manifestJson);
     log.debug('storePackage manifestJson packageHash:', packageHash);
     var dataDir = self.getDataDir();
-    var packageHashPath = `${dataDir}/${packageHash}`;
-    var manifestFile = `${packageHashPath}/${MANIFEST_FILE_NAME}`;
-    var contentPath = `${packageHashPath}/${CONTENTS_NAME}`;
+    var packageHashPath = path.join(dataDir, packageHash);
+    var manifestFile = path.join(packageHashPath, MANIFEST_FILE_NAME);
+    var contentPath = path.join(packageHashPath, CONTENTS_NAME);
     return self.validateStore(packageHash)
     .then((isValidate) => {
       if (!force && isValidate) {
@@ -109,7 +110,7 @@ proto.storePackage = function (sourceDst, force) {
         log.debug(`storePackage cover from sourceDst:`, sourceDst);
         return common.createEmptyFolder(packageHashPath)
         .then(() => {
-          return common.move(sourceDst, contentPath)
+          return common.copy(sourceDst, contentPath)
           .then(() => {
             var manifestString = JSON.stringify(manifestJson);
             fs.writeFileSync(manifestFile, manifestString);
