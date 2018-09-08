@@ -47,16 +47,17 @@ router.get('/updateCheck', (req, res, next) => {
   clientManager.updateCheckFromCache(deploymentKey, appVersion, label, packageHash, clientUniqueId)
   .then((rs) => {
     //灰度检测
-    return clientManager.chosenMan(rs.rollout, deploymentKey, appVersion, clientUniqueId)
+    return clientManager.chosenMan(rs.packageId, rs.rollout, clientUniqueId)
     .then((data)=>{
-        if (!data) {
-          rs.isAvailable = false;
-          return rs;
-        }
+      if (!data) {
+        rs.isAvailable = false;
         return rs;
+      }
+      return rs;
     });
   })
   .then((rs) => {
+    delete rs.packageId;
     delete rs.rollout;
     res.send({"updateInfo":rs});
   })

@@ -74,8 +74,8 @@ proto.updateCheckFromCache = function(deploymentKey, appVersion, label, packageH
   .finally(() => client.quit());
 }
 
-proto.getChosenManCacheKey = function(deploymentKey, appVersion, clientUniqueId, rollout) {
-  return [CHOSEN_MAN, deploymentKey, appVersion, clientUniqueId, rollout].join(':');
+proto.getChosenManCacheKey = function(packageId, rollout, clientUniqueId) {
+  return [CHOSEN_MAN, packageId, rollout, clientUniqueId].join(':');
 }
 
 proto.random = function(rollout) {
@@ -87,7 +87,7 @@ proto.random = function(rollout) {
   }
 }
 
-proto.chosenMan = function (rollout, deploymentKey, appVersion, clientUniqueId) {
+proto.chosenMan = function (packageId, rollout, clientUniqueId) {
   var self = this;
   if (rollout >= 100) {
     return Promise.resolve(true);
@@ -97,7 +97,7 @@ proto.chosenMan = function (rollout, deploymentKey, appVersion, clientUniqueId) 
     return self.random(rollout);
   } else {
     var client = factory.getRedisClient("default");
-    var redisCacheKey = self.getChosenManCacheKey(deploymentKey, appVersion, clientUniqueId, rollout);
+    var redisCacheKey = self.getChosenManCacheKey(packageId, rollout, clientUniqueId);
     return client.getAsync(redisCacheKey)
     .then((data) => {
       if (data == 1) {
@@ -120,6 +120,7 @@ proto.chosenMan = function (rollout, deploymentKey, appVersion, clientUniqueId) 
 
 proto.updateCheck = function(deploymentKey, appVersion, label, packageHash, clientUniqueId) {
   var rs = {
+    packageId: 0,
     downloadURL: "",
     downloadUrl: "",
     description: "",
@@ -176,6 +177,7 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash, clie
       if (packages
         && _.eq(packages.deployment_id, deploymentsVersions.deployment_id)
         && !_.eq(packages.package_hash, packageHash)) {
+        rs.packageId = packageId;
         rs.downloadUrl = rs.downloadURL = common.getBlobDownloadUrl(_.get(packages, 'blob_url'));
         rs.description = _.get(packages, 'description', '');
         rs.isAvailable = _.eq(packages.is_disabled, 1) ? false : true;
@@ -248,14 +250,21 @@ proto.reportStatusDeploy = function (deploymentKey, label, clientUniqueId, other
     var constConfig = require('../const');
     var status =  _.get(others, "status");
     var packageId = packages.id;
+    var previous_deployment_key = _.get(others, 'previousDeploymentKey');
+    var previous_label = _.get(others, 'previousLabelOrAppVersion');
     if (_.eq(status, "DeploymentSucceeded")) {
       return Promise.all([
         models.LogReportDeploy.create({
           package_id: packageId,
           client_unique_id: clientUniqueId,
-          previous_label: _.get(others, 'previousLabelOrAppVersion'),
-          previous_deployment_key: _.get(others, 'previousDeploymentKey'),
+          previous_label: previous_label,
+          previous_deployment_key: previous_deployment_key,
           status: constConfig.DEPLOYMENT_SUCCEEDED
+        })
+        .then(() => {
+          if (previous_deployment_key && previous_label) {
+
+          }
         }),
         models.PackagesMetrics.addOneOnInstalledById(packageId),
         models.PackagesMetrics.addOneOnActiveById(packageId),
@@ -265,8 +274,8 @@ proto.reportStatusDeploy = function (deploymentKey, label, clientUniqueId, other
         models.LogReportDeploy.create({
           package_id: packageId,
           client_unique_id: clientUniqueId,
-          previous_label: _.get(others, 'previousLabelOrAppVersion'),
-          previous_deployment_key: _.get(others, 'previousDeploymentKey'),
+          previous_label: previous_label,
+          previous_deployment_key: previous_deployment_key,
           status: constConfig.DEPLOYMENT_FAILED
         }),
         models.PackagesMetrics.addOneOnInstalledById(packageId),
