@@ -13,6 +13,15 @@
 
 CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use [local/s3/oss/tencentcloud] storage, just modify config.js file, it's simple configure.
 
+
+## Advance Feature
+
+> use google diff-match-patch calculate text file
+
+- support iOS and Android
+- use `"react-native-code-push": "git+https://git@github.com/lisong/react-native-code-push.git"` instead `"react-native-code-push": "x.x.x"`
+- change `apps`.`is_use_diff_text` to `1` in mysql codepush database
+
 ## Support Storage mode 
 
 - local *storage bundle file in local machine*
