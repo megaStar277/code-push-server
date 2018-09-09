@@ -19,7 +19,7 @@ CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in
 > use google diff-match-patch calculate text file diff patch
 
 - support iOS and Android
-- use `"react-native-code-push": "git+https://git@github.com/lisong/react-native-code-push.git"` instead `"react-native-code-push": "x.x.x"`
+- use `"react-native-code-push": "git+https://git@github.com/lisong/react-native-code-push.git"` instead `"react-native-code-push": "x.x.x"` in `package.json`
 - change `apps`.`is_use_diff_text` to `1` in mysql codepush database
 
 ## Support Storage mode 
