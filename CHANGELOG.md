@@ -1,5 +1,31 @@
 # Changelog for code-push-server
-## 0.4.7
+
+## 0.5.x
+
+## 新特性
+- 针对文本增量更新进行优化，使用google `diff-match-patch` 算法计算差异
+   - react-native-code-push Android客户端适配,需要合并https://github.com/Microsoft/react-native-code-push/pull/1393, 才能正常使用文本增量更新功能。
+  - react-native-code-push iOS客户端适配 (需要合并https://github.com/Microsoft/react-native-code-push/pull/1399)
+  - react-native-code-push Windows客户端适配 (进行中)
+
+## fixbug
+
+- 修复统计数据激活数
+- 修复灰度发布bug
+- rollback后增加计算和最后一次增量更新版本
+
+## 如何升级到该版本
+
+###  升级数据库
+
+`$ npm run upgrade`
+
+or
+
+`$ code-push-server-db upgrade`
+
+
+## 0.4.x
 
 ### 新特性
 
@@ -29,7 +55,7 @@ or
    $ node  ./bin/fixMinMaxVersion //出现提示 success
 ```
 
-## 0.3.0
+## 0.3.x
 
 - 支持灰度发布
 - 适配`code-push app add` 命令，应用不再以名字区分平台，而是以类型区分平台
