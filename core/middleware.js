@@ -85,7 +85,7 @@ middleware.checkToken = function(req, res, next) {
     authType = 2;
     authToken = _.trim(_.trimStart(_.get(req, 'query.access_token', null)));
   }
-  if (authType == 1) {
+  if (authToken && authType == 1) {
     checkAuthToken(authToken)
     .then((users) => {
       req.users = users;
@@ -99,7 +99,7 @@ middleware.checkToken = function(req, res, next) {
         next(e);
       }
     });
-  } else if (authType == 2) {
+  } else if (authToken && authType == 2) {
     checkAccessToken(authToken)
     .then((users) => {
       req.users = users;

@@ -6,6 +6,10 @@ var validator = require('validator');
 var log4js = require('log4js');
 var log = log4js.getLogger("cps:auth");
 
+router.get('/password', (req, res) => {
+  res.render('auth/password', { title: 'CodePushServer' });
+});
+
 router.get('/login', (req, res) => {
   var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
   if (codePushWebUrl && validator.isURL(codePushWebUrl)) {

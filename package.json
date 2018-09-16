@@ -88,6 +88,7 @@
     "config",
     "core",
     "docs",
+    "docker",
     "models",
     "public",
     "routes",
