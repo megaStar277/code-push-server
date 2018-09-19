@@ -180,7 +180,9 @@ describe('api/users/users.test.js', function() {
       .send({oldPassword: password, newPassword: newPassword})
       .end(function(err, res) {
         should.not.exist(err);
-        res.status.should.equal(401);
+        var rs = JSON.parse(res.text);
+        res.status.should.equal(200);
+        rs.should.containEql({status:401});
         done();
       });
     });

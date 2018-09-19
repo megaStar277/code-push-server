@@ -12,10 +12,11 @@ describe('api/init/database.js', function() {
       var connection = mysql.createConnection({
         host: config.db.host,
         user: config.db.username,
-        password: config.db.password
+        password: config.db.password,
+        multipleStatements: true
       });
       connection.connect();
-      connection.query(`CREATE DATABASE IF NOT EXISTS ${config.db.database}`, function(err, rows, fields) {
+      connection.query(`DROP DATABASE IF EXISTS ${config.db.database};CREATE DATABASE IF NOT EXISTS ${config.db.database}`, function(err, rows, fields) {
         should.not.exist(err);
         done();
       });
