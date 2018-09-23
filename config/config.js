@@ -53,7 +53,7 @@ config.development = {
     // Binary files download host address which Code Push Server listen to. the files storage in storageDir.
     downloadUrl: process.env.LOCAL_DOWNLOAD_URL || "http://127.0.0.1:3000/download",
     // public static download spacename.
-    public: process.env.PUBLIC || '/download'
+    public: '/download'
   },
   jwt: {
     // Recommended: 63 random alpha-numeric characters
