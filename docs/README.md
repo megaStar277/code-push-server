@@ -18,6 +18,9 @@ $ sudo npm i -g pm2
 - [Microsoft Windows](https://dev.mysql.com/doc/refman/8.0/en/windows-installation.html)
 - [Others](https://dev.mysql.com/doc/refman/8.0/en/installing.html)
 
+> notice. mysql8.x default auth caching_sha2_pasword not support in node-mysql2 see [issue](https://github.com/mysqljs/mysql/pull/1962)
+
+
 
 ## GET code-push-server FROM NPM
 
