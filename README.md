@@ -65,6 +65,11 @@ $ code-push login http://api.code-push.com #登录
 - [docker](https://github.com/lisong/code-push-server/blob/master/docker/README.md) (recommend)
 - [manual operation](https://github.com/lisong/code-push-server/blob/master/docs/README.md)
 
+## DEFAULT ACCOUNT AND PASSWORD
+
+- account: `admin`
+- password: `123456`
+
 ## HOW TO USE
 
 - [normal](https://github.com/lisong/code-push-server/blob/master/docs/react-native-code-push.md)
