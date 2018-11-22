@@ -14,14 +14,6 @@
 CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick!  Or you can use [local/s3/oss/tencentcloud] storage, just modify config.js file, it's simple configure.
 
 
-## Advance Feature
-
-> use google diff-match-patch calculate text file diff patch
-
-- support iOS and Android
-- use `"react-native-code-push": "git+https://git@github.com/lisong/react-native-code-push.git"` instead `"react-native-code-push": "x.x.x"` in `package.json`
-- change `apps`.`is_use_diff_text` to `1` in mysql codepush database
-
 ## Support Storage mode 
 
 - local *storage bundle file in local machine*
@@ -84,6 +76,26 @@ $ code-push login http://api.code-push.com #登录
 [An unknown error occurred](https://github.com/lisong/code-push-server/issues?utf8=%E2%9C%93&q=unknown)
 
 [modify password](https://github.com/lisong/code-push-server/issues/43)
+
+
+# UPDATE TIME LINE
+
+- targetBinaryVersion support
+  - `*` 
+  - `1.2.3`
+  - `1.2`/`1.2.*`
+  - `>=1.2.3<1.3.7`
+  - `~1.2.3`
+  - `^1.2.3`
+
+
+## Advance Feature
+
+> use google diff-match-patch calculate text file diff patch
+
+- support iOS and Android
+- use `"react-native-code-push": "git+https://git@github.com/lisong/react-native-code-push.git"` instead `"react-native-code-push": "x.x.x"` in `package.json`
+- change `apps`.`is_use_diff_text` to `1` in mysql codepush database
 
 ## License
 MIT License [read](https://github.com/lisong/code-push-server/blob/master/LICENSE)
