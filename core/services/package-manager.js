@@ -583,9 +583,9 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
       create_params.isMandatory = sourcePack.is_mandatory
     }
     if (_.isBoolean(params.isDisabled)) {
-      create_params.isMandatory = params.isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO;
+      create_params.isDisabled = params.isDisabled ? constConfig.IS_DISABLED_YES : constConfig.IS_DISABLED_NO;
     } else {
-      create_params.isMandatory = sourcePack.is_disabled
+      create_params.isDisabled = sourcePack.is_disabled
     }
     return self.createPackage(
       destDeploymentInfo.id,
