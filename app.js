@@ -32,16 +32,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 //use nginx in production
-if (app.get('env') === 'development') {
+//if (app.get('env') === 'development') {
   log.debug("set Access-Control Header");
   app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CodePush-Plugin-Version, X-CodePush-Plugin-Name, X-CodePush-SDK-Version");
     res.header("Access-Control-Allow-Methods","PUT,POST,GET,PATCH,DELETE,OPTIONS");
     log.debug("use set Access-Control Header");
     next();
   });
-}
+//}
 
 log.debug("config common.storageType value: " + _.get(config, 'common.storageType'));
 
