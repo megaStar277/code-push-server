@@ -236,15 +236,3 @@ edit config.xml. add code below.
     <preference name="CodePushServerUrl" value="http://api.code-push.com/" />
 </platform>
 ```
-
-## Use [CodePush Web](https://github.com/lisong/code-push-web) manage apps
-
-> add codePushWebUrl config in config.js
-
-eg.
-
-```javascript
-"common": {
-  "codePushWebUrl": "Your CodePush Web address",
-}
-```
