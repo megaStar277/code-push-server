@@ -171,7 +171,7 @@ router.get('/:appName/deployments/:deploymentName/history',
     return deployments.getDeploymentHistory(deploymentInfo.id);
   })
   .then((rs) => {
-    res.send({history: rs});
+    res.send({history: _.pullAll(rs, [null, false])});
   })
   .catch((e) => {
     if (e instanceof AppError.AppError) {
