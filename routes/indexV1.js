@@ -33,17 +33,17 @@ router.get('/update_check', (req, res, next) => {
     delete rs.packageId;
     delete rs.rollout;
     var update_info = {
-        download_url : rs.downloadUrl;
-        description : rs.description;
-        is_available : rs.isAvailable;
-        is_disabled : rs.isDisabled;
-        target_binary_range: rs.targetBinaryRange;
-        label: rs.label;
-        package_hash: rs.packageHash;
-        package_size: rs.packageSize;
-        should_run_binary_version: rs.shouldRunBinaryVersion;
-        update_app_version: rs.updateAppVersion;
-        is_mandatory: rs.isMandatory;
+        download_url : rs.downloadUrl,
+        description : rs.description,
+        is_available : rs.isAvailable,
+        is_disabled : rs.isDisabled,
+        target_binary_range: rs.targetBinaryRange,
+        label: rs.label,
+        package_hash: rs.packageHash,
+        package_size: rs.packageSize,
+        should_run_binary_version: rs.shouldRunBinaryVersion,
+        update_app_version: rs.updateAppVersion,
+        is_mandatory: rs.isMandatory,
     };
     res.send({"update_info": update_info});
   })

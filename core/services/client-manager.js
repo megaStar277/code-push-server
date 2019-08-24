@@ -125,8 +125,10 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash, clie
     downloadUrl: "",
     description: "",
     isAvailable: false,
+    isDisabled: true,
     isMandatory: false,
     appVersion: appVersion,
+    targetBinaryRange: "",
     packageHash: "",
     label: "",
     packageSize: 0,
@@ -178,9 +180,11 @@ proto.updateCheck = function(deploymentKey, appVersion, label, packageHash, clie
         && _.eq(packages.deployment_id, deploymentsVersions.deployment_id)
         && !_.eq(packages.package_hash, packageHash)) {
         rs.packageId = packageId;
+        rs.targetBinaryRange = deploymentsVersions.app_version;
         rs.downloadUrl = rs.downloadURL = common.getBlobDownloadUrl(_.get(packages, 'blob_url'));
         rs.description = _.get(packages, 'description', '');
         rs.isAvailable = _.eq(packages.is_disabled, 1) ? false : true;
+        rs.isDisabled = _.eq(packages.is_disabled, 1) ? true : false;
         rs.isMandatory = _.eq(packages.is_mandatory, 1) ? true : false;
         rs.appVersion = appVersion;
         rs.packageHash = _.get(packages, 'package_hash', '');
