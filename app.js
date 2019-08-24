@@ -9,6 +9,7 @@ var _ = require('lodash');
 var fs = require('fs');
 
 var routes = require('./routes/index');
+var indexV1 = require('./routes/indexV1');
 var auth = require('./routes/auth');
 var accessKeys = require('./routes/accessKeys');
 var account = require('./routes/account');
@@ -72,6 +73,7 @@ if (_.get(config, 'common.storageType') === 'local') {
 }
 
 app.use('/', routes);
+app.use('/v0.1/public/codepush', indexV1);
 app.use('/auth', auth);
 app.use('/accessKeys', accessKeys);
 app.use('/account', account);
