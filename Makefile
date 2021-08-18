@@ -16,8 +16,6 @@ test-integration:
 coverage:
 	@echo "\n\nRunning coverage report..."
 	rm -rf coverage
-	# @NODE_ENV=test CONFIG_FILE=${ROOT}/config/config.test.js ./node_modules/istanbul/lib/cli.js cover --report lcovonly --dir coverage/core ./node_modules/.bin/_mocha \
-	# 	test/unit -- -R spec --recursive --timeout 15000
 	@NODE_ENV=test CONFIG_FILE=${ROOT}/config/config.test.js mocha test/api/init
 	@NODE_ENV=test PORT=3000 HOST=127.0.0.1 CONFIG_FILE=${ROOT}/config/config.test.js node bin/www &
 	@NODE_ENV=test CONFIG_FILE=${ROOT}/config/config.test.js ./node_modules/istanbul/lib/cli.js cover --report lcovonly --dir coverage/api ./node_modules/.bin/_mocha \
