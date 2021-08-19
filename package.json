@@ -29,6 +29,7 @@
     "start": "node ./bin/www",
     "init": "node ./bin/db init",
     "upgrade": "node ./bin/db upgrade",
+    "release": "npm test && standard-version && git push --follow-tags origin master && npm publish",
     "test": "make test",
     "coverage": "make coverage"
   },
@@ -76,6 +77,7 @@
     "istanbul": "0.4.5",
     "mocha": "3.5.3",
     "should": "11.2.1",
+    "standard-version": "9.3.1",
     "supertest": "3.4.2",
     "supervisor": "0.12.0"
   },
