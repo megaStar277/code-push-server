@@ -193,26 +193,24 @@ common.createEmptyFolderSync = function (folderPath) {
     return fsextra.mkdirsSync(folderPath);
 };
 
-common.unzipFile = function (zipFile, outputPath) {
-    return new Promise((resolve, reject) => {
-        try {
-            log.debug(`unzipFile check zipFile ${zipFile} fs.R_OK`);
-            fs.accessSync(zipFile, fs.R_OK);
-            log.debug(`Pass unzipFile file ${zipFile}`);
-        } catch (e) {
-            log.error(e);
-            return reject(new AppError.AppError(e.message));
-        }
-        extract(zipFile, { dir: outputPath }, function (err) {
-            if (err) {
-                log.error(err);
-                reject(new AppError.AppError(`it's not a zipFile`));
-            } else {
-                log.debug(`unzipFile success`);
-                resolve(outputPath);
-            }
-        });
-    });
+common.unzipFile = async function (zipFile, outputPath) {
+    try {
+        log.debug(`unzipFile check zipFile ${zipFile} fs.R_OK`);
+        fs.accessSync(zipFile, fs.R_OK);
+        log.debug(`Pass unzipFile file ${zipFile}`);
+    } catch (err) {
+        log.error(err);
+        throw new AppError.AppError(err.message);
+    }
+
+    try {
+        await extract(zipFile, { dir: outputPath });
+        log.debug(`unzipFile success`);
+    } catch (err) {
+        log.error(err);
+        throw new AppError.AppError(`it's not a zipFile`);
+    }
+    return outputPath;
 };
 
 common.getUploadTokenQiniu = function (mac, bucket, key) {
