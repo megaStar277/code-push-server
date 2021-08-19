@@ -10,7 +10,7 @@ var AppError = require('../app-error');
 
 var randToken = require('rand-token').generator({
     chars: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    source: crypto.randomBytes,
+    source: 'crypto',
 });
 var security = {};
 module.exports = security;
