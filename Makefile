@@ -11,20 +11,17 @@ test: test-integration
 .PHONY: test-integration
 test-integration:
 	@echo "\nRunning integration tests..."
-	@CONFIG_FILE=${ROOT}/config/config.js mocha test/api/init
-	@PORT=3000 HOST=127.0.0.1 CONFIG_FILE=${ROOT}/config/config.js node bin/www &
-	@CONFIG_FILE=${ROOT}/config/config.js mocha \
-	test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index --recursive --timeout 15000
+	@mocha test/api/init
+	@mocha test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index --recursive --timeout 15000
 
 .PHONY: coverage
 coverage:
 	@echo "\n\nRunning coverage report..."
 	rm -rf coverage
-	@CONFIG_FILE=${ROOT}/config/config.js mocha test/api/init
-	@PORT=3000 HOST=127.0.0.1 CONFIG_FILE=${ROOT}/config/config.js node bin/www &
-	@CONFIG_FILE=${ROOT}/config/config.js ./node_modules/istanbul/lib/cli.js cover --report lcovonly --dir coverage/api ./node_modules/.bin/_mocha \
+	@mocha test/api/init
+	@./node_modules/istanbul/lib/cli.js cover --report lcovonly --dir coverage/api ./node_modules/.bin/_mocha \
 	test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index -- -R spec --recursive --timeout 15000
-	@CONFIG_FILE=${ROOT}/config/config.js ./node_modules/istanbul/lib/cli.js report
+	@./node_modules/istanbul/lib/cli.js report
 
 .PHONY: build-docker
 build-docker:

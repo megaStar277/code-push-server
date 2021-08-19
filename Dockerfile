@@ -6,10 +6,7 @@ RUN mkdir /data/
 
 WORKDIR /data/
 
-COPY ./config/config.js /data/config.js
 COPY ./process.json /data/process.json
-
-ENV CONFIG_FILE=/data/config.js
 
  # CMD ["pm2-runtime", "/data/process.json"]
  # workaround for issue https://github.com/Unitech/pm2/issues/4950
