@@ -1,10 +1,5 @@
 "use strict";
-var Promise = require("bluebird");
-var models = require("../../models");
 var _ = require("lodash");
-var validator = require("validator");
-var security = require("../utils/security");
-var moment = require("moment");
 var nodemailer = require("nodemailer");
 var config = require("../config");
 
