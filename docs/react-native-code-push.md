@@ -116,7 +116,7 @@ CodePush.sync({
 不要忘记头部引入
 
 ```javascript
-import CodePush from "react-native-code-push";
+import CodePush from 'react-native-code-push';
 ```
 
 ## 运行 CodePushDemo react-native 项目
