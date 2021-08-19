@@ -48,7 +48,7 @@
     "formidable": "1.2.2",
     "fs-extra": "10.0.0",
     "helmet": "4.6.0",
-    "jschardet": "1.6.0",
+    "jschardet": "3.0.0",
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.21",
     "log4js": "6.3.0",
