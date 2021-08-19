@@ -1,3 +1,18 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [1.0.1](https://github.com/shm-open/code-push-server/compare/v1.0.0...v1.0.1) (2021-08-19)
+
+
+### Bug Fixes
+
+* **deps:** pin dependencies ([1822c0f](https://github.com/shm-open/code-push-server/commit/1822c0f99adee270a15f343275316a5de725a0f3))
+* **deps:** update dependency cos-nodejs-sdk-v5 to v2.10.0 ([9a65b0f](https://github.com/shm-open/code-push-server/commit/9a65b0faf51761178c16c46772ab80a92ee8c068))
+* **deps:** update dependency express to v4.17.1 ([1f4c7c1](https://github.com/shm-open/code-push-server/commit/1f4c7c11cf31f85b84c6209851fb96981d81129c))
+* **deps:** update mysql2 and setup github action ci ([6ab24d3](https://github.com/shm-open/code-push-server/commit/6ab24d336ce37e4a1522e21cf027096c3467a7a1))
+* return appVersion as target_binary_range to compatible with code-push 3.0.1 changes ([40b41fb](https://github.com/shm-open/code-push-server/commit/40b41fbc20ad35393d097336570a72d1eef16906))
+
 # Changelog for code-push-server
 
 ## 0.5.x
