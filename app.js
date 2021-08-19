@@ -19,8 +19,12 @@ var AppError = require('./core/app-error');
 var log4js = require('log4js');
 var log = log4js.getLogger('cps:app');
 var app = express();
-app.use(helmet());
-app.disable('x-powered-by');
+
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
+    }),
+);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
