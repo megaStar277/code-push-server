@@ -1,4 +1,3 @@
-
 ## INSTALL NODE AND NPM
 
 [see](https://nodejs.org/en/download/)
@@ -13,26 +12,23 @@ $ sudo npm i -g pm2
 
 ## INSTALL MYSQL
 
-- [Linux](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
-- [macOS](https://dev.mysql.com/doc/refman/8.0/en/osx-installation.html)
-- [Microsoft Windows](https://dev.mysql.com/doc/refman/8.0/en/windows-installation.html)
-- [Others](https://dev.mysql.com/doc/refman/8.0/en/installing.html)
+-   [Linux](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
+-   [macOS](https://dev.mysql.com/doc/refman/8.0/en/osx-installation.html)
+-   [Microsoft Windows](https://dev.mysql.com/doc/refman/8.0/en/windows-installation.html)
+-   [Others](https://dev.mysql.com/doc/refman/8.0/en/installing.html)
 
 > notice. mysql8.x default auth caching_sha2_pasword not support in node-mysql2 see [issue](https://github.com/mysqljs/mysql/pull/1962)
-
-
 
 ## GET code-push-server FROM NPM
 
 ```shell
-$ npm install code-push-server@latest -g
+$ npm install @shm-open/code-push-server@latest -g
 ```
-
 
 ## GET code-push-server FROM SOURCE CODE
 
 ```shell
-$ git clone https://github.com/lisong/code-push-server.git
+$ git clone https://github.com/shm-open/code-push-server.git
 $ cd code-push-server
 $ npm install
 ```
@@ -57,11 +53,11 @@ save the file [config.js](https://github.com/lisong/code-push-server/blob/master
 
 some config have to change:
 
-- `local`.`storageDir` change to your directory,make sure have read/write permissions.
-- `local`.`downloadUrl` replace `127.0.0.1` to your machine ip.
-- `common`.`dataDir` change to your directory,make sure have read/write permissions.
-- `jwt`.`tokenSecret` get the random string from `https://www.grc.com/passwords.htm`, and replace the value `INSERT_RANDOM_TOKEN_KEY`.
-- `db` config: `username`,`password`,`host`,`port` change your own's
+-   `local`.`storageDir` change to your directory,make sure have read/write permissions.
+-   `local`.`downloadUrl` replace `127.0.0.1` to your machine ip.
+-   `common`.`dataDir` change to your directory,make sure have read/write permissions.
+-   `jwt`.`tokenSecret` get the random string from `https://www.grc.com/passwords.htm`, and replace the value `INSERT_RANDOM_TOKEN_KEY`.
+-   `db` config: `username`,`password`,`host`,`port` change your own's
 
 ## CONFIGURE for pm2
 
@@ -69,8 +65,8 @@ save the file [process.json](https://github.com/lisong/code-push-server/blob/mas
 
 some config have to change:
 
-- `script` if you install code-push-server from npm use `code-push-server`,or use `"your source code dir"/bin/www`
-- `CONFIG_FILE` above config.js file path,use absolute path.
+-   `script` if you install code-push-server from npm use `code-push-server`,or use `"your source code dir"/bin/www`
+-   `CONFIG_FILE` above config.js file path,use absolute path.
 
 ## START SERVICE
 
@@ -90,7 +86,7 @@ $ pm2 restart process.json
 $ pm2 stop process.json
 ```
 
-## CHECK SERVICE IS OK 
+## CHECK SERVICE IS OK
 
 ```shell
 $ curl -I http://YOUR_CODE_PUSH_SERVER_IP:3000/
@@ -113,19 +109,17 @@ Date: Sat, 25 Aug 2018 15:45:46 GMT
 Connection: keep-alive
 ```
 
-
 ## Use redis impove concurrent and security
 
 > config redis in config.js
 
-- `updateCheckCache`
-- `rolloutClientUniqueIdCache`
-- `tryLoginTimes`
-
+-   `updateCheckCache`
+-   `rolloutClientUniqueIdCache`
+-   `tryLoginTimes`
 
 ## UPGRADE
 
-*from npm package*
+_from npm package_
 
 ```shell
 $ npm install -g code-push-server@latest
@@ -133,7 +127,7 @@ $ code-push-server-db upgrade --dbhost "your mysql host" --dbport "your mysql po
 $ pm2 restart code-push-server # restart service
 ```
 
-*from source code*
+_from source code_
 
 ```shell
 $ cd /path/to/code-push-server
@@ -143,7 +137,6 @@ $ ./bin/db upgrade --dbhost "your mysql host" --dbport "your mysql port"  --dbus
 $ pm2 restart code-push-server # restart service
 ```
 
-
 ## view pm2 logs
 
 ```shell
@@ -152,19 +145,17 @@ $ pm2 show code-push-server
 $ tail -f "output file path"
 ```
 
+## Support Storage mode
 
-## Support Storage mode 
+-   local (default)
+-   qiniu (qiniu)
+-   s3 (aws)
+-   oss (aliyun)
+-   tencentcloud
 
-- local (default)
-- qiniu (qiniu)
-- s3 (aws)
-- oss (aliyun)
-- tencentcloud
-
-## Default listen Host/Port  0.0.0.0/3000 
+## Default listen Host/Port 0.0.0.0/3000
 
 > you can change it in process.json, env: PORT,HOST
-
 
 ## [code-push-cli](https://github.com/Microsoft/code-push)
 
@@ -180,7 +171,6 @@ $ code-push login http://YOU_SERVICE_IP:3000 #login in browser account:admin pas
 ```shell
 $ curl -X PATCH -H "Authorization: Bearer mytoken" -H "Accept: application/json" -H "Content-Type:application/json" -d '{"oldPassword":"123456","newPassword":"654321"}' http://YOU_SERVICE_IP:3000/users/password
 ```
-
 
 ## config react-native project
 
@@ -208,12 +198,11 @@ protected List<ReactPackage> getPackages() {
          "YourKey",
          MainApplication.this,
          BuildConfig.DEBUG,
-         "YourCodePushServerUrl" 
+         "YourCodePushServerUrl"
       )
   );
 }
 ```
-
 
 ## [cordova-plugin-code-push](https://github.com/Microsoft/cordova-plugin-code-push) for cordova
 
