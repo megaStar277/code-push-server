@@ -9,7 +9,8 @@ var _ = require("lodash");
 var mysql = require("mysql2");
 var Promise = require("bluebird");
 var constConfig = require("../core/const");
-var yargs = require("yargs")
+var yargs = require("yargs");
+var argv = yargs
     .usage("Usage: $0 <command> [options]")
     .command("init", "初始化数据库", {
         dbpassword: {
@@ -38,8 +39,8 @@ var yargs = require("yargs")
         dbpassword: null,
     })
     .help("h")
-    .alias("h", "help");
-var argv = yargs.argv;
+    .alias("h", "help")
+    .parseSync();
 var command = argv._[0];
 var dbname = argv.dbname ? argv.dbname : "codepush";
 var dbhost = argv.dbhost ? argv.dbhost : "localhost";
