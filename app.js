@@ -91,7 +91,7 @@ app.use('/apps', apps);
 // will print stacktrace
 if (app.get('env') === 'development') {
     app.use(function (req, res, next) {
-        var err = new AppError.NotFound();
+        var err = new AppError.NotFound(`${req.method} ${req.url}`);
         res.status(err.status || 404);
         res.render('error', {
             message: err.message,
