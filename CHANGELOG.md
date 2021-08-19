@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.2](https://github.com/shm-open/code-push-server/compare/v1.0.1...v1.0.2) (2021-08-19)
+
+
+### Bug Fixes
+
+* cleanup some use of bluebird in favor of native Promise ([2a3f946](https://github.com/shm-open/code-push-server/commit/2a3f946a5a6edcbc6de05b33e46f41a497615ee6))
+* **deps:** update dependency aliyun-sdk to v1.12.3 ([1f2cb60](https://github.com/shm-open/code-push-server/commit/1f2cb60be694e87ef847b23dc4dab56980deef02))
+* **deps:** update dependency aws-sdk to v2.971.0 ([fa2a40a](https://github.com/shm-open/code-push-server/commit/fa2a40ab33c6ec6e34ec33c4f0b5f1be0fc8b9eb))
+* **deps:** update dependency bluebird to v3.7.2 ([fd221ec](https://github.com/shm-open/code-push-server/commit/fd221eced8b4c3ece6288024b0368471b6bde92f))
+* **deps:** update dependency body-parser to v1.19.0 ([92a5131](https://github.com/shm-open/code-push-server/commit/92a5131d2d1f5803b753588a60c943c29c8dfa33))
+* **deps:** update dependency cookie-parser to v1.4.5 ([f4fa15c](https://github.com/shm-open/code-push-server/commit/f4fa15c9500f946173a4aadeb716d6c4888f4c12))
+* **deps:** update dependency diff-match-patch to v1.0.5 ([e45052d](https://github.com/shm-open/code-push-server/commit/e45052d29a8c8d1f6758c59a26b2410630d6579c))
+* **deps:** update dependency extract-zip to v1.7.0 ([f690f32](https://github.com/shm-open/code-push-server/commit/f690f322de2ef4c068a1c2f444957651a90ec3aa))
+* **deps:** update dependency formidable to v1.2.2 ([eb90aad](https://github.com/shm-open/code-push-server/commit/eb90aada2de67759177926438b6262eb23ec9475))
+* **deps:** update dependency fs-extra to v10 ([8636b27](https://github.com/shm-open/code-push-server/commit/8636b27d8d1a683440409aa5c2e93d4c6aaa85dd))
+* **deps:** update dependency fs-extra to v7.0.1 ([10dbb59](https://github.com/shm-open/code-push-server/commit/10dbb5948bd802d5ec31571b65b94b60913fab65))
+* **deps:** update dependency helmet to v3.23.3 ([1371a70](https://github.com/shm-open/code-push-server/commit/1371a7086c469911bc97562891abd92a2d140f99))
+* **deps:** update dependency jschardet to v3 ([3e947d7](https://github.com/shm-open/code-push-server/commit/3e947d7602001d9874aa6d2c31da8ef05d9fdeb0))
+* **deps:** update dependency jsonwebtoken to v8.5.1 ([81b2635](https://github.com/shm-open/code-push-server/commit/81b2635520cc9cc286f1cdb9c7c01d9ddca7aeca))
+* **deps:** update dependency lodash to v4.17.21 ([90643a1](https://github.com/shm-open/code-push-server/commit/90643a1ace65db86678f4f86f44eb59ea937f535))
+* **deps:** update dependency log4js to v3.0.6 ([bc337a5](https://github.com/shm-open/code-push-server/commit/bc337a57a659b56448a1f0200d6d027336d7007b))
+* **deps:** update dependency moment to v2.29.1 ([e41d4f1](https://github.com/shm-open/code-push-server/commit/e41d4f1ce6107a26f909bc994651c6ed8a0dccda))
+* **deps:** update dependency nodemailer to v4.7.0 ([dd354db](https://github.com/shm-open/code-push-server/commit/dd354dbdc21810868bb94837a6deeca45345ae19))
+* **deps:** update dependency nodemailer to v6 ([73219d2](https://github.com/shm-open/code-push-server/commit/73219d2077dbe4879e42f64234ebaf6ad6fbb676))
+* **deps:** update dependency pug to v2.0.4 ([936a220](https://github.com/shm-open/code-push-server/commit/936a22068fe33e755077ae606f768ef2ab64fbb7))
+* **deps:** update dependency qiniu to v7.4.0 ([71d2645](https://github.com/shm-open/code-push-server/commit/71d2645ed83efe4222a58ff180cc1b37bf530d3d))
+* **deps:** update dependency request to v2.88.2 ([73d23aa](https://github.com/shm-open/code-push-server/commit/73d23aa0fce1f079cfb2e626274dc4041f4944ad))
+* **deps:** update dependency serve-favicon to v2.5.0 ([cbe23fb](https://github.com/shm-open/code-push-server/commit/cbe23fb7e3faee4b4ceba2db119e89458c3fa94c))
+* **deps:** update extract-zip to v2.0.1 ([6271be7](https://github.com/shm-open/code-push-server/commit/6271be7899540a169ecfde6bebdf3469f5d88f61))
+* **deps:** update helmet to v4.6.0 ([7b0592a](https://github.com/shm-open/code-push-server/commit/7b0592a9506624d9e9425b1df45354fe82b62051))
+* **deps:** update log4js to v6 ([572084e](https://github.com/shm-open/code-push-server/commit/572084e0ce5dc959df908b012c995cb1ec52f56e))
+* **deps:** update mocha and dev to their latest version ([9ece7fb](https://github.com/shm-open/code-push-server/commit/9ece7fb129376088b5844a76b69171843b0f1834))
+* **deps:** update pug to v3.0.2 ([cd1a47c](https://github.com/shm-open/code-push-server/commit/cd1a47c7b42e957a98a9c8fe8b4c6a20793b9092))
+* **deps:** update rand-token to v1.0.1 ([f229170](https://github.com/shm-open/code-push-server/commit/f2291700e702dc1cec39ebd6bea0564406e55db0))
+* **deps:** update redis to v3.1.2 ([c8c82c3](https://github.com/shm-open/code-push-server/commit/c8c82c390ef489983c0f0b2f3d4860244d5054f8))
+* **deps:** update slash to v3 ([41520ca](https://github.com/shm-open/code-push-server/commit/41520ca54dc1e7cfd0e791e5e0c74111c9fc10b5))
+* **deps:** update supertest to v6 ([9b19534](https://github.com/shm-open/code-push-server/commit/9b195344d52b8eed5689e8a220f86af507c07f13))
+* **deps:** update upyun to v3.4.4 ([e4b6e5e](https://github.com/shm-open/code-push-server/commit/e4b6e5eec9b5ebe12fc5f2afa878ad0ed8eeda71))
+* **deps:** update validator to v13 ([8c4cd00](https://github.com/shm-open/code-push-server/commit/8c4cd001979229a1041b9c134193ef02ce99b613))
+* **deps:** update yargs to v17 ([25fff4d](https://github.com/shm-open/code-push-server/commit/25fff4d74e08f22d32e077450cbd58199cf76d8a))
+* **deps:** update yazl to v2.5.1 ([ea20620](https://github.com/shm-open/code-push-server/commit/ea20620e43040510c1aac5d8508de6ac6cb66b88))
+* log more info for NotFound error ([3f890d1](https://github.com/shm-open/code-push-server/commit/3f890d1e0d4f44e319b54c0d317bb30d216aa8f0))
+* remove /README.md and remove markdown-it dep ([6100c52](https://github.com/shm-open/code-push-server/commit/6100c522778fe4ab6b05671e32c4b0aeae29ae1e))
+* remove debug from deps ([4283d9c](https://github.com/shm-open/code-push-server/commit/4283d9c8f6ac8110808cf8c6b40803d4e10ac4be))
+* remove unused i18n package ([56f4905](https://github.com/shm-open/code-push-server/commit/56f4905a4134dc4631add808f1863936fc63e79d))
+* remove unused morgan dep ([7c0dfb4](https://github.com/shm-open/code-push-server/commit/7c0dfb4cbf5885964e28e7e3dc2bd5307fe59e3d))
+* replace deprecated use of Buffer() ([dd2a141](https://github.com/shm-open/code-push-server/commit/dd2a141f9009be5e2d0bee89768295956585e07d))
+
 ### [1.0.1](https://github.com/shm-open/code-push-server/compare/v1.0.0...v1.0.1) (2021-08-19)
 
 
