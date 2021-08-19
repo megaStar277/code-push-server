@@ -67,7 +67,7 @@
     "upyun": "3.3.9",
     "validator": "10.6.0",
     "yargs": "17.1.1",
-    "yazl": "2.4.3"
+    "yazl": "2.5.1"
   },
   "devDependencies": {
     "@shm-open/eslint-config-bundle": "1.4.0",
