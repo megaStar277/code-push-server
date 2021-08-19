@@ -62,7 +62,7 @@
     "redis": "3.1.2",
     "request": "2.88.2",
     "sequelize": "4.37.1",
-    "serve-favicon": "2.4.5",
+    "serve-favicon": "2.5.0",
     "slash": "2.0.0",
     "upyun": "3.3.9",
     "validator": "10.6.0",
