@@ -22,7 +22,7 @@ describe("api/index/index.test.js", function () {
         should.not.exist(err);
         var rs = JSON.parse(res.text);
         rs.should.containEql({ status: "OK" });
-        authToken = new Buffer(`auth:${_.get(rs, "results.tokens")}`).toString(
+        authToken = Buffer.from(`auth:${_.get(rs, "results.tokens")}`).toString(
           "base64"
         );
         done();

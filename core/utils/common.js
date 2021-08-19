@@ -17,7 +17,7 @@ module.exports = common;
 
 common.detectIsTextFile = function (filePath) {
   var fd = fs.openSync(filePath, "r");
-  var buffer = new Buffer(4096);
+  var buffer = Buffer.alloc(4096);
   fs.readSync(fd, buffer, 0, 4096, 0);
   fs.closeSync(fd);
   var rs = jschardet.detect(buffer);

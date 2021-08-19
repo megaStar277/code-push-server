@@ -87,7 +87,7 @@ middleware.checkToken = function (req, res, next) {
     }
   } else if (_.eq(authArr[0], "Basic")) {
     authType = 2;
-    var b = new Buffer(authArr[1], "base64");
+    var b = Buffer.from(authArr[1], "base64");
     var user = _.split(b.toString(), ":");
     authToken = _.get(user, "1");
   }
