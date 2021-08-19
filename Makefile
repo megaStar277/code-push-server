@@ -11,16 +11,16 @@ test: test-integration
 .PHONY: test-integration
 test-integration:
 	@echo "\nRunning integration tests..."
-	@mocha test/api/init
-	@mocha test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index --recursive --timeout 15000
+	@mocha test/api/init --exit
+	@mocha test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index --exit --recursive --timeout 15000
 
 .PHONY: coverage
 coverage:
 	@echo "\n\nRunning coverage report..."
 	rm -rf coverage
-	@mocha test/api/init
+	@mocha test/api/init --exit
 	@./node_modules/istanbul/lib/cli.js cover --report lcovonly --dir coverage/api ./node_modules/.bin/_mocha \
-	test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index -- -R spec --recursive --timeout 15000
+	test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index -- -R spec --exit --recursive --timeout 15000
 	@./node_modules/istanbul/lib/cli.js report
 
 .PHONY: build-docker
