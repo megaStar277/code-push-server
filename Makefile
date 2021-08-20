@@ -27,7 +27,7 @@ coverage:
 build-docker:
 	@echo "\nBuilding docker image..."
 	docker pull node:lts-alpine
-	docker build -t shmopen/code-push-server:latest .
+	docker build -t shmopen/code-push-server:latest --no-cache .
 	docker tag shmopen/code-push-server:latest shmopen/code-push-server:${VERSION}
 	docker push shmopen/code-push-server:${VERSION}
 	docker push shmopen/code-push-server:latest
