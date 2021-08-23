@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.4](https://github.com/shm-open/code-push-server/compare/v1.0.3...v1.0.4) (2021-08-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency sequelize to v5.22.4 ([6146bf4](https://github.com/shm-open/code-push-server/commit/6146bf47add06bb7e8967409c9e3049dc431c168))
+* **deps:** update sequelize to v5 ([bbf8cad](https://github.com/shm-open/code-push-server/commit/bbf8cadd130da6888bd04d2beef5b15c6a620c63))
+* **deps:** update sequelize to v6 ([bf7a152](https://github.com/shm-open/code-push-server/commit/bf7a152da4b3c86029c557b966a3106af9c9f8f9))
+
 ### [1.0.3](https://github.com/shm-open/code-push-server/compare/v1.0.2...v1.0.3) (2021-08-23)
 
 
