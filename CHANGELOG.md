@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.5](https://github.com/shm-open/code-push-server/compare/v1.0.4...v1.0.5) (2021-08-23)
+
+
+### Bug Fixes
+
+* omit undefined query condition for no package_hash update check ([6dbe8df](https://github.com/shm-open/code-push-server/commit/6dbe8dfa192331adcf642d0804ed68362c3e2370))
+
 ### [1.0.4](https://github.com/shm-open/code-push-server/compare/v1.0.3...v1.0.4) (2021-08-23)
 
 
