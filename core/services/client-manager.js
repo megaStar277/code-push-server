@@ -211,10 +211,13 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
                         !_.eq(_.get(packages, 'package_hash', ''), packageHash)
                     ) {
                         return models.PackagesDiff.findOne({
-                            where: {
-                                package_id: packages.id,
-                                diff_against_package_hash: packageHash,
-                            },
+                            where: _.omitBy(
+                                {
+                                    package_id: packages.id,
+                                    diff_against_package_hash: packageHash,
+                                },
+                                _.isUndefined,
+                            ),
                         }).then((diffPackage) => {
                             if (!_.isEmpty(diffPackage)) {
                                 rs.downloadURL = common.getBlobDownloadUrl(
