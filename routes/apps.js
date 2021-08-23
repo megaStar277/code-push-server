@@ -18,6 +18,12 @@ const REGEX_IOS = /^(\w+)(-ios)$/;
 var log4js = require('log4js');
 var log = log4js.getLogger('cps:apps');
 
+function delay(ms) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+    });
+}
+
 router.get('/', middleware.checkToken, (req, res, next) => {
     var uid = req.users.id;
     var appManager = new AppManager();
@@ -319,7 +325,7 @@ router.post(
                             })
                             .then((packages) => {
                                 if (packages) {
-                                    Promise.delay(1000).then(() => {
+                                    delay(1000).then(() => {
                                         packageManager
                                             .createDiffPackagesByLastNums(
                                                 deploymentInfo.appid,
@@ -333,7 +339,7 @@ router.post(
                                 }
                                 //clear cache if exists.
                                 if (_.get(config, 'common.updateCheckCache', false) !== false) {
-                                    Promise.delay(2500).then(() => {
+                                    delay(2500).then(() => {
                                         var ClientManager = require('../core/services/client-manager');
                                         var clientManager = new ClientManager();
                                         clientManager.clearUpdateCheckCache(
@@ -405,7 +411,7 @@ router.patch(
                             .then(() => {
                                 //clear cache if exists.
                                 if (_.get(config, 'common.updateCheckCache', false) !== false) {
-                                    Promise.delay(2500).then(() => {
+                                    delay(2500).then(() => {
                                         var ClientManager = require('../core/services/client-manager');
                                         var clientManager = new ClientManager();
                                         clientManager.clearUpdateCheckCache(
@@ -474,7 +480,7 @@ router.post(
                     })
                     .then(([packages, destDeploymentInfo]) => {
                         if (packages) {
-                            Promise.delay(1000).then(() => {
+                            delay(1000).then(() => {
                                 packageManager
                                     .createDiffPackagesByLastNums(
                                         destDeploymentInfo.appid,
@@ -488,7 +494,7 @@ router.post(
                         }
                         //clear cache if exists.
                         if (_.get(config, 'common.updateCheckCache', false) !== false) {
-                            Promise.delay(2500).then(() => {
+                            delay(2500).then(() => {
                                 var ClientManager = require('../core/services/client-manager');
                                 var clientManager = new ClientManager();
                                 clientManager.clearUpdateCheckCache(
@@ -532,7 +538,7 @@ var rollbackCb = function (req, res, next) {
                 .rollbackPackage(dep.last_deployment_version_id, targetLabel, uid)
                 .then((packageInfo) => {
                     if (packageInfo) {
-                        Promise.delay(1000).then(() => {
+                        delay(1000).then(() => {
                             packageManager
                                 .createDiffPackagesByLastNums(dep.appid, packageInfo, 1)
                                 .catch((e) => {
@@ -542,7 +548,7 @@ var rollbackCb = function (req, res, next) {
                     }
                     //clear cache if exists.
                     if (_.get(config, 'common.updateCheckCache', false) !== false) {
-                        Promise.delay(2500).then(() => {
+                        delay(2500).then(() => {
                             var ClientManager = require('../core/services/client-manager');
                             var clientManager = new ClientManager();
                             clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
