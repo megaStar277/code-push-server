@@ -31,14 +31,14 @@ proto.findPackageInfoByDeploymentIdAndLabel = function (deploymentId, label) {
 };
 
 proto.findLatestPackageInfoByDeployVersion = function (deploymentsVersionsId) {
-    return models.DeploymentsVersions.findById(deploymentsVersionsId).then(
+    return models.DeploymentsVersions.findByPk(deploymentsVersionsId).then(
         (deploymentsVersions) => {
             if (!deploymentsVersions || deploymentsVersions.current_package_id < 0) {
                 var e = new AppError.AppError('not found last packages');
                 log.debug(e);
                 throw e;
             }
-            return models.Packages.findById(deploymentsVersions.current_package_id);
+            return models.Packages.findByPk(deploymentsVersions.current_package_id);
         },
     );
 };
@@ -100,7 +100,7 @@ proto.isMatchPackageHash = function (packageId, packageHash) {
         log.debug(`isMatchPackageHash packageId is 0`);
         return Promise.resolve(false);
     }
-    return models.Packages.findById(packageId).then((data) => {
+    return models.Packages.findByPk(packageId).then((data) => {
         if (data && _.eq(data.get('package_hash'), packageHash)) {
             log.debug(`isMatchPackageHash data:`, data.get());
             log.debug(`isMatchPackageHash packageHash exist`);
@@ -352,7 +352,7 @@ proto.createDiffPackagesByLastNums = function (appId, originalPackage, num) {
             order: [['id', 'asc']],
             limit: 2,
         }),
-        models.Apps.findById(appId),
+        models.Apps.findByPk(appId),
     ])
         .spread((lastNumsPackages, basePackages, appInfo) => {
             return [
@@ -437,7 +437,7 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
     ])
         .spread((blobHash) => {
             return security.uploadPackageType(directoryPath).then((type) => {
-                return models.Apps.findById(appId).then((appInfo) => {
+                return models.Apps.findByPk(appId).then((appInfo) => {
                     if (type > 0 && appInfo.os > 0 && appInfo.os != type) {
                         var e = new AppError.AppError('it must be publish it by ios type');
                         log.debug(e);
@@ -518,7 +518,7 @@ proto.modifyReleasePackage = function (packageId, params) {
     var isMandatory = _.get(params, 'isMandatory');
     var isDisabled = _.get(params, 'isDisabled');
     var rollout = _.get(params, 'rollout');
-    return models.Packages.findById(packageId)
+    return models.Packages.findByPk(packageId)
         .then((packageInfo) => {
             if (!packageInfo) {
                 throw new AppError.AppError(`packageInfo not found`);
@@ -535,7 +535,7 @@ proto.modifyReleasePackage = function (packageId, params) {
                             app_version: appVersion,
                         },
                     }),
-                    models.DeploymentsVersions.findById(packageInfo.deployment_version_id),
+                    models.DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
                 ])
                     .spread((v1, v2) => {
                         if (v1 && !_.eq(v1.id, v2.id)) {
@@ -594,7 +594,7 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
                     if (!sourcePack) {
                         throw new AppError.AppError('label does not exist.');
                     }
-                    return models.DeploymentsVersions.findById(
+                    return models.DeploymentsVersions.findByPk(
                         sourcePack.deployment_version_id,
                     ).then((deploymentsVersions) => {
                         if (!deploymentsVersions) {
@@ -615,13 +615,13 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
             if (_.lte(lastDeploymentVersionId, 0)) {
                 throw new AppError.AppError(`does not exist last_deployment_version_id.`);
             }
-            return models.DeploymentsVersions.findById(lastDeploymentVersionId)
+            return models.DeploymentsVersions.findByPk(lastDeploymentVersionId)
                 .then((deploymentsVersions) => {
                     var sourcePackId = _.get(deploymentsVersions, 'current_package_id', 0);
                     if (_.lte(sourcePackId, 0)) {
                         throw new AppError.AppError(`packageInfo not found.`);
                     }
-                    return models.Packages.findById(sourcePackId).then((sourcePack) => {
+                    return models.Packages.findByPk(sourcePackId).then((sourcePack) => {
                         if (!sourcePack) {
                             throw new AppError.AppError(`packageInfo not found.`);
                         }
@@ -706,11 +706,11 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
 
 proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid) {
     var self = this;
-    return models.DeploymentsVersions.findById(deploymentVersionId).then((deploymentsVersions) => {
+    return models.DeploymentsVersions.findByPk(deploymentVersionId).then((deploymentsVersions) => {
         if (!deploymentsVersions) {
             throw new AppError.AppError('您之前还没有发布过版本');
         }
-        return models.Packages.findById(deploymentsVersions.current_package_id)
+        return models.Packages.findByPk(deploymentsVersions.current_package_id)
             .then((currentPackageInfo) => {
                 if (targetLabel) {
                     return models.Packages.findAll({
