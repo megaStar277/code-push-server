@@ -29,11 +29,11 @@ proto.clearUpdateCheckCache = function (deploymentKey, appVersion, label, packag
     let redisCacheKey = this.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
     var client = factory.getRedisClient('default');
     return client
-        .keysAsync(redisCacheKey)
+        .keys(redisCacheKey)
         .then((data) => {
             if (_.isArray(data)) {
                 return Promise.map(data, (key) => {
-                    return client.delAsync(key);
+                    return client.del(key);
                 });
             }
             return null;
@@ -56,7 +56,7 @@ proto.updateCheckFromCache = function (
     let redisCacheKey = self.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
     var client = factory.getRedisClient('default');
     return client
-        .getAsync(redisCacheKey)
+        .get(redisCacheKey)
         .then((data) => {
             if (data) {
                 try {
@@ -71,7 +71,7 @@ proto.updateCheckFromCache = function (
                     try {
                         log.debug('updateCheckFromCache read from db');
                         var strRs = JSON.stringify(rs);
-                        client.setexAsync(redisCacheKey, EXPIRED, strRs);
+                        client.setex(redisCacheKey, EXPIRED, strRs);
                     } catch (e) {}
                     return rs;
                 });
@@ -104,7 +104,7 @@ proto.chosenMan = function (packageId, rollout, clientUniqueId) {
         var client = factory.getRedisClient('default');
         var redisCacheKey = self.getChosenManCacheKey(packageId, rollout, clientUniqueId);
         return client
-            .getAsync(redisCacheKey)
+            .get(redisCacheKey)
             .then((data) => {
                 if (data == 1) {
                     return true;
@@ -112,11 +112,9 @@ proto.chosenMan = function (packageId, rollout, clientUniqueId) {
                     return false;
                 } else {
                     return self.random(rollout).then((r) => {
-                        return client
-                            .setexAsync(redisCacheKey, 60 * 60 * 24 * 7, r ? 1 : 2)
-                            .then(() => {
-                                return r;
-                            });
+                        return client.setex(redisCacheKey, 60 * 60 * 24 * 7, r ? 1 : 2).then(() => {
+                            return r;
+                        });
                     });
                 }
             })

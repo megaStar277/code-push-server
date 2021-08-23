@@ -122,7 +122,7 @@ proto.login = function (account, password) {
                 var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
                 var client = factory.getRedisClient('default');
                 return client
-                    .getAsync(loginKey)
+                    .get(loginKey)
                     .then((loginErrorTimes) => {
                         if (loginErrorTimes > tryLoginTimes) {
                             throw new AppError.AppError(`您输入密码错误次数超过限制，帐户已经锁定`);
@@ -140,17 +140,17 @@ proto.login = function (account, password) {
                     var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
                     var client = factory.getRedisClient('default');
                     client
-                        .existsAsync(loginKey)
+                        .exists(loginKey)
                         .then((isExists) => {
                             if (!isExists) {
                                 var expires =
                                     moment().endOf('day').format('X') - moment().format('X');
-                                return client.setexAsync(loginKey, expires, 0);
+                                return client.setex(loginKey, expires, 0);
                             }
                             return isExists;
                         })
                         .then(() => {
-                            return client.incrAsync(loginKey);
+                            return client.incr(loginKey);
                         })
                         .finally(() => client.quit());
                 }
@@ -180,7 +180,7 @@ proto.sendRegisterCode = function (email) {
             var token = security.randToken(40);
             var client = factory.getRedisClient('default');
             return client
-                .setexAsync(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
+                .setex(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
                 .then(() => {
                     return token;
                 })
@@ -203,16 +203,16 @@ proto.checkRegisterCode = function (email, token) {
         .then(() => {
             var registerKey = `${REGISTER_CODE}${security.md5(email)}`;
             var client = factory.getRedisClient('default');
-            return client.getAsync(registerKey).then((storageToken) => {
+            return client.get(registerKey).then((storageToken) => {
                 if (_.isEmpty(storageToken)) {
                     throw new AppError.AppError(`验证码已经失效，请您重新获取`);
                 }
                 if (!_.eq(token, storageToken)) {
                     client
-                        .ttlAsync(registerKey)
+                        .ttl(registerKey)
                         .then((ttl) => {
                             if (ttl > 0) {
-                                return client.expireAsync(registerKey, ttl - EXPIRED_SPEED);
+                                return client.expire(registerKey, ttl - EXPIRED_SPEED);
                             }
                             return ttl;
                         })

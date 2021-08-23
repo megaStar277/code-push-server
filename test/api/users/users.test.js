@@ -90,7 +90,7 @@ describe('api/users/users.test.js', function () {
         before(function (done) {
             var client = factory.getRedisClient('default');
             client
-                .getAsync(registerKey)
+                .get(registerKey)
                 .then(function (t) {
                     storageToken = t;
                     done();
@@ -157,7 +157,7 @@ describe('api/users/users.test.js', function () {
         before(function (done) {
             var client = factory.getRedisClient('default');
             client
-                .getAsync(registerKey)
+                .get(registerKey)
                 .then(function (t) {
                     storageToken = t;
                     done();
