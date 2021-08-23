@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.3](https://github.com/shm-open/code-push-server/compare/v1.0.2...v1.0.3) (2021-08-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency aws-sdk to v2.973.0 ([0880204](https://github.com/shm-open/code-push-server/commit/0880204282c2db605800788bba3ff9ba458a6874))
+* **deps:** update dependency sequelize to v4.44.4 ([e66bbf1](https://github.com/shm-open/code-push-server/commit/e66bbf1148396fc31f35cea5272587e2dcf4830f))
+* support REDIS_PASSWORD, REDIS_DB env var in default config ([e7fe615](https://github.com/shm-open/code-push-server/commit/e7fe6159a2cf8b180b0eb2993fe9fef239ab85a5))
+
 ### [1.0.2](https://github.com/shm-open/code-push-server/compare/v1.0.1...v1.0.2) (2021-08-19)
 
 
