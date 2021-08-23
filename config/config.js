@@ -103,6 +103,8 @@ config.development = {
         default: {
             host: process.env.REDIS_HOST || '127.0.0.1',
             port: process.env.REDIS_PORT || 6379,
+            password: process.env.REDIS_PASSWORD,
+            db: process.env.REDIS_DB || 0,
             retry_strategy: function (options) {
                 if (options.error.code === 'ECONNREFUSED') {
                     // End reconnecting on a specific error and flush all commands with a individual error
