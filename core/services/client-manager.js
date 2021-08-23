@@ -1,5 +1,4 @@
 'use strict';
-var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
 var common = require('../utils/common');
@@ -32,9 +31,11 @@ proto.clearUpdateCheckCache = function (deploymentKey, appVersion, label, packag
         .keys(redisCacheKey)
         .then((data) => {
             if (_.isArray(data)) {
-                return Promise.map(data, (key) => {
-                    return client.del(key);
-                });
+                return Promise.all(
+                    data.map((key) => {
+                        return client.del(key);
+                    }),
+                );
             }
             return null;
         })

@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var Promise = require('bluebird');
 var _ = require('lodash');
 var models = require('../models');
 var middleware = require('../core/middleware');

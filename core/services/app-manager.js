@@ -1,5 +1,4 @@
 'use strict';
-var Promise = require('bluebird');
 var models = require('../../models');
 var _ = require('lodash');
 var security = require('../../core/utils/security');
@@ -108,24 +107,26 @@ proto.listApps = function (uid) {
             }
         })
         .then((appInfos) => {
-            var rs = Promise.map(_.values(appInfos), (v) => {
-                return self.getAppDetailInfo(v, uid).then((info) => {
-                    var constName = require('../const');
-                    if (info.os == constName.IOS) {
-                        info.os = constName.IOS_NAME;
-                    } else if (info.os == constName.ANDROID) {
-                        info.os = constName.ANDROID_NAME;
-                    } else if (info.os == constName.WINDOWS) {
-                        info.os = constName.WINDOWS_NAME;
-                    }
-                    if (info.platform == constName.REACT_NATIVE) {
-                        info.platform = constName.REACT_NATIVE_NAME;
-                    } else if (info.platform == constName.CORDOVA) {
-                        info.platform = constName.CORDOVA_NAME;
-                    }
-                    return info;
-                });
-            });
+            var rs = Promise.all(
+                _.values(appInfos).map((v) => {
+                    return self.getAppDetailInfo(v, uid).then((info) => {
+                        var constName = require('../const');
+                        if (info.os == constName.IOS) {
+                            info.os = constName.IOS_NAME;
+                        } else if (info.os == constName.ANDROID) {
+                            info.os = constName.ANDROID_NAME;
+                        } else if (info.os == constName.WINDOWS) {
+                            info.os = constName.WINDOWS_NAME;
+                        }
+                        if (info.platform == constName.REACT_NATIVE) {
+                            info.platform = constName.REACT_NATIVE_NAME;
+                        } else if (info.platform == constName.CORDOVA) {
+                            info.platform = constName.CORDOVA_NAME;
+                        }
+                        return info;
+                    });
+                }),
+            );
             return rs;
         });
 };
@@ -134,12 +135,9 @@ proto.getAppDetailInfo = function (appInfo, currentUid) {
     var appId = appInfo.get('id');
     return Promise.all([
         models.Deployments.findAll({ where: { appid: appId } }),
-        models.Collaborators.findAll({ where: { appid: appId } }),
-    ]).then(([deploymentInfos, collaboratorInfos]) => {
-        return Promise.props({
-            collaborators: Promise.reduce(
-                collaboratorInfos,
-                (allCol, collaborator) => {
+        models.Collaborators.findAll({ where: { appid: appId } }).then((collaboratorInfos) => {
+            return collaboratorInfos.reduce((prev, collaborator) => {
+                return prev.then((allCol) => {
                     return models.Users.findOne({ where: { id: collaborator.get('uid') } }).then(
                         (u) => {
                             var isCurrentAccount = false;
@@ -153,10 +151,12 @@ proto.getAppDetailInfo = function (appInfo, currentUid) {
                             return allCol;
                         },
                     );
-                },
-                {},
-            ),
-
+                });
+            }, Promise.resolve({}));
+        }),
+    ]).then(([deploymentInfos, collaborators]) => {
+        return {
+            collaborators,
             deployments: _.map(deploymentInfos, (item) => {
                 return _.get(item, 'name');
             }),
@@ -164,6 +164,6 @@ proto.getAppDetailInfo = function (appInfo, currentUid) {
             platform: appInfo.get('platform'),
             name: appInfo.get('name'),
             id: appInfo.get('id'),
-        });
+        };
     });
 };

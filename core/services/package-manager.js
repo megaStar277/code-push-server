@@ -1,5 +1,4 @@
 'use strict';
-var Promise = require('bluebird');
 var models = require('../../models');
 var security = require('../utils/security');
 var _ = require('lodash');
@@ -386,27 +385,32 @@ proto.createDiffPackages = function (originalPackage, destPackages, isUseDiffTex
         .createEmptyFolder(workDirectoryPath)
         .then(() => self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url))
         .then((originDataCenter) =>
-            Promise.map(destPackages, (v) => {
-                var diffWorkDirectoryPath = path.join(workDirectoryPath, _.get(v, 'package_hash'));
-                common.createEmptyFolderSync(diffWorkDirectoryPath);
-                return self
-                    .downloadPackageAndExtract(
-                        diffWorkDirectoryPath,
+            Promise.all(
+                destPackages.map((v) => {
+                    var diffWorkDirectoryPath = path.join(
+                        workDirectoryPath,
                         _.get(v, 'package_hash'),
-                        _.get(v, 'blob_url'),
-                    )
-                    .then((oldPackageDataCenter) =>
-                        self.generateOneDiffPackage(
-                            diffWorkDirectoryPath,
-                            originalPackage.id,
-                            originDataCenter,
-                            oldPackageDataCenter,
-                            v.package_hash,
-                            v.manifest_blob_url,
-                            isUseDiffText,
-                        ),
                     );
-            }),
+                    common.createEmptyFolderSync(diffWorkDirectoryPath);
+                    return self
+                        .downloadPackageAndExtract(
+                            diffWorkDirectoryPath,
+                            _.get(v, 'package_hash'),
+                            _.get(v, 'blob_url'),
+                        )
+                        .then((oldPackageDataCenter) =>
+                            self.generateOneDiffPackage(
+                                diffWorkDirectoryPath,
+                                originalPackage.id,
+                                originDataCenter,
+                                oldPackageDataCenter,
+                                v.package_hash,
+                                v.manifest_blob_url,
+                                isUseDiffText,
+                            ),
+                        );
+                }),
+            ),
         )
         .finally(() => common.deleteFolderSync(workDirectoryPath));
 };

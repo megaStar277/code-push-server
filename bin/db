@@ -7,7 +7,6 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var mysql = require('mysql2');
-var Promise = require('bluebird');
 var constConfig = require('../core/const');
 var yargs = require('yargs');
 var argv = yargs
@@ -50,35 +49,37 @@ var dbpassword = argv.dbpassword;
 
 if (command === 'init') {
     var connection2;
-    var connection = mysql.createConnection({
-        host: dbhost,
-        user: dbuser,
-        password: dbpassword,
-        port: dbport,
-    });
+    var connection = mysql
+        .createConnection({
+            host: dbhost,
+            user: dbuser,
+            password: dbpassword,
+            port: dbport,
+        })
+        .promise();
     var createDatabaseSql = argv.force
         ? `CREATE DATABASE IF NOT EXISTS ${dbname}`
         : `CREATE DATABASE ${dbname}`;
-    Promise.promisifyAll(connection);
     connection.connect();
     connection
-        .queryAsync(createDatabaseSql)
+        .query(createDatabaseSql)
         .then(function () {
-            connection2 = mysql.createConnection({
-                host: dbhost,
-                user: dbuser,
-                password: dbpassword,
-                database: dbname,
-                multipleStatements: true,
-                port: dbport,
-            });
+            connection2 = mysql
+                .createConnection({
+                    host: dbhost,
+                    user: dbuser,
+                    password: dbpassword,
+                    database: dbname,
+                    multipleStatements: true,
+                    port: dbport,
+                })
+                .promise();
             connection2.connect();
-            Promise.promisifyAll(connection2);
             return connection2;
         })
         .then(function (connection2) {
             var sql = fs.readFileSync(path.resolve(__dirname, '../sql/codepush-all.sql'), 'utf-8');
-            return connection2.queryAsync(sql);
+            return connection2.query(sql);
         })
         .then(function () {
             console.log('success.');
@@ -92,68 +93,64 @@ if (command === 'init') {
         });
 } else if (command == 'upgrade') {
     try {
-        var connection = mysql.createConnection({
-            host: dbhost,
-            user: dbuser,
-            password: dbpassword,
-            database: dbname,
-            multipleStatements: true,
-            port: dbport,
-        });
-        Promise.promisifyAll(connection);
+        var connection = mysql
+            .createConnection({
+                host: dbhost,
+                user: dbuser,
+                password: dbpassword,
+                database: dbname,
+                multipleStatements: true,
+                port: dbport,
+            })
+            .promise();
         connection.connect();
     } catch (e) {
         console.error('connect mysql error, check params', e);
         return;
     }
 
-    return Promise.coroutine(function* (val) {
-        var version_no = '0.0.1';
-        var rs = yield connection.queryAsync(
-            'select `version` from `versions` where `type`=1 limit 1',
-        );
-        version_no = _.get(rs, '0.version', '0.0.1');
-        if (version_no == constConfig.CURRENT_DB_VERSION) {
-            console.log('Everything up-to-date.');
-            process.exit(0);
-        }
-        var allSqlFile = [
-            {
-                version: '0.2.14',
-                path: path.resolve(__dirname, '../sql/codepush-v0.2.14-patch.sql'),
-            },
-            {
-                version: '0.2.15',
-                path: path.resolve(__dirname, '../sql/codepush-v0.2.15-patch.sql'),
-            },
-            {
-                version: '0.3.0',
-                path: path.resolve(__dirname, '../sql/codepush-v0.3.0-patch.sql'),
-            },
-            {
-                version: '0.4.0',
-                path: path.resolve(__dirname, '../sql/codepush-v0.4.0-patch.sql'),
-            },
-            {
-                version: '0.5.0',
-                path: path.resolve(__dirname, '../sql/codepush-v0.5.0-patch.sql'),
-            },
-        ];
-        for (var i = 0; i < allSqlFile.length; i++) {
-            if (!_.gt(allSqlFile[i]['version'], version_no)) {
-                continue;
+    var version_no = '0.0.1';
+    connection
+        .query('select `version` from `versions` where `type`=1 limit 1')
+        .then((rs) => {
+            version_no = _.get(rs, '0.version', '0.0.1');
+            if (version_no == constConfig.CURRENT_DB_VERSION) {
+                console.log('Everything up-to-date.');
+                process.exit(0);
             }
-            try {
-                var sql = fs.readFileSync(allSqlFile[i]['path'], 'utf-8');
-                console.log('exec sql file:' + allSqlFile[i]['path']);
-                yield connection.queryAsync(sql);
-                console.log('success exec sql file:' + allSqlFile[i]['path']);
-            } catch (e) {
-                console.error('error exec sql file:' + allSqlFile[i]['path']);
-                throw e;
-            }
-        }
-    })()
+            var allSqlFile = [
+                {
+                    version: '0.2.14',
+                    path: path.resolve(__dirname, '../sql/codepush-v0.2.14-patch.sql'),
+                },
+                {
+                    version: '0.2.15',
+                    path: path.resolve(__dirname, '../sql/codepush-v0.2.15-patch.sql'),
+                },
+                {
+                    version: '0.3.0',
+                    path: path.resolve(__dirname, '../sql/codepush-v0.3.0-patch.sql'),
+                },
+                {
+                    version: '0.4.0',
+                    path: path.resolve(__dirname, '../sql/codepush-v0.4.0-patch.sql'),
+                },
+                {
+                    version: '0.5.0',
+                    path: path.resolve(__dirname, '../sql/codepush-v0.5.0-patch.sql'),
+                },
+            ];
+            return allSqlFile.reduce((prev, sqlFile) => {
+                if (!_.gt(sqlFile['version'], version_no)) {
+                    return prev;
+                }
+                var sql = fs.readFileSync(sqlFile['path'], 'utf-8');
+                console.log('exec sql file:' + sqlFile['path']);
+                return connection.query(sql).then(() => {
+                    console.log('success exec sql file:' + sqlFile['path']);
+                });
+            }, Promise.resolve());
+        })
         .then(function () {
             console.log('Upgrade success.');
         })

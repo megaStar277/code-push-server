@@ -1,5 +1,4 @@
 'use strict';
-var Promise = require('bluebird');
 var models = require('../../models');
 var security = require('../../core/utils/security');
 var common = require('../../core/utils/common');
@@ -88,38 +87,45 @@ proto.findDeloymentByName = function (deploymentName, appId) {
 proto.findPackagesAndOtherInfos = function (packageId) {
     return models.Packages.findOne({
         where: { id: packageId },
-    }).then((packageInfo) => {
-        if (!packageInfo) {
-            return null;
-        }
-        return Promise.props({
-            packageInfo: packageInfo,
-            packageDiffMap: models.PackagesDiff.findAll({
-                where: { package_id: packageId },
-            }).then((diffs) => {
-                if (diffs.length > 0) {
-                    return _.reduce(
-                        diffs,
-                        (result, v) => {
-                            result[_.get(v, 'diff_against_package_hash')] = {
-                                size: _.get(v, 'diff_size'),
-                                url: common.getBlobDownloadUrl(_.get(v, 'diff_blob_url')),
-                            };
-                            return result;
-                        },
-                        {},
-                    );
-                }
+    })
+        .then((packageInfo) => {
+            if (!packageInfo) {
                 return null;
-            }),
-            userInfo: models.Users.findOne({
-                where: { id: packageInfo.released_by },
-            }),
-            deploymentsVersions: models.DeploymentsVersions.findByPk(
-                packageInfo.deployment_version_id,
-            ),
+            }
+            return Promise.all([
+                Promise.resolve(packageInfo),
+                models.PackagesDiff.findAll({
+                    where: { package_id: packageId },
+                }).then((diffs) => {
+                    if (diffs.length > 0) {
+                        return _.reduce(
+                            diffs,
+                            (result, v) => {
+                                result[_.get(v, 'diff_against_package_hash')] = {
+                                    size: _.get(v, 'diff_size'),
+                                    url: common.getBlobDownloadUrl(_.get(v, 'diff_blob_url')),
+                                };
+                                return result;
+                            },
+                            {},
+                        );
+                    }
+                    return null;
+                }),
+                models.Users.findOne({
+                    where: { id: packageInfo.released_by },
+                }),
+                models.DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
+            ]);
+        })
+        .then(([packageInfo, packageDiffMap, userInfo, deploymentsVersions]) => {
+            return {
+                packageInfo,
+                packageDiffMap,
+                userInfo,
+                deploymentsVersions,
+            };
         });
-    });
 };
 
 proto.findDeloymentsPackages = function (deploymentsVersionsId) {
@@ -166,23 +172,26 @@ proto.listDeloyments = function (appId) {
         if (_.isEmpty(deploymentsInfos)) {
             return [];
         }
-        return Promise.map(deploymentsInfos, (v) => {
-            return self.listDeloyment(v);
-        });
+        return Promise.all(
+            deploymentsInfos.map((v) => {
+                return self.listDeloyment(v);
+            }),
+        );
     });
 };
 
 proto.listDeloyment = function (deploymentInfo) {
-    const self = this;
-    return Promise.props({
-        createdTime: parseInt(moment(deploymentInfo.created_at).format('x')),
-        id: `${deploymentInfo.id}`,
-        key: deploymentInfo.deployment_key,
-        name: deploymentInfo.name,
-        package: self
-            .findDeloymentsPackages([deploymentInfo.last_deployment_version_id])
-            .then(self.formatPackage),
-    });
+    return this.findDeloymentsPackages([deploymentInfo.last_deployment_version_id])
+        .then(this.formatPackage)
+        .then((packageInfo) => {
+            return {
+                createdTime: parseInt(moment(deploymentInfo.created_at).format('x')),
+                id: `${deploymentInfo.id}`,
+                key: deploymentInfo.deployment_key,
+                name: deploymentInfo.name,
+                package: packageInfo,
+            };
+        });
 };
 
 proto.getDeploymentHistory = function (deploymentId) {
@@ -198,9 +207,11 @@ proto.getDeploymentHistory = function (deploymentId) {
             });
         })
         .then((packageIds) => {
-            return Promise.map(packageIds, (v) => {
-                return self.findPackagesAndOtherInfos(v).then(self.formatPackage);
-            });
+            return Promise.all(
+                packageIds.map((v) => {
+                    return self.findPackagesAndOtherInfos(v).then(self.formatPackage);
+                }),
+            );
         });
 };
 
@@ -216,38 +227,44 @@ proto.deleteDeploymentHistory = function (deploymentId) {
                 order: [['id', 'desc']],
                 limit: 1000,
             }).then((rs) => {
-                return Promise.map(rs, (v) => {
-                    return v.destroy({ transaction: t });
-                });
+                return Promise.all(
+                    rs.map((v) => {
+                        return v.destroy({ transaction: t });
+                    }),
+                );
             }),
             models.DeploymentsVersions.findAll({
                 where: { deployment_id: deploymentId },
                 order: [['id', 'desc']],
                 limit: 1000,
             }).then((rs) => {
-                return Promise.map(rs, (v) => {
-                    return v.destroy({ transaction: t });
-                });
+                return Promise.all(
+                    rs.map((v) => {
+                        return v.destroy({ transaction: t });
+                    }),
+                );
             }),
             models.Packages.findAll({
                 where: { deployment_id: deploymentId },
                 order: [['id', 'desc']],
                 limit: 1000,
             }).then((rs) => {
-                return Promise.map(rs, (v) => {
-                    return v.destroy({ transaction: t }).then(() => {
-                        return Promise.all([
-                            models.PackagesMetrics.destroy({
-                                where: { package_id: v.get('id') },
-                                transaction: t,
-                            }),
-                            models.PackagesDiff.destroy({
-                                where: { package_id: v.get('id') },
-                                transaction: t,
-                            }),
-                        ]);
-                    });
-                });
+                return Promise.all(
+                    rs.map((v) => {
+                        return v.destroy({ transaction: t }).then(() => {
+                            return Promise.all([
+                                models.PackagesMetrics.destroy({
+                                    where: { package_id: v.get('id') },
+                                    transaction: t,
+                                }),
+                                models.PackagesDiff.destroy({
+                                    where: { package_id: v.get('id') },
+                                    transaction: t,
+                                }),
+                            ]);
+                        });
+                    }),
+                );
             }),
         ]);
     });

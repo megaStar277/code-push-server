@@ -1,5 +1,4 @@
 var express = require('express');
-var Promise = require('bluebird');
 var router = express.Router();
 var _ = require('lodash');
 var middleware = require('../core/middleware');
@@ -135,9 +134,8 @@ router.get(
                 return deployments.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
             })
             .then((packagesInfos) => {
-                return Promise.reduce(
-                    packagesInfos,
-                    (result, v) => {
+                return packagesInfos.reduce((prev, v) => {
+                    return prev.then((result) => {
                         return packageManager.getMetricsbyPackageId(v.get('id')).then((metrics) => {
                             if (metrics) {
                                 result[v.get('label')] = {
@@ -149,9 +147,8 @@ router.get(
                             }
                             return result;
                         });
-                    },
-                    {},
-                );
+                    });
+                }, Promise.resolve({}));
             })
             .then((rs) => {
                 res.send({ metrics: rs });
