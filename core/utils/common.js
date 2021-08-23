@@ -1,18 +1,24 @@
 'use strict';
-var fs = require('fs');
-var fsextra = require('fs-extra');
-var extract = require('extract-zip');
-var config = require('../config');
+const fs = require('fs');
+const fsextra = require('fs-extra');
+const extract = require('extract-zip');
 var _ = require('lodash');
 var validator = require('validator');
 var qiniu = require('qiniu');
 var upyun = require('upyun');
-var common = {};
+const jschardet = require('jschardet');
+const log4js = require('log4js');
+const path = require('path');
+const util = require('util');
+const streamPipeline = util.promisify(require('stream').pipeline);
+const fetch = require('node-fetch');
+
+var config = require('../config');
 var AppError = require('../app-error');
-var jschardet = require('jschardet');
-var log4js = require('log4js');
-var path = require('path');
+
 var log = log4js.getLogger('cps:utils:common');
+
+var common = {};
 module.exports = common;
 
 common.detectIsTextFile = function (filePath) {
@@ -91,35 +97,22 @@ common.validatorVersion = function (versionNo) {
     return [flag, min, max];
 };
 
-common.createFileFromRequest = function (url, filePath) {
-    return new Promise((resolve, reject) => {
-        fs.exists(filePath, function (exists) {
-            if (!exists) {
-                var request = require('request');
-                log.debug(`createFileFromRequest url:${url}`);
-                request(url)
-                    .on('error', function (error) {
-                        reject(error);
-                    })
-                    .on('response', function (response) {
-                        if (response.statusCode == 200) {
-                            let stream = fs.createWriteStream(filePath);
-                            response.pipe(stream);
-                            stream.on('close', function () {
-                                resolve(null);
-                            });
-                            stream.on('error', function (error) {
-                                reject(error);
-                            });
-                        } else {
-                            reject({ message: 'request fail' });
-                        }
-                    });
-            } else {
-                resolve(null);
-            }
-        });
-    });
+common.createFileFromRequest = async function (url, filePath) {
+    try {
+        await fs.promises.stat(filePath);
+        return;
+    } catch (err) {
+        if (err.code !== 'ENOENT') {
+            throw error;
+        }
+    }
+
+    log.debug(`createFileFromRequest url:${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new AppError.AppError(`unexpected response ${response.statusText}`);
+    }
+    await streamPipeline(response.body, fs.createWriteStream(filePath));
 };
 
 common.copySync = function (sourceDst, targertDst) {
