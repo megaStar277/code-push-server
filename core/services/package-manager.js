@@ -86,7 +86,7 @@ proto.createDeploymentsVersionIfNotExist = function (
         },
         defaults: { current_package_id: 0 },
         transaction: t,
-    }).spread((data, created) => {
+    }).then(([data, created]) => {
         if (created) {
             log.debug(`createDeploymentsVersionIfNotExist findOrCreate version ${appVersion}`);
         }
@@ -354,13 +354,13 @@ proto.createDiffPackagesByLastNums = function (appId, originalPackage, num) {
         }),
         models.Apps.findByPk(appId),
     ])
-        .spread((lastNumsPackages, basePackages, appInfo) => {
+        .then(([lastNumsPackages, basePackages, appInfo]) => {
             return [
                 _.uniqBy(_.unionBy(lastNumsPackages, basePackages, 'id'), 'package_hash'),
                 appInfo,
             ];
         })
-        .spread((lastNumsPackages, appInfo) => {
+        .then(([lastNumsPackages, appInfo]) => {
             return self.createDiffPackages(
                 originalPackage,
                 lastNumsPackages,
@@ -435,7 +435,7 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
             return common.unzipFile(filePath, directoryPath);
         }),
     ])
-        .spread((blobHash) => {
+        .then(([blobHash]) => {
             return security.uploadPackageType(directoryPath).then((type) => {
                 return models.Apps.findByPk(appId).then((appInfo) => {
                     if (type > 0 && appInfo.os > 0 && appInfo.os != type) {
@@ -485,7 +485,7 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
                     });
             });
         })
-        .spread((packageHash, manifestHash, blobHash) => {
+        .then(([packageHash, manifestHash, blobHash]) => {
             var stats = fs.statSync(filePath);
             var params = {
                 releaseMethod: constConfig.RELEAS_EMETHOD_UPLOAD,
@@ -537,7 +537,7 @@ proto.modifyReleasePackage = function (packageId, params) {
                     }),
                     models.DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
                 ])
-                    .spread((v1, v2) => {
+                    .then(([v1, v2]) => {
                         if (v1 && !_.eq(v1.id, v2.id)) {
                             log.debug(v1);
                             throw new AppError.AppError(`${appVersion} already exist.`);
@@ -633,7 +633,7 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
                 });
         }
     })
-        .spread((sourcePack, deploymentsVersions) => {
+        .then(([sourcePack, deploymentsVersions]) => {
             var appFinalVersion = appVersion || deploymentsVersions.app_version;
             log.debug('sourcePack', sourcePack);
             log.debug('deploymentsVersions', deploymentsVersions);
@@ -662,7 +662,7 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
                     return [sourcePack, deploymentsVersions, appFinalVersion];
                 });
         })
-        .spread((sourcePack, deploymentsVersions, appFinalVersion) => {
+        .then(([sourcePack, deploymentsVersions, appFinalVersion]) => {
             var versionInfo = common.validatorVersion(appFinalVersion);
             if (!versionInfo[0]) {
                 log.debug(`targetBinaryVersion ${appVersion} not support.`);
@@ -727,7 +727,7 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
                         });
                 }
             })
-            .spread((currentPackageInfo, rollbackPackageInfos) => {
+            .then(([currentPackageInfo, rollbackPackageInfos]) => {
                 if (currentPackageInfo && rollbackPackageInfos.length > 0) {
                     for (var i = rollbackPackageInfos.length - 1; i >= 0; i--) {
                         if (

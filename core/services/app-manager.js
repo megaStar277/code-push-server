@@ -69,8 +69,8 @@ proto.deleteApp = function (appId) {
 };
 
 proto.modifyApp = function (appId, params) {
-    return models.Apps.update(params, { where: { id: appId } }).spread(
-        (affectedCount, affectedRows) => {
+    return models.Apps.update(params, { where: { id: appId } }).then(
+        ([affectedCount, affectedRows]) => {
             if (!_.gt(affectedCount, 0)) {
                 throw AppError.AppError('modify errors');
             }
@@ -135,7 +135,7 @@ proto.getAppDetailInfo = function (appInfo, currentUid) {
     return Promise.all([
         models.Deployments.findAll({ where: { appid: appId } }),
         models.Collaborators.findAll({ where: { appid: appId } }),
-    ]).spread((deploymentInfos, collaboratorInfos) => {
+    ]).then(([deploymentInfos, collaboratorInfos]) => {
         return Promise.props({
             collaborators: Promise.reduce(
                 collaboratorInfos,

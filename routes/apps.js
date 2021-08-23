@@ -396,7 +396,7 @@ router.patch(
                                 });
                         }
                     })
-                    .spread((deploymentInfo, packageInfo) => {
+                    .then(([deploymentInfo, packageInfo]) => {
                         if (!packageInfo) {
                             throw new AppError.AppError('does not find the packageInfo');
                         }
@@ -451,7 +451,7 @@ router.post(
                     deployments.findDeloymentByName(sourceDeploymentName, appId),
                     deployments.findDeloymentByName(destDeploymentName, appId),
                 ])
-                    .spread((sourceDeploymentInfo, destDeploymentInfo) => {
+                    .then(([sourceDeploymentInfo, destDeploymentInfo]) => {
                         if (!sourceDeploymentInfo) {
                             throw new AppError.AppError(`${sourceDeploymentName}  does not exist.`);
                         }
@@ -460,7 +460,7 @@ router.post(
                         }
                         return [sourceDeploymentInfo, destDeploymentInfo];
                     })
-                    .spread((sourceDeploymentInfo, destDeploymentInfo) => {
+                    .then(([sourceDeploymentInfo, destDeploymentInfo]) => {
                         var params = _.get(req.body, 'packageInfo', {});
                         _.set(params, 'promoteUid', uid);
                         return [
@@ -472,7 +472,7 @@ router.post(
                             destDeploymentInfo,
                         ];
                     })
-                    .spread((packages, destDeploymentInfo) => {
+                    .then(([packages, destDeploymentInfo]) => {
                         if (packages) {
                             Promise.delay(1000).then(() => {
                                 packageManager

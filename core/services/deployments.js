@@ -56,7 +56,7 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
         return models.Deployments.update(
             { name: newName },
             { where: { name: deploymentName, appid: appId } },
-        ).spread((affectedCount, affectedRow) => {
+        ).then(([affectedCount, affectedRow]) => {
             if (_.gt(affectedCount, 0)) {
                 return { name: newName };
             } else {
