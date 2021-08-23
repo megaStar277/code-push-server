@@ -205,19 +205,17 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
                     return packages;
                 })
                 .then((packages) => {
-                    //增量更新
+                    // 尝试增量更新
                     if (
+                        packageHash &&
                         !_.isEmpty(packages) &&
                         !_.eq(_.get(packages, 'package_hash', ''), packageHash)
                     ) {
                         return models.PackagesDiff.findOne({
-                            where: _.omitBy(
-                                {
-                                    package_id: packages.id,
-                                    diff_against_package_hash: packageHash,
-                                },
-                                _.isUndefined,
-                            ),
+                            where: {
+                                package_id: packages.id,
+                                diff_against_package_hash: packageHash,
+                            },
                         }).then((diffPackage) => {
                             if (!_.isEmpty(diffPackage)) {
                                 rs.downloadURL = common.getBlobDownloadUrl(
