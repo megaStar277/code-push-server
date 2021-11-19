@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "aliyun-oss-upload-stream": "1.3.0",
-    "aliyun-sdk": "1.12.3",
+    "aliyun-sdk": "1.12.4",
     "aws-sdk": "2.979.0",
     "bcryptjs": "2.4.3",
     "body-parser": "1.19.0",
