@@ -39,7 +39,7 @@
     "aws-sdk": "2.979.0",
     "bcryptjs": "2.4.3",
     "body-parser": "1.19.0",
-    "cookie-parser": "1.4.5",
+    "cookie-parser": "1.4.6",
     "cos-nodejs-sdk-v5": "2.10.0",
     "diff-match-patch": "1.0.5",
     "express": "4.17.1",
