@@ -303,7 +303,7 @@ router.post(
                         return packageManager
                             .parseReqFile(req)
                             .then((data) => {
-                                if (data.package.type != 'application/zip') {
+                                if (data.package.mimetype != 'application/zip') {
                                     log.debug(`upload file type is invlidate`, data.package);
                                     throw new AppError.AppError('upload file type is invalidate');
                                 }
@@ -313,11 +313,11 @@ router.post(
                                         deploymentInfo.appid,
                                         deploymentInfo.id,
                                         data.packageInfo,
-                                        data.package.path,
+                                        data.package.filepath,
                                         uid,
                                     )
                                     .finally(() => {
-                                        common.deleteFolderSync(data.package.path);
+                                        common.deleteFolderSync(data.package.filepath);
                                     });
                             })
                             .then((packages) => {
