@@ -149,9 +149,7 @@ config.development = {
 config.development.log4js = {
     appenders: { console: { type: 'console' } },
     categories: {
-        default: { appenders: ['console'], level: 'error' },
-        startup: { appenders: ['console'], level: 'info' },
-        http: { appenders: ['console'], level: 'info' },
+        default: { appenders: ['console'], level: process.env.LOG_LEVEL || 'info' },
     },
 };
 
