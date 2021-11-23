@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/shm-open/code-push-server/compare/v1.1.0...v1.1.1) (2021-11-23)
+
+
+### Bug Fixes
+
+* make all config items accessible with environment variables ([187c198](https://github.com/shm-open/code-push-server/commit/187c198bc84acaf835c84f434438a8eb40720ad1))
+* use unified log level config and config it by LOG_LEVEL ([6699127](https://github.com/shm-open/code-push-server/commit/66991276444efcabd2d8b08244f7e459df9ef4e3))
+
 ## [1.1.0](https://github.com/shm-open/code-push-server/compare/v1.0.6...v1.1.0) (2021-11-23)
 
 
