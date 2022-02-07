@@ -119,7 +119,7 @@ proto.login = function (account, password) {
         .then((users) => {
             if (tryLoginTimes > 0) {
                 var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
-                var client = factory.getRedisClient('default');
+                var client = factory.getRedisClient();
                 return client
                     .get(loginKey)
                     .then((loginErrorTimes) => {
@@ -137,7 +137,7 @@ proto.login = function (account, password) {
             if (!security.passwordVerifySync(password, users.password)) {
                 if (tryLoginTimes > 0) {
                     var loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
-                    var client = factory.getRedisClient('default');
+                    var client = factory.getRedisClient();
                     client
                         .exists(loginKey)
                         .then((isExists) => {
@@ -177,7 +177,7 @@ proto.sendRegisterCode = function (email) {
         .then(() => {
             //将token临时存储到redis
             var token = security.randToken(40);
-            var client = factory.getRedisClient('default');
+            var client = factory.getRedisClient();
             return client
                 .setex(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
                 .then(() => {
@@ -201,7 +201,7 @@ proto.checkRegisterCode = function (email, token) {
         })
         .then(() => {
             var registerKey = `${REGISTER_CODE}${security.md5(email)}`;
-            var client = factory.getRedisClient('default');
+            var client = factory.getRedisClient();
             return client.get(registerKey).then((storageToken) => {
                 if (_.isEmpty(storageToken)) {
                     throw new AppError.AppError(`验证码已经失效，请您重新获取`);

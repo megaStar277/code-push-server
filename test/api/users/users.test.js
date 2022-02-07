@@ -88,7 +88,7 @@ describe('api/users/users.test.js', function () {
         var account2 = '522539441@qq.com2';
         var storageToken;
         before(function (done) {
-            var client = factory.getRedisClient('default');
+            var client = factory.getRedisClient();
             client
                 .get(registerKey)
                 .then(function (t) {
@@ -155,7 +155,7 @@ describe('api/users/users.test.js', function () {
     describe('sign up', function (done) {
         var storageToken;
         before(function (done) {
-            var client = factory.getRedisClient('default');
+            var client = factory.getRedisClient();
             client
                 .get(registerKey)
                 .then(function (t) {

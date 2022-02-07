@@ -12,7 +12,8 @@ var proto = (module.exports = function () {
 proto.sendMail = function (options) {
     return new Promise((resolve, reject) => {
         if (!_.get(options, 'to')) {
-            return reject(new AppError.AppError('to是必传参数'));
+            reject(new AppError.AppError('to是必传参数'));
+            return;
         }
         var smtpConfig = _.get(config, 'smtpConfig');
         if (!smtpConfig || !smtpConfig.host) {
@@ -29,7 +30,8 @@ proto.sendMail = function (options) {
         var mailOptions = _.assign(defaultMailOptions, options);
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
-                return reject(error);
+                reject(error);
+                return;
             }
             resolve(info);
         });

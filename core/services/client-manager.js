@@ -27,7 +27,7 @@ proto.clearUpdateCheckCache = function (deploymentKey, appVersion, label, packag
         key: deploymentKey,
     });
     let redisCacheKey = this.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
-    var client = factory.getRedisClient('default');
+    var client = factory.getRedisClient();
     return client
         .keys(redisCacheKey)
         .then((data) => {
@@ -56,7 +56,7 @@ proto.updateCheckFromCache = function (
         return self.updateCheck(deploymentKey, appVersion, label, packageHash);
     }
     let redisCacheKey = self.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
-    var client = factory.getRedisClient('default');
+    var client = factory.getRedisClient();
     return client
         .get(redisCacheKey)
         .then((data) => {
@@ -103,7 +103,7 @@ proto.chosenMan = function (packageId, rollout, clientUniqueId) {
     if (rolloutClientUniqueIdCache === false) {
         return self.random(rollout);
     } else {
-        var client = factory.getRedisClient('default');
+        var client = factory.getRedisClient();
         var redisCacheKey = self.getChosenManCacheKey(packageId, rollout, clientUniqueId);
         return client
             .get(redisCacheKey)
