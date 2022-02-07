@@ -5,8 +5,7 @@ var common = require('../utils/common');
 var factory = require('../utils/factory');
 var AppError = require('../app-error');
 var config = require('../config');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:ClientManager');
+var { logger } = require('kv-logger');
 var Sequelize = require('sequelize');
 
 var proto = (module.exports = function () {
@@ -24,7 +23,9 @@ proto.getUpdateCheckCacheKey = function (deploymentKey, appVersion, label, packa
 };
 
 proto.clearUpdateCheckCache = function (deploymentKey, appVersion, label, packageHash) {
-    log.debug('clear cache Deployments key:', deploymentKey);
+    logger.debug('clear cache Deployments key:', {
+        key: deploymentKey,
+    });
     let redisCacheKey = this.getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash);
     var client = factory.getRedisClient('default');
     return client
@@ -61,7 +62,7 @@ proto.updateCheckFromCache = function (
         .then((data) => {
             if (data) {
                 try {
-                    log.debug('updateCheckFromCache read from catch');
+                    logger.debug('updateCheckFromCache read from catch');
                     var obj = JSON.parse(data);
                     return obj;
                 } catch (e) {}
@@ -70,7 +71,7 @@ proto.updateCheckFromCache = function (
                 .updateCheck(deploymentKey, appVersion, label, packageHash, clientUniqueId)
                 .then((rs) => {
                     try {
-                        log.debug('updateCheckFromCache read from db');
+                        logger.debug('updateCheckFromCache read from db');
                         var strRs = JSON.stringify(rs);
                         client.setex(redisCacheKey, EXPIRED, strRs);
                     } catch (e) {}
@@ -171,7 +172,9 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
                         }
                     }
                 });
-                log.debug(item);
+                logger.debug({
+                    item,
+                });
                 return item;
             });
         })

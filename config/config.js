@@ -1,4 +1,4 @@
-var os = require('os');
+const os = require('os');
 
 function toBool(str) {
     return str === 'true' || str === '1';
@@ -12,8 +12,14 @@ function toNumber(str, defaultValue) {
     return num;
 }
 
-var config = {};
-config.development = {
+const config = {
+    // Config for log
+    log: {
+        // debug, info, warn, error
+        level: process.env.LOG_LEVEL || 'info',
+        // text, json
+        format: process.env.LOG_FORMAT || 'text',
+    },
     // Config for database, only support mysql.
     db: {
         username: process.env.RDS_USERNAME || 'root',
@@ -146,12 +152,4 @@ config.development = {
     },
 };
 
-config.development.log4js = {
-    appenders: { console: { type: 'console' } },
-    categories: {
-        default: { appenders: ['console'], level: process.env.LOG_LEVEL || 'info' },
-    },
-};
-
-config.production = Object.assign({}, config.development);
 module.exports = config;

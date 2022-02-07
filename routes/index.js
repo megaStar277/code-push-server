@@ -4,8 +4,7 @@ var AppError = require('../core/app-error');
 var middleware = require('../core/middleware');
 var ClientManager = require('../core/services/client-manager');
 var _ = require('lodash');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:index');
+var { logger } = require('kv-logger');
 
 router.get('/', (req, res, next) => {
     res.render('index', { title: 'CodePushServer' });
@@ -22,7 +21,9 @@ router.get('/updateCheck', (req, res, next) => {
     var packageHash = _.get(req, 'query.packageHash');
     var clientUniqueId = _.get(req, 'query.clientUniqueId');
     var clientManager = new ClientManager();
-    log.debug('req.query', req.query);
+    logger.debug('/updateCheck', {
+        query: req.query,
+    });
     clientManager
         .updateCheckFromCache(deploymentKey, appVersion, label, packageHash, clientUniqueId)
         .then((rs) => {
@@ -52,21 +53,25 @@ router.get('/updateCheck', (req, res, next) => {
 });
 
 router.post('/reportStatus/download', (req, res) => {
-    log.debug('req.body', req.body);
+    logger.debug('/reportStatus/download', {
+        body: req.body,
+    });
     var clientUniqueId = _.get(req, 'body.clientUniqueId');
     var label = _.get(req, 'body.label');
     var deploymentKey = _.get(req, 'body.deploymentKey');
     var clientManager = new ClientManager();
     clientManager.reportStatusDownload(deploymentKey, label, clientUniqueId).catch((err) => {
         if (!err instanceof AppError.AppError) {
-            console.error(err.stack);
+            logger.error(err);
         }
     });
     res.send('OK');
 });
 
 router.post('/reportStatus/deploy', (req, res) => {
-    log.debug('req.body', req.body);
+    logger.debug('/reportStatus/deploy', {
+        body: req.body,
+    });
     var clientUniqueId = _.get(req, 'body.clientUniqueId');
     var label = _.get(req, 'body.label');
     var deploymentKey = _.get(req, 'body.deploymentKey');
@@ -75,7 +80,7 @@ router.post('/reportStatus/deploy', (req, res) => {
         .reportStatusDeploy(deploymentKey, label, clientUniqueId, req.body)
         .catch((err) => {
             if (!err instanceof AppError.AppError) {
-                console.error(err.stack);
+                logger.error(err);
             }
         });
     res.send('OK');

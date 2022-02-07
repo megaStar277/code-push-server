@@ -5,8 +5,7 @@ var common = require('../../core/utils/common');
 var _ = require('lodash');
 var moment = require('moment');
 var AppError = require('../app-error');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:deployments');
+var { logger } = require('kv-logger');
 
 var proto = (module.exports = function () {
     function Deployments() {}
@@ -78,7 +77,10 @@ proto.deleteDeloymentByName = function (deploymentName, appId) {
 };
 
 proto.findDeloymentByName = function (deploymentName, appId) {
-    log.debug(`findDeloymentByName name:${deploymentName},appId: ${appId}`);
+    logger.debug('findDeloymentByName', {
+        name: deploymentName,
+        appId,
+    });
     return models.Deployments.findOne({
         where: { name: deploymentName, appid: appId },
     });

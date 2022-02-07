@@ -6,6 +6,7 @@ var helmet = require('helmet');
 var config = require('./core/config');
 var _ = require('lodash');
 var fs = require('fs');
+var { logger } = require('kv-logger');
 
 var routes = require('./routes/index');
 var indexV1 = require('./routes/indexV1');
@@ -15,8 +16,7 @@ var account = require('./routes/account');
 var users = require('./routes/users');
 var apps = require('./routes/apps');
 var AppError = require('./core/app-error');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:app');
+
 var app = express();
 
 app.use(
@@ -28,13 +28,6 @@ app.use(
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(
-    log4js.connectLogger(log4js.getLogger('http'), {
-        level: log4js.levels.INFO,
-        nolog: '\\.gif|\\.jpg|\\.js|\\.css$',
-    }),
-);
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -42,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //use nginx in production
 //if (app.get('env') === 'development') {
-log.debug('set Access-Control Header');
+logger.debug('set Access-Control Header');
 app.all('*', function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
@@ -50,35 +43,35 @@ app.all('*', function (req, res, next) {
         'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CodePush-Plugin-Version, X-CodePush-Plugin-Name, X-CodePush-SDK-Version',
     );
     res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,PATCH,DELETE,OPTIONS');
-    log.debug('use set Access-Control Header');
+    logger.debug('use set Access-Control Header');
     next();
 });
 //}
 
-log.debug('config common.storageType value: ' + _.get(config, 'common.storageType'));
+logger.debug('config common.storageType value: ' + _.get(config, 'common.storageType'));
 
 if (_.get(config, 'common.storageType') === 'local') {
     var localStorageDir = _.get(config, 'local.storageDir');
     if (localStorageDir) {
-        log.debug('config common.storageDir value: ' + localStorageDir);
+        logger.debug('config common.storageDir value: ' + localStorageDir);
 
         if (!fs.existsSync(localStorageDir)) {
             var e = new Error(`Please create dir ${localStorageDir}`);
-            log.error(e);
+            logger.error(e);
             throw e;
         }
         try {
-            log.debug('checking storageDir fs.W_OK | fs.R_OK');
+            logger.debug('checking storageDir fs.W_OK | fs.R_OK');
             fs.accessSync(localStorageDir, fs.W_OK | fs.R_OK);
-            log.debug('storageDir fs.W_OK | fs.R_OK is ok');
+            logger.debug('storageDir fs.W_OK | fs.R_OK is ok');
         } catch (e) {
-            log.error(e);
+            logger.error(e);
             throw e;
         }
-        log.debug('static download uri value: ' + _.get(config, 'local.public', '/download'));
+        logger.debug('static download uri value: ' + _.get(config, 'local.public', '/download'));
         app.use(_.get(config, 'local.public', '/download'), express.static(localStorageDir));
     } else {
-        log.error('please config local storageDir');
+        logger.error('please config local storageDir');
     }
 }
 
@@ -100,7 +93,7 @@ if (app.get('env') === 'development') {
             message: err.message,
             error: err,
         });
-        log.error(err);
+        logger.error(err);
     });
     app.use(function (err, req, res, next) {
         res.status(err.status || 500);
@@ -108,23 +101,23 @@ if (app.get('env') === 'development') {
             message: err.message,
             error: err,
         });
-        log.error(err);
+        logger.error(err);
     });
 } else {
     app.use(function (req, res, next) {
         var e = new AppError.NotFound();
         res.status(404).send(e.message);
-        log.debug(e);
+        logger.debug(e);
     });
     // production error handler
     // no stacktraces leaked to user
     app.use(function (err, req, res, next) {
         if (err instanceof AppError.AppError) {
             res.send(err.message);
-            log.debug(err);
+            logger.debug(err);
         } else {
             res.status(err.status || 500).send(err.message);
-            log.error(err);
+            logger.error(err);
         }
     });
 }

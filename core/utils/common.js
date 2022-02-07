@@ -7,7 +7,6 @@ var validator = require('validator');
 var qiniu = require('qiniu');
 var upyun = require('upyun');
 const jschardet = require('jschardet');
-const log4js = require('log4js');
 const path = require('path');
 const util = require('util');
 const streamPipeline = util.promisify(require('stream').pipeline);
@@ -16,7 +15,7 @@ const fetch = require('node-fetch');
 var config = require('../config');
 var AppError = require('../app-error');
 
-var log = log4js.getLogger('cps:utils:common');
+var { logger } = require('kv-logger');
 
 var common = {};
 module.exports = common;
@@ -27,7 +26,10 @@ common.detectIsTextFile = function (filePath) {
     fs.readSync(fd, buffer, 0, 4096, 0);
     fs.closeSync(fd);
     var rs = jschardet.detect(buffer);
-    log.debug('detectIsTextFile:', filePath, rs);
+    logger.debug('detectIsTextFile:', {
+        filePath,
+        rs,
+    });
     if (rs.confidence == 1) {
         return true;
     }
@@ -107,7 +109,7 @@ common.createFileFromRequest = async function (url, filePath) {
         }
     }
 
-    log.debug(`createFileFromRequest url:${url}`);
+    logger.debug(`createFileFromRequest url:${url}`);
     const response = await fetch(url);
     if (!response.ok) {
         throw new AppError.AppError(`unexpected response ${response.statusText}`);
@@ -123,10 +125,10 @@ common.copy = function (sourceDst, targertDst) {
     return new Promise((resolve, reject) => {
         fsextra.copy(sourceDst, targertDst, { overwrite: true }, function (err) {
             if (err) {
-                log.error(err);
+                logger.error(err);
                 reject(err);
             } else {
-                log.debug(`copy success sourceDst:${sourceDst} targertDst:${targertDst}`);
+                logger.debug(`copy success sourceDst:${sourceDst} targertDst:${targertDst}`);
                 resolve();
             }
         });
@@ -137,10 +139,10 @@ common.move = function (sourceDst, targertDst) {
     return new Promise((resolve, reject) => {
         fsextra.move(sourceDst, targertDst, { overwrite: true }, function (err) {
             if (err) {
-                log.error(err);
+                logger.error(err);
                 reject(err);
             } else {
-                log.debug(`move success sourceDst:${sourceDst} targertDst:${targertDst}`);
+                logger.debug(`move success sourceDst:${sourceDst} targertDst:${targertDst}`);
                 resolve();
             }
         });
@@ -151,10 +153,10 @@ common.deleteFolder = function (folderPath) {
     return new Promise((resolve, reject) => {
         fsextra.remove(folderPath, function (err) {
             if (err) {
-                log.error(err);
+                logger.error(err);
                 reject(err);
             } else {
-                log.debug(`deleteFolder delete ${folderPath} success.`);
+                logger.debug(`deleteFolder delete ${folderPath} success.`);
                 resolve(null);
             }
         });
@@ -167,11 +169,11 @@ common.deleteFolderSync = function (folderPath) {
 
 common.createEmptyFolder = function (folderPath) {
     return new Promise((resolve, reject) => {
-        log.debug(`createEmptyFolder Create dir ${folderPath}`);
+        logger.debug(`createEmptyFolder Create dir ${folderPath}`);
         return common.deleteFolder(folderPath).then((data) => {
             fsextra.mkdirs(folderPath, (err) => {
                 if (err) {
-                    log.error(err);
+                    logger.error(err);
                     reject(new AppError.AppError(err.message));
                 } else {
                     resolve(folderPath);
@@ -188,19 +190,19 @@ common.createEmptyFolderSync = function (folderPath) {
 
 common.unzipFile = async function (zipFile, outputPath) {
     try {
-        log.debug(`unzipFile check zipFile ${zipFile} fs.R_OK`);
+        logger.debug(`unzipFile check zipFile ${zipFile} fs.R_OK`);
         fs.accessSync(zipFile, fs.R_OK);
-        log.debug(`Pass unzipFile file ${zipFile}`);
+        logger.debug(`Pass unzipFile file ${zipFile}`);
     } catch (err) {
-        log.error(err);
+        logger.error(err);
         throw new AppError.AppError(err.message);
     }
 
     try {
         await extract(zipFile, { dir: outputPath });
-        log.debug(`unzipFile success`);
+        logger.debug(`unzipFile success`);
     } catch (err) {
-        log.error(err);
+        logger.error(err);
         throw new AppError.AppError(`it's not a zipFile`);
     }
     return outputPath;
@@ -239,15 +241,15 @@ common.uploadFileToLocal = function (key, filePath) {
             throw new AppError.AppError('please set config local storageDir');
         }
         if (key.length < 3) {
-            log.error(`generate key is too short, key value:${key}`);
+            logger.error(`generate key is too short, key value:${key}`);
             throw new AppError.AppError('generate key is too short.');
         }
         try {
-            log.debug(`uploadFileToLocal check directory ${storageDir} fs.R_OK`);
+            logger.debug(`uploadFileToLocal check directory ${storageDir} fs.R_OK`);
             fs.accessSync(storageDir, fs.W_OK);
-            log.debug(`uploadFileToLocal directory ${storageDir} fs.R_OK is ok`);
+            logger.debug(`uploadFileToLocal directory ${storageDir} fs.R_OK is ok`);
         } catch (e) {
-            log.error(e);
+            logger.error(e);
             throw new AppError.AppError(e.message);
         }
         var subDir = key.substr(0, 2).toLowerCase();
@@ -259,31 +261,31 @@ common.uploadFileToLocal = function (key, filePath) {
         var stats = fs.statSync(storageDir);
         if (!stats.isDirectory()) {
             var e = new AppError.AppError(`${storageDir} must be directory`);
-            log.error(e);
+            logger.error(e);
             throw e;
         }
         if (!fs.existsSync(`${finalDir}`)) {
             fs.mkdirSync(`${finalDir}`);
-            log.debug(`uploadFileToLocal mkdir:${finalDir}`);
+            logger.debug(`uploadFileToLocal mkdir:${finalDir}`);
         }
         try {
             fs.accessSync(filePath, fs.R_OK);
         } catch (e) {
-            log.error(e);
+            logger.error(e);
             throw new AppError.AppError(e.message);
         }
         stats = fs.statSync(filePath);
         if (!stats.isFile()) {
             var e = new AppError.AppError(`${filePath} must be file`);
-            log.error(e);
+            logger.error(e);
             throw e;
         }
         fsextra.copy(filePath, fileName, (err) => {
             if (err) {
-                log.error(new AppError.AppError(err.message));
+                logger.error(new AppError.AppError(err.message));
                 return reject(new AppError.AppError(err.message));
             }
-            log.debug(`uploadFileToLocal copy file ${key} success.`);
+            logger.debug(`uploadFileToLocal copy file ${key} success.`);
             resolve(key);
         });
     });
@@ -298,7 +300,7 @@ common.getBlobDownloadUrl = function (blobUrl) {
     }
     if (!validator.isURL(downloadUrl)) {
         var e = new AppError.AppError(`Please config ${storageType}.downloadUrl in config.js`);
-        log.error(e);
+        logger.error(e);
         throw e;
     }
     return `${downloadUrl}/${fileName}`;
@@ -314,11 +316,11 @@ common.uploadFileToQiniu = function (key, filePath) {
         var bucketManager = new qiniu.rs.BucketManager(mac, conf);
         bucketManager.stat(bucket, key, (respErr, respBody, respInfo) => {
             if (respErr) {
-                log.debug('uploadFileToQiniu file stat:', respErr);
+                logger.debug('uploadFileToQiniu file stat:', respErr);
                 return reject(new AppError.AppError(respErr.message));
             }
-            log.debug('uploadFileToQiniu file stat respBody:', respBody);
-            log.debug('uploadFileToQiniu file stat respInfo:', respInfo);
+            logger.debug('uploadFileToQiniu file stat respBody:', respBody);
+            logger.debug('uploadFileToQiniu file stat respInfo:', respInfo);
             if (respInfo.statusCode == 200) {
                 resolve(respBody.hash);
             } else {
@@ -336,12 +338,12 @@ common.uploadFileToQiniu = function (key, filePath) {
                     putExtra,
                     (respErr, respBody, respInfo) => {
                         if (respErr) {
-                            log.error('uploadFileToQiniu putFile:', respErr);
+                            logger.error('uploadFileToQiniu putFile:', respErr);
                             // 上传失败， 处理返回代码
                             return reject(new AppError.AppError(JSON.stringify(respErr)));
                         } else {
-                            log.debug('uploadFileToQiniu putFile respBody:', respBody);
-                            log.debug('uploadFileToQiniu putFile respInfo:', respInfo);
+                            logger.debug('uploadFileToQiniu putFile respBody:', respBody);
+                            logger.debug('uploadFileToQiniu putFile respInfo:', respInfo);
                             // 上传成功， 处理返回值
                             if (respInfo.statusCode == 200) {
                                 return resolve(respBody.hash);
@@ -372,26 +374,26 @@ common.uploadFileToUpyun = function (key, filePath) {
                     return;
                 }
                 let remotePath = storageDir + '/' + key;
-                log.debug('uploadFileToUpyun remotePath:', remotePath);
-                log.debug('uploadFileToUpyun mkDir result:', result);
+                logger.debug('uploadFileToUpyun remotePath:', remotePath);
+                logger.debug('uploadFileToUpyun mkDir result:', result);
                 client
                     .putFile(remotePath, fs.createReadStream(filePath))
                     .then((data) => {
-                        log.debug('uploadFileToUpyun putFile response:', data);
+                        logger.debug('uploadFileToUpyun putFile response:', data);
                         if (data) {
                             resolve(key);
                         } else {
-                            log.debug('uploadFileToUpyun putFile failed!', data);
+                            logger.debug('uploadFileToUpyun putFile failed!', data);
                             reject(new AppError.AppError('Upload file to upyun failed!'));
                         }
                     })
                     .catch((e1) => {
-                        log.debug('uploadFileToUpyun putFile exception e1:', e1);
+                        logger.debug('uploadFileToUpyun putFile exception e1:', e1);
                         reject(new AppError.AppError(JSON.stringify(e1)));
                     });
             })
             .catch((e) => {
-                log.debug('uploadFileToUpyun putFile exception e:', e);
+                logger.debug('uploadFileToUpyun putFile exception e:', e);
                 reject(new AppError.AppError(JSON.stringify(e)));
             });
     });
@@ -448,12 +450,12 @@ common.uploadFileToOSS = function (key, filePath) {
 
     return new Promise((resolve, reject) => {
         upload.on('error', (error) => {
-            log.debug('uploadFileToOSS', error);
+            logger.debug('uploadFileToOSS', error);
             reject(error);
         });
 
         upload.on('uploaded', (details) => {
-            log.debug('uploadFileToOSS', details);
+            logger.debug('uploadFileToOSS', details);
             resolve(details.ETag);
         });
         fs.createReadStream(filePath).pipe(upload);
@@ -475,7 +477,7 @@ common.uploadFileToTencentCloud = function (key, filePath) {
                 FilePath: filePath,
             },
             function (err, data) {
-                log.debug('uploadFileToTencentCloud', err, data);
+                logger.debug('uploadFileToTencentCloud', { err, data });
                 if (err) {
                     reject(new AppError.AppError(JSON.stringify(err)));
                 } else {

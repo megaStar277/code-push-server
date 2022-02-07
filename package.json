@@ -25,7 +25,7 @@
     "npm": ">= 3.10.8"
   },
   "scripts": {
-    "dev": "supervisor ./bin/www",
+    "dev": "LOG_LEVEL=debug supervisor ./bin/www",
     "start": "node ./bin/www",
     "init": "node ./bin/db init",
     "upgrade": "node ./bin/db upgrade",
@@ -49,8 +49,8 @@
     "helmet": "5.0.2",
     "jschardet": "3.0.0",
     "jsonwebtoken": "8.5.1",
+    "kv-logger": "0.4.0",
     "lodash": "4.17.21",
-    "log4js": "6.3.0",
     "moment": "2.29.1",
     "mysql2": "2.3.3",
     "node-fetch": "2.6.7",

@@ -3,8 +3,7 @@ var router = express.Router();
 var _ = require('lodash');
 var config = require('../core/config');
 var validator = require('validator');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:auth');
+var { logger } = require('kv-logger');
 
 router.get('/password', (req, res) => {
     res.render('auth/password', { title: 'CodePushServer' });
@@ -13,7 +12,7 @@ router.get('/password', (req, res) => {
 router.get('/login', (req, res) => {
     var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
     if (codePushWebUrl && validator.isURL(codePushWebUrl)) {
-        log.debug(`login redirect:${codePushWebUrl}`);
+        logger.debug(`login redirect:${codePushWebUrl}`);
         res.redirect(`${codePushWebUrl}/login`);
     } else {
         res.render('auth/login', { title: 'CodePushServer', email: req.query.email || '' });
@@ -28,19 +27,19 @@ router.get('/register', (req, res) => {
     var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
     var isRedirect = false;
     if (codePushWebUrl && validator.isURL(codePushWebUrl)) {
-        log.debug(`register redirect:${codePushWebUrl}`);
+        logger.debug(`register redirect:${codePushWebUrl}`);
         res.redirect(`${codePushWebUrl}/register`);
     } else {
         if (_.get(config, 'common.allowRegistration')) {
-          res.render('auth/register', { title: 'CodePushServer', email: req.query.email || '' });
+            res.render('auth/register', { title: 'CodePushServer', email: req.query.email || '' });
         } else {
-          res.redirect(`/auth/login`);
+            res.redirect(`/auth/login`);
         }
     }
 });
 
 router.get('/confirm', (req, res) => {
-    log.debug(`confirmation form`);
+    logger.debug(`confirmation form`);
     res.render('auth/confirm', { title: 'CodePushServer', email: req.query.email || '' });
 });
 
@@ -55,7 +54,7 @@ router.post('/login', (req, res, next) => {
     var account = _.trim(req.body.account);
     var password = _.trim(req.body.password);
     var tokenSecret = _.get(config, 'jwt.tokenSecret');
-    log.debug(`login:${account}`);
+    logger.debug(`login:${account}`);
     accountManager
         .login(account, password)
         .then((users) => {
@@ -66,12 +65,12 @@ router.post('/login', (req, res, next) => {
             );
         })
         .then((token) => {
-            log.debug(token);
+            logger.debug(token);
             res.send({ status: 'OK', results: { tokens: token } });
         })
         .catch((e) => {
             if (e instanceof AppError.AppError) {
-                log.debug(e);
+                logger.debug(e);
                 res.send({ status: 'ERROR', errorMessage: e.message });
             } else {
                 next(e);

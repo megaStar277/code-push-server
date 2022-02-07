@@ -1,8 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var middleware = require('../core/middleware');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:account');
+var { logger } = require('kv-logger');
 
 router.get('/', middleware.checkToken, (req, res) => {
     var userInfo = {
@@ -10,7 +9,7 @@ router.get('/', middleware.checkToken, (req, res) => {
         linkedProviders: [],
         name: req.users.username,
     };
-    log.debug(userInfo);
+    logger.debug(userInfo);
     res.send({ account: userInfo });
 });
 

@@ -11,8 +11,7 @@ var PackageManager = require('../core/services/package-manager');
 var AppError = require('../core/app-error');
 var common = require('../core/utils/common');
 var config = require('../core/config');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:apps');
+var { logger } = require('kv-logger');
 
 function delay(ms) {
     return new Promise(function (resolve) {
@@ -289,22 +288,22 @@ router.post(
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
-                log.debug(col);
+                logger.debug(col);
                 return deployments
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
-                            log.debug(`does not find the deployment`);
+                            logger.debug(`does not find the deployment`);
                             throw new AppError.AppError('does not find the deployment');
                         }
                         return packageManager
                             .parseReqFile(req)
                             .then((data) => {
                                 if (data.package.mimetype != 'application/zip') {
-                                    log.debug(`upload file type is invlidate`, data.package);
+                                    logger.debug(`upload file type is invlidate`, data.package);
                                     throw new AppError.AppError('upload file type is invalidate');
                                 }
-                                log.debug('packageInfo:', data.packageInfo);
+                                logger.debug('packageInfo:', data.packageInfo);
                                 return packageManager
                                     .releasePackage(
                                         deploymentInfo.appid,
@@ -327,7 +326,7 @@ router.post(
                                                 _.get(config, 'common.diffNums', 1),
                                             )
                                             .catch((e) => {
-                                                log.error(e);
+                                                logger.error(e);
                                             });
                                     });
                                 }
@@ -365,7 +364,7 @@ router.patch(
     '/:appName/deployments/:deploymentName/release',
     middleware.checkToken,
     (req, res, next) => {
-        log.debug('req.body', req.body);
+        logger.debug('req.body', req.body);
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
         var uid = req.users.id;
@@ -436,7 +435,7 @@ router.post(
     '/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',
     middleware.checkToken,
     (req, res, next) => {
-        log.debug('req.body:', req.body);
+        logger.debug('req.body:', req.body);
         var appName = _.trim(req.params.appName);
         var sourceDeploymentName = _.trim(req.params.sourceDeploymentName);
         var destDeploymentName = _.trim(req.params.destDeploymentName);
@@ -482,7 +481,7 @@ router.post(
                                         _.get(config, 'common.diffNums', 1),
                                     )
                                     .catch((e) => {
-                                        log.error(e);
+                                        logger.error(e);
                                     });
                             });
                         }
@@ -536,7 +535,7 @@ var rollbackCb = function (req, res, next) {
                             packageManager
                                 .createDiffPackagesByLastNums(dep.appid, packageInfo, 1)
                                 .catch((e) => {
-                                    log.error(e);
+                                    logger.error(e);
                                 });
                         });
                     }
@@ -746,7 +745,7 @@ router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next)
 });
 
 router.post('/', middleware.checkToken, (req, res, next) => {
-    log.debug('addApp params:', req.body);
+    logger.debug('addApp params:', req.body);
     var constName = require('../core/const');
     var appName = req.body.name;
     if (_.isEmpty(appName)) {

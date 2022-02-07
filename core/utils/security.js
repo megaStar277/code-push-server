@@ -4,8 +4,7 @@ var crypto = require('crypto');
 var fs = require('fs');
 var qetag = require('../utils/qetag');
 var _ = require('lodash');
-var log4js = require('log4js');
-var log = log4js.getLogger('cps:utils:security');
+var { logger } = require('kv-logger');
 var AppError = require('../app-error');
 
 var randToken = require('rand-token').generator({
@@ -65,10 +64,10 @@ security.packageHashSync = function (jsonData) {
     }).map((v) => {
         return v.path + ':' + v.hash;
     });
-    log.debug('packageHashSync manifestData:', manifestData);
+    logger.debug('packageHashSync manifestData:', manifestData);
     var manifestString = JSON.stringify(manifestData.sort());
     manifestString = _.replace(manifestString, /\\\//g, '/');
-    log.debug('packageHashSync manifestString:', manifestString);
+    logger.debug('packageHashSync manifestString:', manifestString);
     return security.stringSha256Sync(manifestString);
 };
 
@@ -76,18 +75,18 @@ security.packageHashSync = function (jsonData) {
 security.qetag = function (buffer) {
     if (typeof buffer === 'string') {
         try {
-            log.debug(`Check upload file ${buffer} fs.R_OK`);
+            logger.debug(`Check upload file ${buffer} fs.R_OK`);
             fs.accessSync(buffer, fs.R_OK);
-            log.debug(`Pass upload file ${buffer}`);
+            logger.debug(`Pass upload file ${buffer}`);
         } catch (e) {
-            log.error(e);
+            logger.error(e);
             return Promise.reject(new AppError.AppError(e.message));
         }
     }
-    log.debug(`generate file identical`);
+    logger.debug(`generate file identical`);
     return new Promise((resolve, reject) => {
         qetag(buffer, (data) => {
-            log.debug('identical:', data);
+            logger.debug('identical:', data);
             resolve(data);
         });
     });
@@ -113,15 +112,13 @@ security.sha256AllFiles = function (files) {
 security.uploadPackageType = function (directoryPath) {
     return new Promise((resolve, reject) => {
         var recursive = require('recursive-readdir');
-        var path = require('path');
-        var slash = require('slash');
         recursive(directoryPath, (err, files) => {
             if (err) {
-                log.error(new AppError.AppError(err.message));
+                logger.error(new AppError.AppError(err.message));
                 reject(new AppError.AppError(err.message));
             } else {
                 if (files.length == 0) {
-                    log.debug(`uploadPackageType empty files`);
+                    logger.debug(`uploadPackageType empty files`);
                     reject(new AppError.AppError('empty files'));
                 } else {
                     var constName = require('../const');
@@ -138,7 +135,7 @@ security.uploadPackageType = function (directoryPath) {
                             return false;
                         }
                     });
-                    log.debug(`uploadPackageType packageType: ${packageType}`);
+                    logger.debug(`uploadPackageType packageType: ${packageType}`);
                     resolve(packageType);
                 }
             }
@@ -185,7 +182,7 @@ security.calcAllFileSha256 = function (directoryPath) {
         var slash = require('slash');
         recursive(directoryPath, (error, files) => {
             if (error) {
-                log.error(error);
+                logger.error(error);
                 reject(new AppError.AppError(error.message));
             } else {
                 // filter files that should be ignored
@@ -195,7 +192,7 @@ security.calcAllFileSha256 = function (directoryPath) {
                 });
 
                 if (files.length == 0) {
-                    log.debug(`calcAllFileSha256 empty files in directoryPath:`, directoryPath);
+                    logger.debug(`calcAllFileSha256 empty files in directoryPath:`, directoryPath);
                     reject(new AppError.AppError('empty files'));
                 } else {
                     security.sha256AllFiles(files).then((results) => {
@@ -209,7 +206,7 @@ security.calcAllFileSha256 = function (directoryPath) {
                             relativePath = slash(relativePath);
                             data[relativePath] = value;
                         });
-                        log.debug(`calcAllFileSha256 files:`, data);
+                        logger.debug(`calcAllFileSha256 files:`, data);
                         resolve(data);
                     });
                 }
