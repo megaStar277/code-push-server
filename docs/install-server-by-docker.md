@@ -14,9 +14,9 @@
     -   `updateCheckCache` 提升应用性能
     -   `rolloutClientUniqueIdCache` 灰度发布
 
-## 安装 docker
+## 安装 Docker
 
-参考 docker 官方安装教程
+参考 Docker 官方安装教程
 
 -   [>>mac 点这里](https://docs.docker.com/docker-for-mac/install/)
 -   [>>windows 点这里](https://docs.docker.com/docker-for-windows/install/)
@@ -112,6 +112,6 @@ $ docker-compose logs server
 
 ## 销毁退出应用
 
-```bash
+```shell
 $ docker-compose down
 ```
