@@ -1,8 +1,8 @@
-var app = require('../../../app');
+var app = require('../../../bin/app');
 var request = require('supertest')(app);
 var should = require('should');
-var security = require('../../../core/utils/security');
-var factory = require('../../../core/utils/factory');
+var security = require('../../../bin/core/utils/security');
+var factory = require('../../../bin/core/utils/factory');
 var _ = require('lodash');
 
 describe('api/users/users.test.js', function () {

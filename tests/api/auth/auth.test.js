@@ -1,8 +1,9 @@
-var app = require('../../../app');
+var app = require('../../../bin/app');
 var request = require('supertest')(app);
 var should = require('should');
-var config = require('../../../core/config');
 var _ = require('lodash');
+
+var config = require('../../../bin/core/config');
 
 describe('api/auth/test.js', function () {
     var account = '522539441@qq.com';

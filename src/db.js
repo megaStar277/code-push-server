@@ -7,7 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var mysql = require('mysql2');
-var constConfig = require('../core/const');
+var constConfig = require('./core/const');
 var yargs = require('yargs');
 var argv = yargs
     .usage('Usage: $0 <command> [options]')

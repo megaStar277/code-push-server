@@ -8,10 +8,11 @@ var { logger } = require('kv-logger');
 var http = require('http');
 var validator = require('validator');
 var _ = require('lodash');
-var config = require('../core/config');
-var constConfig = require('../core/const');
+var config = require('./core/config');
+var constConfig = require('./core/const');
+var models = require('./models');
 
-var app = require('../app');
+var app = require('./app');
 
 /**
  * Get port from environment and store in Express.
@@ -40,12 +41,11 @@ var server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-var models = require('../models');
 models.Versions.findOne({ where: { type: 1 } })
     .then(function (v) {
         if (!v || v.get('version') != constConfig.CURRENT_DB_VERSION) {
             throw new Error(
-                'Please upgrade your database. usage `npm run upgrade` or `code-push-server-db upgrade`',
+                'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
             );
         }
         server.listen(port, host);
@@ -57,7 +57,7 @@ models.Versions.findOne({ where: { type: 1 } })
         if (_.startsWith(e.message, 'ER_NO_SUCH_TABLE')) {
             logger.error(
                 new Error(
-                    `Please upgrade your database. usage bin/db upgrade or code-push-server-db upgrade`,
+                    'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
                 ),
             );
         } else {

@@ -5,7 +5,7 @@ var path = require('path');
 var Sequelize = require('sequelize');
 var basename = path.basename(module.filename);
 var _ = require('lodash');
-var config = _.get(require(__dirname + '/../core/config'), 'db', {});
+var config = _.get(require('../core/config'), 'db', {});
 var db = {};
 
 var sequelize = new Sequelize(config.database, config.username, config.password, config);

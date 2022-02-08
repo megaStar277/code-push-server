@@ -1,4 +1,4 @@
-var config = require('../../../core/config');
+var config = require('../../../bin/core/config');
 var mysql = require('mysql2');
 var redis = require('redis');
 var should = require('should');

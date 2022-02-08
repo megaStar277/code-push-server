@@ -4,7 +4,7 @@ const { setLogTransports, ConsoleTransport, LogLevelFilter, logger } = require('
 
 const env = process.env.NODE_ENV || 'development';
 
-let CONFIG_PATH = path.join(__dirname, '../config/config.js');
+let CONFIG_PATH = path.join(__dirname, '../config.js');
 if (process.env.CONFIG_FILE) {
     CONFIG_PATH = path.join(__dirname, path.relative(__dirname, process.env.CONFIG_FILE));
 }

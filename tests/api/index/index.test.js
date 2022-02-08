@@ -1,4 +1,4 @@
-var app = require('../../../app');
+var app = require('../../../bin/app');
 var request = require('supertest')(app);
 var should = require('should');
 var _ = require('lodash');
