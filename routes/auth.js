@@ -1,9 +1,12 @@
-var express = require('express');
-var router = express.Router();
-var _ = require('lodash');
-var config = require('../core/config');
-var validator = require('validator');
-var { logger } = require('kv-logger');
+const express = require('express');
+const _ = require('lodash');
+const validator = require('validator');
+const { logger } = require('kv-logger');
+const jwt = require('jsonwebtoken');
+
+const config = require('../core/config');
+
+const router = express.Router();
 
 router.get('/password', (req, res) => {
     res.render('auth/password', { title: 'CodePushServer' });
@@ -54,18 +57,26 @@ router.post('/login', (req, res, next) => {
     var account = _.trim(req.body.account);
     var password = _.trim(req.body.password);
     var tokenSecret = _.get(config, 'jwt.tokenSecret');
-    logger.debug(`login:${account}`);
+    logger.info('try login', {
+        account,
+    });
     accountManager
         .login(account, password)
         .then((users) => {
-            var jwt = require('jsonwebtoken');
+            logger.info('login success', {
+                account,
+                uid: users.id,
+            });
             return jwt.sign(
                 { uid: users.id, hash: security.md5(users.ack_code), expiredIn: 7200 },
                 tokenSecret,
             );
         })
         .then((token) => {
-            logger.debug(token);
+            logger.debug('login jwt token', {
+                account,
+                token,
+            });
             res.send({ status: 'OK', results: { tokens: token } });
         })
         .catch((e) => {

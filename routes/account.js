@@ -9,7 +9,7 @@ router.get('/', middleware.checkToken, (req, res) => {
         linkedProviders: [],
         name: req.users.username,
     };
-    logger.debug(userInfo);
+    logger.info('check account info', userInfo);
     res.send({ account: userInfo });
 });
 

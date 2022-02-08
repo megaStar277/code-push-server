@@ -29,7 +29,10 @@ router.post('/', middleware.checkToken, (req, res, next) => {
     var friendlyName = _.trim(req.body.friendlyName);
     var ttl = parseInt(req.body.ttl);
     var description = _.trim(req.body.description);
-    logger.debug(req.body);
+    logger.info('try to generate access key', {
+        uid,
+        ...req.body,
+    });
     var newAccessKey = security.randToken(28).concat(identical);
     return accountManager
         .isExsitAccessKeyName(uid, friendlyName)
@@ -58,7 +61,14 @@ router.post('/', middleware.checkToken, (req, res, next) => {
                 description: newToken.description,
                 friendlyName: newToken.name,
             };
-            logger.debug(info);
+            logger.info('access key created', {
+                uid,
+                friendlyName: newToken.name,
+            });
+            logger.debug('access key', {
+                uid,
+                ...info,
+            });
             res.send({ accessKey: info });
         })
         .catch((e) => {

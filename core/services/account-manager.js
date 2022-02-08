@@ -22,7 +22,6 @@ proto.collaboratorCan = function (uid, appName) {
             logger.debug(`collaboratorCan App ${appName} not exists.`);
             throw new AppError.AppError(`App ${appName} not exists.`);
         }
-        logger.debug('collaboratorCan yes');
         return data;
     });
 };

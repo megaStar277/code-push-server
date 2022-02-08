@@ -665,6 +665,11 @@ router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res
 router.delete('/:appName', middleware.checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var uid = req.users.id;
+    logger.info('try remove app', {
+        uid,
+        appName,
+    });
+
     var appManager = new AppManager();
     accountManager
         .ownerCan(uid, appName)
@@ -672,6 +677,11 @@ router.delete('/:appName', middleware.checkToken, (req, res, next) => {
             return appManager.deleteApp(col.appid);
         })
         .then((data) => {
+            logger.info('remove app success', {
+                uid,
+                appName,
+            });
+
             res.send(data);
         })
         .catch((e) => {
@@ -687,6 +697,11 @@ router.patch('/:appName', middleware.checkToken, (req, res, next) => {
     var newAppName = _.trim(req.body.name);
     var appName = _.trim(req.params.appName);
     var uid = req.users.id;
+    logger.info('try rename app', {
+        uid,
+        appName,
+        newAppName,
+    });
     if (_.isEmpty(newAppName)) {
         return res.status(406).send('Please input name!');
     } else {
@@ -702,6 +717,12 @@ router.patch('/:appName', middleware.checkToken, (req, res, next) => {
                 });
             })
             .then(() => {
+                logger.info('rename app success', {
+                    uid,
+                    appName,
+                    newAppName,
+                });
+
                 res.send('');
             })
             .catch((e) => {
@@ -745,7 +766,11 @@ router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next)
 });
 
 router.post('/', middleware.checkToken, (req, res, next) => {
-    logger.debug('addApp params:', req.body);
+    var uid = req.users.id;
+    logger.info('try add app', {
+        uid,
+        ...req.body,
+    });
     var constName = require('../core/const');
     var appName = req.body.name;
     if (_.isEmpty(appName)) {
@@ -772,7 +797,6 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         return res.status(406).send('Please input platform [React-Native|Cordova]!');
     }
     var manuallyProvisionDeployments = req.body.manuallyProvisionDeployments;
-    var uid = req.users.id;
     var appManager = new AppManager();
 
     appManager
@@ -789,6 +813,10 @@ router.post('/', middleware.checkToken, (req, res, next) => {
             });
         })
         .then((data) => {
+            logger.info('add app success', {
+                uid,
+                name: appName,
+            });
             res.send({ app: data });
         })
         .catch((e) => {

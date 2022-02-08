@@ -1,23 +1,23 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var helmet = require('helmet');
-var config = require('./core/config');
-var _ = require('lodash');
-var fs = require('fs');
-var { logger } = require('kv-logger');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const _ = require('lodash');
+const fs = require('fs');
+const { logger } = require('kv-logger');
 
-var routes = require('./routes/index');
-var indexV1 = require('./routes/indexV1');
-var auth = require('./routes/auth');
-var accessKeys = require('./routes/accessKeys');
-var account = require('./routes/account');
-var users = require('./routes/users');
-var apps = require('./routes/apps');
-var AppError = require('./core/app-error');
+const config = require('./core/config');
+const routes = require('./routes/index');
+const indexV1 = require('./routes/indexV1');
+const auth = require('./routes/auth');
+const accessKeys = require('./routes/accessKeys');
+const account = require('./routes/account');
+const users = require('./routes/users');
+const apps = require('./routes/apps');
+const { AppError, NotFound } = require('./core/app-error');
 
-var app = express();
+const app = express();
 
 app.use(
     helmet({
@@ -33,9 +33,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//use nginx in production
-//if (app.get('env') === 'development') {
-logger.debug('set Access-Control Header');
+logger.debug('use set Access-Control Header');
 app.all('*', function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
@@ -43,10 +41,8 @@ app.all('*', function (req, res, next) {
         'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CodePush-Plugin-Version, X-CodePush-Plugin-Name, X-CodePush-SDK-Version',
     );
     res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,PATCH,DELETE,OPTIONS');
-    logger.debug('use set Access-Control Header');
     next();
 });
-//}
 
 logger.debug('config common.storageType value: ' + _.get(config, 'common.storageType'));
 
@@ -87,7 +83,7 @@ app.use('/apps', apps);
 // will print stacktrace
 if (app.get('env') === 'development') {
     app.use(function (req, res, next) {
-        var err = new AppError.NotFound(`${req.method} ${req.url}`);
+        var err = new NotFound(`${req.method} ${req.url}`);
         res.status(err.status || 404);
         res.render('error', {
             message: err.message,
@@ -105,14 +101,14 @@ if (app.get('env') === 'development') {
     });
 } else {
     app.use(function (req, res, next) {
-        var e = new AppError.NotFound();
+        var e = new NotFound();
         res.status(404).send(e.message);
         logger.debug(e);
     });
     // production error handler
     // no stacktraces leaked to user
     app.use(function (err, req, res, next) {
-        if (err instanceof AppError.AppError) {
+        if (err instanceof AppError) {
             res.send(err.message);
             logger.debug(err);
         } else {
