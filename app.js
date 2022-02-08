@@ -79,43 +79,22 @@ app.use('/account', account);
 app.use('/users', users);
 app.use('/apps', apps);
 
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function (req, res, next) {
-        var err = new NotFound(`${req.method} ${req.url}`);
-        res.status(err.status || 404);
-        res.render('error', {
-            message: err.message,
-            error: err,
-        });
+// 404 handler
+app.use(function (req, res, next) {
+    var e = new NotFound(`${req.method} ${req.url}`);
+    res.status(404).send(e.message);
+    logger.debug(e);
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+    if (err instanceof AppError) {
+        res.send(err.message);
+        logger.debug(err);
+    } else {
+        res.status(err.status || 500).send(err.message);
         logger.error(err);
-    });
-    app.use(function (err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err,
-        });
-        logger.error(err);
-    });
-} else {
-    app.use(function (req, res, next) {
-        var e = new NotFound();
-        res.status(404).send(e.message);
-        logger.debug(e);
-    });
-    // production error handler
-    // no stacktraces leaked to user
-    app.use(function (err, req, res, next) {
-        if (err instanceof AppError) {
-            res.send(err.message);
-            logger.debug(err);
-        } else {
-            res.status(err.status || 500).send(err.message);
-            logger.error(err);
-        }
-    });
-}
+    }
+});
 
 module.exports = app;
