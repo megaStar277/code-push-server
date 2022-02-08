@@ -1,30 +1,25 @@
-# CodePush Server [source](https://github.com/lisong/code-push-server)
+# CodePush Server ![Node.js CI](https://github.com/shm-open/code-push-server/workflows/Node.js%20CI/badge.svg)
 
-[![NPM](https://nodei.co/npm/code-push-server.svg?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/code-push-server/)
+[[Chinese version 中文版]](./README.cn.md)
 
-[![NPM Version](https://img.shields.io/npm/v/code-push-server.svg)](https://npmjs.org/package/code-push-server)
-[![Node.js Version](https://img.shields.io/node/v/code-push-server.svg)](https://nodejs.org/en/download/)
-[![Linux Status](https://img.shields.io/travis/lisong/code-push-server/master.svg?label=linux)](https://travis-ci.org/lisong/code-push-server)
-[![Windows Status](https://img.shields.io/appveyor/ci/lisong/code-push-server/master.svg?label=windows)](https://ci.appveyor.com/project/lisong/code-push-server)
-[![Coverage Status](https://img.shields.io/coveralls/lisong/code-push-server/master.svg)](https://coveralls.io/github/lisong/code-push-server)
-[![Dependency Status](https://img.shields.io/david/lisong/code-push-server.svg)](https://david-dm.org/lisong/code-push-server)
-[![Known Vulnerabilities](https://snyk.io/test/npm/code-push-server/badge.svg)](https://snyk.io/test/npm/code-push-server)
-[![Licenses](https://img.shields.io/npm/l/code-push-server.svg)](https://spdx.org/licenses/MIT)
+CodePush Server is a CodePush program server. The official Microsoft CodePush service is slow in China, therefore we use this to host our own server.
 
-CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in China, we can use this to build our's. I use [qiniu](http://www.qiniu.com/) to store the files, because it's simple and quick! Or you can use [local/s3/oss/tencentcloud] storage, just modify config.js file, it's simple configure.
+## About this fork
+
+Since the original [code-push-server](https://github.com/lisong/code-push-server) project is not actively maintained, we created this fork to:
+
+-   keep dependencies up-to-date
+-   fix any compatiblity issue with latest official code-push clients
+-   we only stick to official react-native-code-push client, therefore the customized feature like [is_use_diff_text](https://github.com/lisong/code-push-server#advance-feature) won't be supported.
+-   we only use react-native-code-push client in production, most of the feature should be no difference for the rest CodePush clients, but if you found any, issues and PRs are always welcome.
 
 ## Support Storage mode
 
--   local _storage bundle file in local machine_
--   qiniu _storage bundle file in [qiniu](http://www.qiniu.com/)_
--   s3 _storage bundle file in [aws](https://aws.amazon.com/)_
--   oss _storage bundle file in [aliyun](https://www.aliyun.com/product/oss)_
--   tencentcloud _storage bundle file in [tencentcloud](https://cloud.tencent.com/product/cos)_
-
-## qq 交流群
-
--   QQ 群: 628921445
--   QQ 群: 535491067
+-   local: store bundle files in local machine
+-   qiniu: store bundle files in [qiniu](http://www.qiniu.com/)
+-   s3: store bundle files in [aws](https://aws.amazon.com/)
+-   oss: store bundle files in [aliyun](https://www.aliyun.com/product/oss)
+-   tencentcloud: store bundle files in [tencentcloud](https://cloud.tencent.com/product/cos)
 
 ## 正确使用 code-push 热更新
 
@@ -34,48 +29,30 @@ CodePush Server is a CodePush progam server! microsoft CodePush cloud is slow in
 -   推荐使用 code-push release-react 命令发布应用，该命令合并了打包和发布命令(eg. code-push release-react CodePushDemo-ios ios -d Production)
 -   每次向 App Store 提交新的版本时，也应该基于该提交版本同时向 code-push-server 发布一个初始版本。(因为后面每次向 code-push-server 发布版本时，code-puse-server 都会和初始版本比较，生成补丁版本)
 
-### shell login
+### CodePush Cli
 
-```shell
-$ code-push login http://api.code-push.com #登录
-```
+check out the [code-push-cli](https://github.com/shm-open/code-push-cli) which works with server for manage apps and publish releases
 
-### [web](http://www.code-push.com)
+### Clients
 
-访问：http://www.code-push.com
+-   [React Native](https://github.com/Microsoft/react-native-code-push)
+-   [Cordova](https://github.com/microsoft/cordova-plugin-code-push)
+-   [Capacitor](https://github.com/mapiacompany/capacitor-codepush)
 
-### client eg.
+## How To Install code-push-server
 
-[ReactNative CodePushDemo](https://github.com/lisong/code-push-demo-app)
+-   [docker](./docs/install-server-by-docker.md) (recommended)
+-   [manual operation](./docs/install-server.md)
 
-[Cordova CodePushDemo](https://github.com/lisong/code-push-cordova-demo-app)
-
-## HOW TO INSTALL code-push-server
-
--   [docker](https://github.com/lisong/code-push-server/blob/master/docker/README.md) (recommend)
--   [manual operation](https://github.com/lisong/code-push-server/blob/master/docs/README.md)
-
-## DEFAULT ACCOUNT AND PASSWORD
+## Default Account and Password
 
 -   account: `admin`
 -   password: `123456`
 
-## HOW TO USE
+## FAQ
 
--   [normal](https://github.com/lisong/code-push-server/blob/master/docs/react-native-code-push.md)
--   [react-native-code-push](https://github.com/Microsoft/react-native-code-push)
--   [code-push](https://github.com/Microsoft/code-push)
-
-## ISSUES
-
-[code-push-server normal solution](https://github.com/lisong/code-push-server/issues/135)
-
-[An unknown error occurred](https://github.com/lisong/code-push-server/issues?utf8=%E2%9C%93&q=unknown)
-
-[modify password](https://github.com/lisong/code-push-server/issues/43)
-
-# UPDATE TIME LINE
-
+-   [modify password](https://github.com/lisong/code-push-server/issues/43)
+-   [code-push-server normal solution (CN)](https://github.com/lisong/code-push-server/issues/135)
 -   targetBinaryVersion support
     -   `*`
     -   `1.2.3`
@@ -84,15 +61,3 @@ $ code-push login http://api.code-push.com #登录
     -   `>=1.2.3 <1.2.7`
     -   `~1.2.3`
     -   `^1.2.3`
-
-## Advance Feature
-
-> use google diff-match-patch calculate text file diff patch
-
--   support iOS and Android
--   use `"react-native-code-push": "git+https://git@github.com/lisong/react-native-code-push.git"` instead `"react-native-code-push": "x.x.x"` in `package.json`
--   change `apps`.`is_use_diff_text` to `1` in mysql codepush database
-
-## License
-
-MIT License [read](https://github.com/lisong/code-push-server/blob/master/LICENSE)
