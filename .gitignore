@@ -8,13 +8,9 @@ pids
 *.seed
 *.DS_Store
 
-.grunt
+# deps
+node_modules/
 
-# Dependency directory
-# https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
-node_modules
-
-coverage
 
 # vs code
 .history

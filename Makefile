@@ -4,8 +4,8 @@ VERSION := $(shell node -p "require('./package.json').version")
 .PHONY: test
 test:
 	@echo "\nRunning integration tests..."
-	@mocha test/api/init --exit
-	@mocha test/api/users test/api/auth test/api/account test/api/accessKeys test/api/apps test/api/index --exit --recursive --timeout 15000
+	@mocha tests/api/init --exit
+	@mocha tests/api/users tests/api/auth tests/api/account tests/api/accessKeys tests/api/apps tests/api/index --exit --recursive --timeout 15000
 
 .PHONY: release-docker
 release-docker:

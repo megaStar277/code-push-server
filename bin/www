@@ -18,7 +18,6 @@ var app = require('../app');
  */
 
 var port = normalizePort(process.env.PORT || '3000');
-logger.debug('port ' + port);
 
 var host = null;
 if (process.env.HOST) {
@@ -119,6 +118,5 @@ function onError(error) {
 
 function onListening() {
     var addr = server.address();
-    var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-    logger.info('Listening on ' + bind);
+    logger.info('server is listening on ', addr);
 }
