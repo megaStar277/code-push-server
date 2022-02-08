@@ -4,15 +4,15 @@
  * Module dependencies.
  */
 
-var { logger } = require('kv-logger');
-var http = require('http');
-var validator = require('validator');
-var _ = require('lodash');
-var config = require('./core/config');
+import { logger } from 'kv-logger';
+import http from 'http';
+import validator from 'validator';
+import _ from 'lodash';
+
+import { app } from './app';
+
 var constConfig = require('./core/const');
 var models = require('./models');
-
-var app = require('./app');
 
 /**
  * Get port from environment and store in Express.
@@ -27,7 +27,7 @@ if (process.env.HOST) {
         logger.debug(process.env.HOST + ' valid');
         host = process.env.HOST;
     } else {
-        logger.warn('process.env.HOST ' + process.env.HOST + ' invalid, use 0.0.0.0 instead');
+        logger.warn('process.env.HOST ' + process.env.HOST + ' is invalid, use 0.0.0.0 instead');
     }
 }
 app.set('port', port);
@@ -36,7 +36,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -70,7 +70,7 @@ models.Versions.findOne({ where: { type: 1 } })
  * Normalize a port into a number, string, or false.
  */
 
-function normalizePort(val) {
+function normalizePort(val): number | string | boolean {
     var port = parseInt(val, 10);
 
     if (isNaN(port)) {

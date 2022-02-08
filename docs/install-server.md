@@ -35,7 +35,7 @@ $ code-push-server-db init --dbhost "your mysql host" --dbport "your mysql port"
 
 ## Configure code-push-server
 
-check out the supported config items in [config.js](../src/config.js)
+check out the supported config items in [config.ts](../src/core/config.ts)
 
 save the file [process.json](../process.json) for PM2, and add your config items to `"env"`
 

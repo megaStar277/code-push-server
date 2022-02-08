@@ -1,9 +1,10 @@
-var config = require('../../../bin/core/config');
 var mysql = require('mysql2');
 var redis = require('redis');
 var should = require('should');
 var fs = require('fs');
 var path = require('path');
+
+const { config } = require('../../../bin/core/config');
 
 describe('api/init/database.js', function () {
     describe('create database', function (done) {

@@ -4,7 +4,7 @@ var _ = require('lodash');
 var common = require('../utils/common');
 var factory = require('../utils/factory');
 var AppError = require('../app-error');
-var config = require('../config');
+var { config } = require('../config');
 var { logger } = require('kv-logger');
 var Sequelize = require('sequelize');
 

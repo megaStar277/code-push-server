@@ -4,6 +4,7 @@ var security = require('../core/utils/security');
 var models = require('../models');
 var moment = require('moment');
 var AppError = require('./app-error');
+const { config } = require('../core/config');
 
 var middleware = module.exports;
 
@@ -42,7 +43,6 @@ var checkAccessToken = function (accessToken) {
         if (_.isEmpty(accessToken)) {
             return reject(new AppError.Unauthorized());
         }
-        var config = require('../core/config');
         var tokenSecret = _.get(config, 'jwt.tokenSecret');
         var jwt = require('jsonwebtoken');
         try {

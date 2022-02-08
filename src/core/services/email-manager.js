@@ -1,7 +1,7 @@
 'use strict';
 var _ = require('lodash');
 var nodemailer = require('nodemailer');
-var config = require('../config');
+var { config } = require('../config');
 
 var proto = (module.exports = function () {
     function EmailManager() {}

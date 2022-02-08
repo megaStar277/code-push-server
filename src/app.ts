@@ -1,13 +1,14 @@
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const helmet = require('helmet');
-const _ = require('lodash');
-const fs = require('fs');
-const { logger } = require('kv-logger');
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import helmet from 'helmet';
+import _ from 'lodash';
+import fs from 'fs';
+import { logger } from 'kv-logger';
 
-const config = require('./core/config');
+import { config } from './core/config';
+
 const routes = require('./routes/index');
 const indexV1 = require('./routes/indexV1');
 const auth = require('./routes/auth');
@@ -17,7 +18,7 @@ const users = require('./routes/users');
 const apps = require('./routes/apps');
 const { AppError, NotFound } = require('./core/app-error');
 
-const app = express();
+export const app = express();
 
 app.use(
     helmet({
@@ -58,7 +59,7 @@ if (_.get(config, 'common.storageType') === 'local') {
         }
         try {
             logger.debug('checking storageDir fs.W_OK | fs.R_OK');
-            fs.accessSync(localStorageDir, fs.W_OK | fs.R_OK);
+            fs.accessSync(localStorageDir, fs.constants.W_OK | fs.constants.R_OK);
             logger.debug('storageDir fs.W_OK | fs.R_OK is ok');
         } catch (e) {
             logger.error(e);
@@ -96,5 +97,3 @@ app.use(function (err, req, res, next) {
         logger.error(err);
     }
 });
-
-module.exports = app;

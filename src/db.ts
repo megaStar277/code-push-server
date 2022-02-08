@@ -3,12 +3,14 @@
 /**
  * Module dependencies.
  */
-var fs = require('fs');
-var path = require('path');
-var _ = require('lodash');
-var mysql = require('mysql2');
-var constConfig = require('./core/const');
-var yargs = require('yargs');
+import fs from 'fs';
+import path from 'path';
+import _ from 'lodash';
+import mysql from 'mysql2';
+import yargs from 'yargs';
+
+const constConfig = require('./core/const');
+
 var argv = yargs
     .usage('Usage: $0 <command> [options]')
     .command('init', '初始化数据库', {
@@ -40,6 +42,7 @@ var argv = yargs
     .help('h')
     .alias('h', 'help')
     .parseSync();
+
 var command = argv._[0];
 var dbname = argv.dbname ? argv.dbname : 'codepush';
 var dbhost = argv.dbhost ? argv.dbhost : 'localhost';
@@ -106,7 +109,7 @@ if (command === 'init') {
         connection.connect();
     } catch (e) {
         console.error('connect mysql error, check params', e);
-        return;
+        process.exit(1);
     }
 
     var version_no = '0.0.1';

@@ -1,10 +1,11 @@
-const os = require('os');
+import os from 'os';
+import { setLogTransports, ConsoleTransport, LogLevelFilter, logger } from 'kv-logger';
 
-function toBool(str) {
+function toBool(str: string): boolean {
     return str === 'true' || str === '1';
 }
 
-function toNumber(str, defaultValue) {
+function toNumber(str: string, defaultValue: number): number {
     var num = Number(str);
     if (Number.isNaN(num)) {
         return defaultValue;
@@ -12,7 +13,7 @@ function toNumber(str, defaultValue) {
     return num;
 }
 
-const config = {
+export const config = {
     // Config for log
     log: {
         // debug, info, warn, error
@@ -148,6 +149,18 @@ const config = {
             return Math.max(options.attempt * 100, 3000);
         },
     },
-};
+} as const;
 
-module.exports = config;
+// config logger - make sure its ready before anyting else
+setLogTransports([
+    new LogLevelFilter(
+        new ConsoleTransport(config.log.format as 'text' | 'json'),
+        config.log.level as 'error' | 'warn' | 'info' | 'debug',
+    ),
+]);
+
+const env = process.env.NODE_ENV || 'development';
+logger.info(`use config`, {
+    env: env,
+    storageType: config.common.storageType,
+});

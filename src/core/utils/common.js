@@ -12,7 +12,7 @@ const util = require('util');
 const streamPipeline = util.promisify(require('stream').pipeline);
 const fetch = require('node-fetch');
 
-var config = require('../config');
+const { config } = require('../config');
 var AppError = require('../app-error');
 
 var { logger } = require('kv-logger');

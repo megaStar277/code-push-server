@@ -2,7 +2,6 @@
 var models = require('../../models');
 var security = require('../utils/security');
 var _ = require('lodash');
-var qetag = require('../utils/qetag');
 var formidable = require('formidable');
 var yazl = require('yazl');
 var fs = require('fs');

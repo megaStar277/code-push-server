@@ -1,9 +1,10 @@
-var app = require('../../../bin/app');
-var request = require('supertest')(app);
-var should = require('should');
-var security = require('../../../bin/core/utils/security');
-var factory = require('../../../bin/core/utils/factory');
-var _ = require('lodash');
+const { app } = require('../../../bin/app');
+const request = require('supertest')(app);
+const should = require('should');
+const _ = require('lodash');
+
+const security = require('../../../bin/core/utils/security');
+const factory = require('../../../bin/core/utils/factory');
 
 describe('api/users/users.test.js', function () {
     var accountExist = 'lisong2010@gmail.com';

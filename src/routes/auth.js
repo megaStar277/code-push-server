@@ -4,7 +4,7 @@ const validator = require('validator');
 const { logger } = require('kv-logger');
 const jwt = require('jsonwebtoken');
 
-const config = require('../core/config');
+const { config } = require('../core/config');
 
 const router = express.Router();
 

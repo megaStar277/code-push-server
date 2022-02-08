@@ -1,8 +1,8 @@
-var app = require('../../../bin/app');
-var request = require('supertest')(app);
-var should = require('should');
-var path = require('path');
-var _ = require('lodash');
+const { app } = require('../../../bin/app');
+const request = require('supertest')(app);
+const should = require('should');
+const path = require('path');
+const _ = require('lodash');
 
 const SLEEP_TIME = 5000;
 

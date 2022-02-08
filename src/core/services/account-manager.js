@@ -7,7 +7,7 @@ var security = require('../utils/security');
 var factory = require('../utils/factory');
 var moment = require('moment');
 var EmailManager = require('./email-manager');
-var config = require('../config');
+var { config } = require('../config');
 var AppError = require('../app-error');
 
 var proto = (module.exports = function () {

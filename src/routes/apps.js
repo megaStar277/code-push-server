@@ -10,8 +10,8 @@ var AppManager = require('../core/services/app-manager');
 var PackageManager = require('../core/services/package-manager');
 var AppError = require('../core/app-error');
 var common = require('../core/utils/common');
-var config = require('../core/config');
-var { logger } = require('kv-logger');
+const { config } = require('../core/config');
+const { logger } = require('kv-logger');
 
 function delay(ms) {
     return new Promise(function (resolve) {
@@ -283,6 +283,12 @@ router.post(
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
         var uid = req.users.id;
+
+        logger.info('try to release', {
+            uid,
+            appName,
+            deploymentName,
+        });
         var deployments = new Deployments();
         var packageManager = new PackageManager();
         accountManager
@@ -352,6 +358,7 @@ router.post(
             })
             .catch((e) => {
                 if (e instanceof AppError.AppError) {
+                    logger.warn(e.message);
                     res.status(406).send(e.message);
                 } else {
                     next(e);

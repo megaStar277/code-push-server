@@ -9,6 +9,7 @@ const CONTENTS_NAME = 'contents';
 var AppError = require('../app-error');
 var { logger } = require('kv-logger');
 var path = require('path');
+const { config } = require('../config');
 
 var proto = (module.exports = function () {
     function DataCenterManager() {}
@@ -17,10 +18,7 @@ var proto = (module.exports = function () {
 });
 
 proto.getDataDir = function () {
-    var dataDir = _.get(require('../config'), 'common.dataDir', {});
-    if (_.isEmpty(dataDir)) {
-        dataDir = os.tmpdir();
-    }
+    var dataDir = _.get(config, 'common.dataDir', {});
     return dataDir;
 };
 

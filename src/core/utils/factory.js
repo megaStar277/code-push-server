@@ -1,14 +1,13 @@
 'use strict';
 const util = require('util');
 const redis = require('redis');
-const config = require('../config');
-const _ = require('lodash');
+const { config } = require('../config');
 
 const factory = {};
 module.exports = factory;
 
 factory.getRedisClient = function () {
-    const client = redis.createClient(_.get(config, 'redis'));
+    const client = redis.createClient(config.redis);
     return {
         del: util.promisify(client.del).bind(client),
         exists: util.promisify(client.exists).bind(client),
