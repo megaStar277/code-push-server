@@ -8,6 +8,7 @@ import fs from 'fs';
 import { logger } from 'kv-logger';
 
 import { config } from './core/config';
+import { AppError, NotFound } from './core/app-error';
 
 const routes = require('./routes/index');
 const indexV1 = require('./routes/indexV1');
@@ -16,7 +17,6 @@ const accessKeys = require('./routes/accessKeys');
 const account = require('./routes/account');
 const users = require('./routes/users');
 const apps = require('./routes/apps');
-const { AppError, NotFound } = require('./core/app-error');
 
 export const app = express();
 
@@ -82,15 +82,13 @@ app.use('/apps', apps);
 
 // 404 handler
 app.use(function (req, res, next) {
-    var e = new NotFound(`${req.method} ${req.url}`);
-    res.status(404).send(e.message);
-    logger.debug(e);
+    throw new NotFound(`${req.method} ${req.url} not found`);
 });
 
 // error handler
 app.use(function (err, req, res, next) {
     if (err instanceof AppError) {
-        res.send(err.message);
+        res.status(err.status).send(err.message);
         logger.debug(err);
     } else {
         res.status(err.status || 500).send(err.message);

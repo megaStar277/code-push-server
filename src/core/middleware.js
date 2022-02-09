@@ -1,14 +1,12 @@
-'use strict';
-
+import { Op } from 'sequelize';
+import _ from 'lodash';
+import moment from 'moment';
 import { UserTokens } from '../models/user_tokens';
 import { Users } from '../models/users';
 import { config } from '../core/config';
+import { AppError, Unauthorized } from './app-error';
 
-var _ = require('lodash');
 var security = require('../core/utils/security');
-
-var moment = require('moment');
-var AppError = require('./app-error');
 
 var middleware = module.exports;
 
@@ -19,20 +17,19 @@ var checkAuthToken = function (authToken) {
     })
         .then((users) => {
             if (_.isEmpty(users)) {
-                throw new AppError.Unauthorized();
+                throw new Unauthorized();
             }
-            var Sequelize = require('sequelize');
             return UserTokens.findOne({
                 where: {
                     tokens: authToken,
                     uid: users.id,
                     expires_at: {
-                        [Sequelize.Op.gt]: moment().format('YYYY-MM-DD HH:mm:ss'),
+                        [Op.gt]: moment().format('YYYY-MM-DD HH:mm:ss'),
                     },
                 },
             }).then((tokenInfo) => {
                 if (_.isEmpty(tokenInfo)) {
-                    throw new AppError.Unauthorized();
+                    throw new Unauthorized();
                 }
                 return users;
             });
@@ -45,14 +42,14 @@ var checkAuthToken = function (authToken) {
 var checkAccessToken = function (accessToken) {
     return new Promise((resolve, reject) => {
         if (_.isEmpty(accessToken)) {
-            return reject(new AppError.Unauthorized());
+            return reject(new Unauthorized());
         }
         var tokenSecret = _.get(config, 'jwt.tokenSecret');
         var jwt = require('jsonwebtoken');
         try {
             var authData = jwt.verify(accessToken, tokenSecret);
         } catch (e) {
-            return reject(new AppError.Unauthorized());
+            return reject(new Unauthorized());
         }
         var uid = _.get(authData, 'uid', null);
         var hash = _.get(authData, 'hash', null);
@@ -62,10 +59,10 @@ var checkAccessToken = function (accessToken) {
             })
                 .then((users) => {
                     if (_.isEmpty(users)) {
-                        throw new AppError.Unauthorized();
+                        throw new Unauthorized();
                     }
                     if (!_.eq(hash, security.md5(users.get('ack_code')))) {
-                        throw new AppError.Unauthorized();
+                        throw new Unauthorized();
                     }
                     resolve(users);
                 })
@@ -73,7 +70,7 @@ var checkAccessToken = function (accessToken) {
                     reject(e);
                 });
         } else {
-            reject(new AppError.Unauthorized());
+            reject(new Unauthorized());
         }
     });
 };
@@ -103,7 +100,7 @@ middleware.checkToken = function (req, res, next) {
                 return users;
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(e.status || 404).send(e.message);
                 } else {
                     next(e);
@@ -117,13 +114,13 @@ middleware.checkToken = function (req, res, next) {
                 return users;
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(e.status || 404).send(e.message);
                 } else {
                     next(e);
                 }
             });
     } else {
-        res.send(new AppError.Unauthorized(`Auth type not supported.`));
+        res.send(new Unauthorized(`Auth type not supported.`));
     }
 };

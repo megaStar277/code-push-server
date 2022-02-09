@@ -1,19 +1,22 @@
-'use strict';
 import fs from 'fs';
 import fsextra from 'fs-extra';
 import extract from 'extract-zip';
 import _ from 'lodash';
 import validator from 'validator';
 import qiniu from 'qiniu';
-const jschardet = require('jschardet');
+import jschardet from 'jschardet';
 import path from 'path';
 import util from 'util';
-const streamPipeline = util.promisify(require('stream').pipeline);
 import fetch from 'node-fetch';
 import { logger } from 'kv-logger';
+import AWS from 'aws-sdk';
+import COS from 'cos-nodejs-sdk-v5';
+import ALY from 'aliyun-sdk';
 
 import { config } from '../config';
-var AppError = require('../app-error');
+import { AppError } from '../app-error';
+
+const streamPipeline = util.promisify(require('stream').pipeline);
 
 var common = {};
 module.exports = common;
@@ -110,7 +113,7 @@ common.createFileFromRequest = async function (url, filePath) {
     logger.debug(`createFileFromRequest url:${url}`);
     const response = await fetch(url);
     if (!response.ok) {
-        throw new AppError.AppError(`unexpected response ${response.statusText}`);
+        throw new AppError(`unexpected response ${response.statusText}`);
     }
     await streamPipeline(response.body, fs.createWriteStream(filePath));
 };
@@ -172,7 +175,7 @@ common.createEmptyFolder = function (folderPath) {
             fsextra.mkdirs(folderPath, (err) => {
                 if (err) {
                     logger.error(err);
-                    reject(new AppError.AppError(err.message));
+                    reject(new AppError(err.message));
                 } else {
                     resolve(folderPath);
                 }
@@ -193,7 +196,7 @@ common.unzipFile = async function (zipFile, outputPath) {
         logger.debug(`Pass unzipFile file ${zipFile}`);
     } catch (err) {
         logger.error(err);
-        throw new AppError.AppError(err.message);
+        throw new AppError(err.message);
     }
 
     try {
@@ -201,7 +204,7 @@ common.unzipFile = async function (zipFile, outputPath) {
         logger.debug(`unzipFile success`);
     } catch (err) {
         logger.error(err);
-        throw new AppError.AppError(`it's not a zipFile`);
+        throw new AppError(`it's not a zipFile`);
     }
     return outputPath;
 };
@@ -227,18 +230,18 @@ common.uploadFileToStorage = function (key, filePath) {
     } else if (storageType === 'tencentcloud') {
         return common.uploadFileToTencentCloud(key, filePath);
     }
-    throw new AppError.AppError(`${storageType} storageType does not support.`);
+    throw new AppError(`${storageType} storageType does not support.`);
 };
 
 common.uploadFileToLocal = function (key, filePath) {
     return new Promise((resolve, reject) => {
         var storageDir = _.get(config, 'local.storageDir');
         if (!storageDir) {
-            throw new AppError.AppError('please set config local storageDir');
+            throw new AppError('please set config local storageDir');
         }
         if (key.length < 3) {
             logger.error(`generate key is too short, key value:${key}`);
-            throw new AppError.AppError('generate key is too short.');
+            throw new AppError('generate key is too short.');
         }
         try {
             logger.debug(`uploadFileToLocal check directory ${storageDir} fs.R_OK`);
@@ -246,7 +249,7 @@ common.uploadFileToLocal = function (key, filePath) {
             logger.debug(`uploadFileToLocal directory ${storageDir} fs.R_OK is ok`);
         } catch (e) {
             logger.error(e);
-            throw new AppError.AppError(e.message);
+            throw new AppError(e.message);
         }
         var subDir = key.substr(0, 2).toLowerCase();
         var finalDir = path.join(storageDir, subDir);
@@ -256,7 +259,7 @@ common.uploadFileToLocal = function (key, filePath) {
         }
         var stats = fs.statSync(storageDir);
         if (!stats.isDirectory()) {
-            var e = new AppError.AppError(`${storageDir} must be directory`);
+            var e = new AppError(`${storageDir} must be directory`);
             logger.error(e);
             throw e;
         }
@@ -268,18 +271,18 @@ common.uploadFileToLocal = function (key, filePath) {
             fs.accessSync(filePath, fs.R_OK);
         } catch (e) {
             logger.error(e);
-            throw new AppError.AppError(e.message);
+            throw new AppError(e.message);
         }
         stats = fs.statSync(filePath);
         if (!stats.isFile()) {
-            var e = new AppError.AppError(`${filePath} must be file`);
+            var e = new AppError(`${filePath} must be file`);
             logger.error(e);
             throw e;
         }
         fsextra.copy(filePath, fileName, (err) => {
             if (err) {
-                logger.error(new AppError.AppError(err.message));
-                return reject(new AppError.AppError(err.message));
+                logger.error(new AppError(err.message));
+                return reject(new AppError(err.message));
             }
             logger.debug(`uploadFileToLocal copy file ${key} success.`);
             resolve(key);
@@ -295,7 +298,7 @@ common.getBlobDownloadUrl = function (blobUrl) {
         fileName = blobUrl.substr(0, 2).toLowerCase() + '/' + blobUrl;
     }
     if (!validator.isURL(downloadUrl)) {
-        var e = new AppError.AppError(`Please config ${storageType}.downloadUrl in config.js`);
+        var e = new AppError(`Please config ${storageType}.downloadUrl in config.js`);
         logger.error(e);
         throw e;
     }
@@ -313,7 +316,7 @@ common.uploadFileToQiniu = function (key, filePath) {
         bucketManager.stat(bucket, key, (respErr, respBody, respInfo) => {
             if (respErr) {
                 logger.debug('uploadFileToQiniu file stat:', respErr);
-                return reject(new AppError.AppError(respErr.message));
+                return reject(new AppError(respErr.message));
             }
             logger.debug('uploadFileToQiniu file stat respBody:', respBody);
             logger.debug('uploadFileToQiniu file stat respInfo:', respInfo);
@@ -323,7 +326,7 @@ common.uploadFileToQiniu = function (key, filePath) {
                 try {
                     var uploadToken = common.getUploadTokenQiniu(mac, bucket, key);
                 } catch (e) {
-                    return reject(new AppError.AppError(e.message));
+                    return reject(new AppError(e.message));
                 }
                 var formUploader = new qiniu.form_up.FormUploader(conf);
                 var putExtra = new qiniu.form_up.PutExtra();
@@ -336,7 +339,7 @@ common.uploadFileToQiniu = function (key, filePath) {
                         if (respErr) {
                             logger.error('uploadFileToQiniu putFile:', respErr);
                             // 上传失败， 处理返回代码
-                            return reject(new AppError.AppError(JSON.stringify(respErr)));
+                            return reject(new AppError(JSON.stringify(respErr)));
                         } else {
                             logger.debug('uploadFileToQiniu putFile respBody:', respBody);
                             logger.debug('uploadFileToQiniu putFile respInfo:', respInfo);
@@ -344,7 +347,7 @@ common.uploadFileToQiniu = function (key, filePath) {
                             if (respInfo.statusCode == 200) {
                                 return resolve(respBody.hash);
                             } else {
-                                return reject(new AppError.AppError(respBody.error));
+                                return reject(new AppError(respBody.error));
                             }
                         }
                     },
@@ -355,7 +358,6 @@ common.uploadFileToQiniu = function (key, filePath) {
 };
 
 common.uploadFileToS3 = function (key, filePath) {
-    var AWS = require('aws-sdk');
     return new Promise((resolve, reject) => {
         AWS.config.update({
             accessKeyId: _.get(config, 's3.accessKeyId'),
@@ -375,7 +377,7 @@ common.uploadFileToS3 = function (key, filePath) {
                 },
                 (err, response) => {
                     if (err) {
-                        reject(new AppError.AppError(JSON.stringify(err)));
+                        reject(new AppError(JSON.stringify(err)));
                     } else {
                         resolve(response.ETag);
                     }
@@ -386,7 +388,6 @@ common.uploadFileToS3 = function (key, filePath) {
 };
 
 common.uploadFileToOSS = function (key, filePath) {
-    var ALY = require('aliyun-sdk');
     var ossStream = require('aliyun-oss-upload-stream')(
         new ALY.OSS({
             accessKeyId: _.get(config, 'oss.accessKeyId'),
@@ -419,7 +420,6 @@ common.uploadFileToOSS = function (key, filePath) {
 
 common.uploadFileToTencentCloud = function (key, filePath) {
     return new Promise((resolve, reject) => {
-        var COS = require('cos-nodejs-sdk-v5');
         var cosIn = new COS({
             SecretId: _.get(config, 'tencentcloud.accessKeyId'),
             SecretKey: _.get(config, 'tencentcloud.secretAccessKey'),
@@ -434,7 +434,7 @@ common.uploadFileToTencentCloud = function (key, filePath) {
             function (err, data) {
                 logger.debug('uploadFileToTencentCloud', { err, data });
                 if (err) {
-                    reject(new AppError.AppError(JSON.stringify(err)));
+                    reject(new AppError(JSON.stringify(err)));
                 } else {
                     resolve(data.Key);
                 }

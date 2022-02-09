@@ -3,10 +3,10 @@ import { logger } from 'kv-logger';
 import _ from 'lodash';
 
 import { Users } from '../models/users';
+import { AppError } from '../core/app-error';
 
 var middleware = require('../core/middleware');
 var AccountManager = require('../core/services/account-manager');
-var AppError = require('../core/app-error');
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.post('/', (req, res, next) => {
         .checkRegisterCode(email, token)
         .then((u) => {
             if (_.isString(password) && password.length < 6) {
-                throw new AppError.AppError('请您输入6～20位长度的密码');
+                throw new AppError('请您输入6～20位长度的密码');
             }
             return accountManager.register(email, password);
         })
@@ -31,7 +31,7 @@ router.post('/', (req, res, next) => {
             res.send({ status: 'OK' });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.send({ status: 'ERROR', message: e.message });
             } else {
                 next(e);
@@ -44,12 +44,12 @@ router.get('/exists', (req, res, next) => {
     Users.findOne({ where: { email: email } })
         .then((u) => {
             if (!email) {
-                throw new AppError.AppError(`请您输入邮箱地址`);
+                throw new AppError(`请您输入邮箱地址`);
             }
             res.send({ status: 'OK', exists: u ? true : false });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.send({ status: 'ERROR', message: e.message });
             } else {
                 next(e);
@@ -68,7 +68,7 @@ router.post('/registerCode', (req, res, next) => {
             res.send({ status: 'OK' });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 logger.warn('send register code error', { email, message: e.message });
                 res.send({ status: 'ERROR', message: e.message });
             } else {
@@ -87,7 +87,7 @@ router.get('/registerCode/exists', (req, res, next) => {
             res.send({ status: 'OK' });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.send({ status: 'ERROR', message: e.message });
             } else {
                 next(e);
@@ -107,7 +107,7 @@ router.patch('/password', middleware.checkToken, (req, res, next) => {
             res.send({ status: 'OK' });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.send({ status: 'ERROR', message: e.message });
             } else {
                 next(e);

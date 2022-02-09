@@ -1,4 +1,3 @@
-'use strict';
 import util from 'util';
 import redis from 'redis';
 import { config } from '../config';

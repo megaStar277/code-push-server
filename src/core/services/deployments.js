@@ -1,4 +1,7 @@
-'use strict';
+import _ from 'lodash';
+import moment from 'moment';
+import { logger } from 'kv-logger';
+
 import { Deployments } from '../../models/deployments';
 import { DeploymentsVersions } from '../../models/deployments_versions';
 import { DeploymentsHistory } from '../../models/deployments_history';
@@ -7,13 +10,10 @@ import { PackagesDiff } from '../../models/packages_diff';
 import { PackagesMetrics } from '../../models/packages_metrics';
 import { Users } from '../../models/users';
 import { sequelize } from '../../models/index';
+import { AppError } from '../app-error';
 
 var security = require('../../core/utils/security');
 var common = require('../../core/utils/common');
-var _ = require('lodash');
-var moment = require('moment');
-var AppError = require('../app-error');
-var { logger } = require('kv-logger');
 
 var proto = (module.exports = function () {
     function Deployments() {}
@@ -30,7 +30,7 @@ proto.existDeloymentName = function (appId, name) {
         where: { appid: appId, name: name },
     }).then((data) => {
         if (!_.isEmpty(data)) {
-            throw new AppError.AppError(name + ' name does Exist!');
+            throw new AppError(name + ' name does Exist!');
         } else {
             return data;
         }
@@ -41,7 +41,7 @@ proto.addDeloyment = function (name, appId, uid) {
     var self = this;
     return Users.findByPk(uid).then((user) => {
         if (_.isEmpty(user)) {
-            throw new AppError.AppError("can't find user");
+            throw new AppError("can't find user");
         }
         return self.existDeloymentName(appId, name).then(() => {
             var identical = user.identical;
@@ -66,7 +66,7 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
             if (_.gt(affectedCount, 0)) {
                 return { name: newName };
             } else {
-                throw new AppError.AppError(`does not find the deployment "${deploymentName}"`);
+                throw new AppError(`does not find the deployment "${deploymentName}"`);
             }
         });
     });
@@ -79,7 +79,7 @@ proto.deleteDeloymentByName = function (deploymentName, appId) {
         if (_.gt(rowNum, 0)) {
             return { name: `${deploymentName}` };
         } else {
-            throw new AppError.AppError(`does not find the deployment "${deploymentName}"`);
+            throw new AppError(`does not find the deployment "${deploymentName}"`);
         }
     });
 };

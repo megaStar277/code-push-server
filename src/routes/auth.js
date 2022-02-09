@@ -5,6 +5,10 @@ import { logger } from 'kv-logger';
 import jwt from 'jsonwebtoken';
 
 import { config } from '../core/config';
+import { AppError } from '../core/app-error';
+
+var accountManager = require('../core/services/account-manager')();
+var security = require('../core/utils/security');
 
 const router = express.Router();
 
@@ -51,9 +55,6 @@ router.post('/logout', (req, res) => {
 });
 
 router.post('/login', (req, res, next) => {
-    var AppError = require('../core/app-error');
-    var accountManager = require('../core/services/account-manager')();
-    var security = require('../core/utils/security');
     var account = _.trim(req.body.account);
     var password = _.trim(req.body.password);
     var tokenSecret = _.get(config, 'jwt.tokenSecret');
@@ -80,7 +81,7 @@ router.post('/login', (req, res, next) => {
             res.send({ status: 'OK', results: { tokens: token } });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 logger.debug(e);
                 res.send({ status: 'ERROR', errorMessage: e.message });
             } else {

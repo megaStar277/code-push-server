@@ -2,11 +2,11 @@ import express from 'express';
 import _ from 'lodash';
 import { logger } from 'kv-logger';
 import { UserTokens } from '../models/user_tokens';
+import { AppError } from '../core/app-error';
 
 var security = require('../core/utils/security');
 var middleware = require('../core/middleware');
 var accountManager = require('../core/services/account-manager')();
-var AppError = require('../core/app-error');
 
 const router = express.Router();
 
@@ -40,7 +40,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         .isExsitAccessKeyName(uid, friendlyName)
         .then((data) => {
             if (!_.isEmpty(data)) {
-                throw new AppError.AppError(`The access key "${friendlyName}"  already exists.`);
+                throw new AppError(`The access key "${friendlyName}"  already exists.`);
             }
         })
         .then(() => {
@@ -74,7 +74,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
             res.send({ accessKey: info });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 logger.debug(e);
                 res.status(406).send(e.message);
             } else {
@@ -92,7 +92,7 @@ router.delete('/:name', middleware.checkToken, (req, res, next) => {
             res.send({ friendlyName: name });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 logger.debug(e);
                 res.status(406).send(e.message);
             } else {

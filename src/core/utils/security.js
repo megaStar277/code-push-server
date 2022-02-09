@@ -1,16 +1,18 @@
-'use strict';
-var bcrypt = require('bcryptjs');
-var crypto = require('crypto');
-var fs = require('fs');
-var qetag = require('../utils/qetag');
-var _ = require('lodash');
-var { logger } = require('kv-logger');
-var AppError = require('../app-error');
+import { logger } from 'kv-logger';
+import fs from 'fs';
+import _ from 'lodash';
+import crypto from 'crypto';
 
-var randToken = require('rand-token').generator({
+import { AppError } from '../app-error';
+
+var bcrypt = require('bcryptjs');
+var qetag = require('../utils/qetag');
+
+const randToken = require('rand-token').generator({
     chars: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
     source: 'crypto',
 });
+
 var security = {};
 module.exports = security;
 
@@ -80,7 +82,7 @@ security.qetag = function (buffer) {
             logger.debug(`Pass upload file ${buffer}`);
         } catch (e) {
             logger.error(e);
-            return Promise.reject(new AppError.AppError(e.message));
+            return Promise.reject(new AppError(e.message));
         }
     }
     logger.debug(`generate file identical`);
@@ -114,12 +116,12 @@ security.uploadPackageType = function (directoryPath) {
         var recursive = require('recursive-readdir');
         recursive(directoryPath, (err, files) => {
             if (err) {
-                logger.error(new AppError.AppError(err.message));
-                reject(new AppError.AppError(err.message));
+                logger.error(new AppError(err.message));
+                reject(new AppError(err.message));
             } else {
                 if (files.length == 0) {
                     logger.debug(`uploadPackageType empty files`);
-                    reject(new AppError.AppError('empty files'));
+                    reject(new AppError('empty files'));
                 } else {
                     var constName = require('../const');
                     const AREGEX = /android\.bundle/;
@@ -183,7 +185,7 @@ security.calcAllFileSha256 = function (directoryPath) {
         recursive(directoryPath, (error, files) => {
             if (error) {
                 logger.error(error);
-                reject(new AppError.AppError(error.message));
+                reject(new AppError(error.message));
             } else {
                 // filter files that should be ignored
                 files = files.filter((file) => {
@@ -193,7 +195,7 @@ security.calcAllFileSha256 = function (directoryPath) {
 
                 if (files.length == 0) {
                     logger.debug(`calcAllFileSha256 empty files in directoryPath:`, directoryPath);
-                    reject(new AppError.AppError('empty files'));
+                    reject(new AppError('empty files'));
                 } else {
                     security.sha256AllFiles(files).then((results) => {
                         var data = {};

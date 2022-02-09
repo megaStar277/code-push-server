@@ -1,5 +1,7 @@
-'use strict';
 import _ from 'lodash';
+import { logger } from 'kv-logger';
+import { Op } from 'sequelize';
+
 import { Deployments } from '../../models/deployments';
 import { DeploymentsVersions } from '../../models/deployments_versions';
 import { Packages } from '../../models/packages';
@@ -8,12 +10,10 @@ import { PackagesMetrics } from '../../models/packages_metrics';
 import { LogReportDeploy } from '../../models/log_report_deploy';
 import { LogReportDownload } from '../../models/log_report_download';
 import { config } from '../config';
+import { AppError } from '../app-error';
 
 var common = require('../utils/common');
 var factory = require('../utils/factory');
-var AppError = require('../app-error');
-var { logger } = require('kv-logger');
-var Sequelize = require('sequelize');
 
 var proto = (module.exports = function () {
     function ClientManager() {}
@@ -151,19 +151,19 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
     };
     var self = this;
     if (_.isEmpty(deploymentKey) || _.isEmpty(appVersion)) {
-        return Promise.reject(new AppError.AppError('please input deploymentKey and appVersion'));
+        return Promise.reject(new AppError('please input deploymentKey and appVersion'));
     }
     return Deployments.findOne({ where: { deployment_key: deploymentKey } })
         .then((dep) => {
             if (_.isEmpty(dep)) {
-                throw new AppError.AppError('Not found deployment, check deployment key is right.');
+                throw new AppError('Not found deployment, check deployment key is right.');
             }
             var version = common.parseVersion(appVersion);
             return DeploymentsVersions.findAll({
                 where: {
                     deployment_id: dep.id,
-                    min_version: { [Sequelize.Op.lte]: version },
-                    max_version: { [Sequelize.Op.gt]: version },
+                    min_version: { [Op.lte]: version },
+                    max_version: { [Op.gt]: version },
                 },
             }).then((deploymentsVersionsMore) => {
                 var distance = 0;
@@ -250,18 +250,18 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
 
 proto.getPackagesInfo = function (deploymentKey, label) {
     if (_.isEmpty(deploymentKey) || _.isEmpty(label)) {
-        return Promise.reject(new AppError.AppError('please input deploymentKey and label'));
+        return Promise.reject(new AppError('please input deploymentKey and label'));
     }
     return Deployments.findOne({ where: { deployment_key: deploymentKey } })
         .then((dep) => {
             if (_.isEmpty(dep)) {
-                throw new AppError.AppError('does not found deployment');
+                throw new AppError('does not found deployment');
             }
             return Packages.findOne({ where: { deployment_id: dep.id, label: label } });
         })
         .then((packages) => {
             if (_.isEmpty(packages)) {
-                throw new AppError.AppError('does not found packages');
+                throw new AppError('does not found packages');
             }
             return packages;
         });

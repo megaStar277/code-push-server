@@ -1,9 +1,7 @@
-'use strict';
+import _ from 'lodash';
 import { Collaborators } from '../../models/collaborators';
 import { Users } from '../../models/users';
-
-var _ = require('lodash');
-var AppError = require('../app-error');
+import { AppError } from '../app-error';
 
 var proto = (module.exports = function () {
     function Collaborators() {}
@@ -54,7 +52,7 @@ proto.addCollaborator = function (appId, uid) {
                 roles: 'Collaborator',
             });
         } else {
-            throw new AppError.AppError('user already is Collaborator.');
+            throw new AppError('user already is Collaborator.');
         }
     });
 };
@@ -62,7 +60,7 @@ proto.addCollaborator = function (appId, uid) {
 proto.deleteCollaborator = function (appId, uid) {
     return Collaborators.findOne({ where: { appid: appId, uid: uid } }).then((data) => {
         if (_.isEmpty(data)) {
-            throw new AppError.AppError('user is not a Collaborator');
+            throw new AppError('user is not a Collaborator');
         } else {
             return Collaborators.destroy({ where: { id: data.id } });
         }

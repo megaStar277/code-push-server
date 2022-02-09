@@ -1,13 +1,13 @@
-'use strict';
+import _ from 'lodash';
+
 import { Apps } from '../../models/apps';
 import { Collaborators } from '../../models/collaborators';
 import { Deployments } from '../../models/deployments';
 import { Users } from '../../models/users';
 import { sequelize } from '../../models/index';
+import { AppError } from '../app-error';
 
-var _ = require('lodash');
 var security = require('../../core/utils/security');
-var AppError = require('../app-error');
 
 var proto = (module.exports = function () {
     function AppManager() {}
@@ -75,7 +75,7 @@ proto.deleteApp = function (appId) {
 proto.modifyApp = function (appId, params) {
     return Apps.update(params, { where: { id: appId } }).then(([affectedCount, affectedRows]) => {
         if (!_.gt(affectedCount, 0)) {
-            throw AppError.AppError('modify errors');
+            throw AppError('modify errors');
         }
         return affectedCount;
     });

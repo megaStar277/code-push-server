@@ -1,8 +1,8 @@
-'use strict';
 import _ from 'lodash';
 import nodemailer from 'nodemailer';
 
 import { config } from '../config';
+import { AppError } from '../app-error';
 
 var proto = (module.exports = function () {
     function EmailManager() {}
@@ -13,7 +13,7 @@ var proto = (module.exports = function () {
 proto.sendMail = function (options) {
     return new Promise((resolve, reject) => {
         if (!_.get(options, 'to')) {
-            reject(new AppError.AppError('to是必传参数'));
+            reject(new AppError('to是必传参数'));
             return;
         }
         var smtpConfig = _.get(config, 'smtpConfig');

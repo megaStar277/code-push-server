@@ -1,13 +1,12 @@
-'use strict';
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import { logger } from 'kv-logger';
 import { config } from '../config';
+import { AppError } from '../app-error';
 
 var security = require('../utils/security');
 var common = require('../utils/common');
-var AppError = require('../app-error');
 
 const MANIFEST_FILE_NAME = 'manifest.json';
 const CONTENTS_NAME = 'contents';
@@ -39,7 +38,7 @@ proto.getPackageInfo = function (packageHash) {
         var contentPath = path.join(packageHashPath, CONTENTS_NAME);
         return this.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
     } else {
-        throw new AppError.AppError("can't get PackageInfo");
+        throw new AppError("can't get PackageInfo");
     }
 };
 

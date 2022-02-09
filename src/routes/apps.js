@@ -4,13 +4,14 @@ import validator from 'validator';
 import { config } from '../core/config';
 import { logger } from 'kv-logger';
 
+import { AppError } from '../core/app-error';
+
 var middleware = require('../core/middleware');
 var accountManager = require('../core/services/account-manager')();
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
 var AppManager = require('../core/services/app-manager');
 var PackageManager = require('../core/services/package-manager');
-var AppError = require('../core/app-error');
 var common = require('../core/utils/common');
 
 const router = express.Router();
@@ -30,7 +31,7 @@ router.get('/', middleware.checkToken, (req, res, next) => {
             res.send({ apps: data });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -51,7 +52,7 @@ router.get('/:appName/deployments', middleware.checkToken, (req, res, next) => {
             res.send({ deployments: data });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -71,13 +72,13 @@ router.get('/:appName/deployments/:deploymentName', middleware.checkToken, (req,
         })
         .then((deploymentInfo) => {
             if (_.isEmpty(deploymentInfo)) {
-                throw new AppError.AppError('does not find the deployment');
+                throw new AppError('does not find the deployment');
             }
             res.send({ deployment: deployments.listDeloyment(deploymentInfo) });
             return true;
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -99,7 +100,7 @@ router.post('/:appName/deployments', middleware.checkToken, (req, res, next) => 
             res.send({ deployment: { name: data.name, key: data.deployment_key } });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -123,7 +124,7 @@ router.get(
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError.AppError('does not find the deployment');
+                            throw new AppError('does not find the deployment');
                         }
                         return deploymentInfo;
                     });
@@ -152,7 +153,7 @@ router.get(
                 res.send({ metrics: rs });
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.send({ metrics: null });
                 } else {
                     next(e);
@@ -176,7 +177,7 @@ router.get(
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError.AppError('does not find the deployment');
+                            throw new AppError('does not find the deployment');
                         }
                         return deploymentInfo;
                     });
@@ -188,7 +189,7 @@ router.get(
                 res.send({ history: _.pullAll(rs, [null, false]) });
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(406).send(e.message);
                 } else {
                     next(e);
@@ -212,7 +213,7 @@ router.delete(
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError.AppError('does not find the deployment');
+                            throw new AppError('does not find the deployment');
                         }
                         return deploymentInfo;
                     });
@@ -224,7 +225,7 @@ router.delete(
                 res.send('ok');
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(406).send(e.message);
                 } else {
                     next(e);
@@ -248,7 +249,7 @@ router.patch('/:appName/deployments/:deploymentName', middleware.checkToken, (re
             res.send({ deployment: data });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -270,7 +271,7 @@ router.delete('/:appName/deployments/:deploymentName', middleware.checkToken, (r
             res.send({ deployment: data });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -307,7 +308,7 @@ router.post(
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
                             logger.debug(`does not find the deployment`);
-                            throw new AppError.AppError('does not find the deployment');
+                            throw new AppError('does not find the deployment');
                         }
                         logger.debug('release deployment check ok', {
                             uid,
@@ -320,7 +321,7 @@ router.post(
                             .then((data) => {
                                 if (data.package.mimetype != 'application/zip') {
                                     logger.debug(`upload file type is invlidate`, data.package);
-                                    throw new AppError.AppError('upload file type is invalidate');
+                                    throw new AppError('upload file type is invalidate');
                                 }
                                 logger.debug('release packagee parse ok', {
                                     uid,
@@ -381,7 +382,7 @@ router.post(
                 res.send('{"msg": "succeed"}');
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     logger.warn(e.message);
                     res.status(406).send(e.message);
                 } else {
@@ -409,7 +410,7 @@ router.patch(
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError.AppError('does not find the deployment');
+                            throw new AppError('does not find the deployment');
                         }
                         if (label) {
                             return packageManager
@@ -428,7 +429,7 @@ router.patch(
                     })
                     .then(([deploymentInfo, packageInfo]) => {
                         if (!packageInfo) {
-                            throw new AppError.AppError('does not find the packageInfo');
+                            throw new AppError('does not find the packageInfo');
                         }
                         return packageManager
                             .modifyReleasePackage(packageInfo.id, _.get(req, 'body.packageInfo'))
@@ -453,7 +454,7 @@ router.patch(
                 res.send('');
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(406).send(e.message);
                 } else {
                     next(e);
@@ -483,10 +484,10 @@ router.post(
                 ])
                     .then(([sourceDeploymentInfo, destDeploymentInfo]) => {
                         if (!sourceDeploymentInfo) {
-                            throw new AppError.AppError(`${sourceDeploymentName}  does not exist.`);
+                            throw new AppError(`${sourceDeploymentName}  does not exist.`);
                         }
                         if (!destDeploymentInfo) {
-                            throw new AppError.AppError(`${destDeploymentName}  does not exist.`);
+                            throw new AppError(`${destDeploymentName}  does not exist.`);
                         }
                         return [sourceDeploymentInfo, destDeploymentInfo];
                     })
@@ -536,7 +537,7 @@ router.post(
                 res.send({ package: packages });
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(406).send(e.message);
                 } else {
                     next(e);
@@ -598,7 +599,7 @@ var rollbackCb = function (req, res, next) {
             res.send('ok');
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -640,7 +641,7 @@ router.get('/:appName/collaborators', middleware.checkToken, (req, res, next) =>
             res.send({ collaborators: rs });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -667,7 +668,7 @@ router.post('/:appName/collaborators/:email', middleware.checkToken, (req, res, 
             res.send(data);
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -688,7 +689,7 @@ router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res
         .then((col) => {
             return accountManager.findUserByEmail(email).then((data) => {
                 if (_.eq(data.id, uid)) {
-                    throw new AppError.AppError("can't delete yourself!");
+                    throw new AppError("can't delete yourself!");
                 } else {
                     return collaborators.deleteCollaborator(col.appid, data.id);
                 }
@@ -698,7 +699,7 @@ router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res
             res.send('');
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -729,7 +730,7 @@ router.delete('/:appName', middleware.checkToken, (req, res, next) => {
             res.send(data);
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -755,7 +756,7 @@ router.patch('/:appName', middleware.checkToken, (req, res, next) => {
             .then((col) => {
                 return appManager.findAppByName(uid, newAppName).then((appInfo) => {
                     if (!_.isEmpty(appInfo)) {
-                        throw new AppError.AppError(newAppName + ' Exist!');
+                        throw new AppError(newAppName + ' Exist!');
                     }
                     return appManager.modifyApp(col.appid, { name: newAppName });
                 });
@@ -770,7 +771,7 @@ router.patch('/:appName', middleware.checkToken, (req, res, next) => {
                 res.send('');
             })
             .catch((e) => {
-                if (e instanceof AppError.AppError) {
+                if (e instanceof AppError) {
                     res.status(406).send(e.message);
                 } else {
                     next(e);
@@ -791,7 +792,7 @@ router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next)
         .then((col) => {
             return accountManager.findUserByEmail(email).then((data) => {
                 if (_.eq(data.id, uid)) {
-                    throw new AppError.AppError("You can't transfer to yourself!");
+                    throw new AppError("You can't transfer to yourself!");
                 }
                 var appManager = new AppManager();
                 return appManager.transferApp(col.appid, uid, data.id);
@@ -801,7 +802,7 @@ router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next)
             res.send(data);
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
@@ -847,7 +848,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         .findAppByName(uid, appName)
         .then((appInfo) => {
             if (!_.isEmpty(appInfo)) {
-                throw new AppError.AppError(appName + ' Exist!');
+                throw new AppError(appName + ' Exist!');
             }
             return appManager.addApp(uid, appName, os, platform, req.users.identical).then(() => {
                 return {
@@ -864,7 +865,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
             res.send({ app: data });
         })
         .catch((e) => {
-            if (e instanceof AppError.AppError) {
+            if (e instanceof AppError) {
                 res.status(406).send(e.message);
             } else {
                 next(e);
