@@ -65,7 +65,6 @@
     "redis": "3.1.2",
     "sequelize": "6.16.0",
     "slash": "3.0.0",
-    "upyun": "3.4.4",
     "validator": "13.7.0",
     "yargs": "17.3.1",
     "yazl": "2.5.1"

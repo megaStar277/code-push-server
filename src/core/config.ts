@@ -38,14 +38,6 @@ export const config = {
         bucketName: process.env.QINIU_BUCKET_NAME,
         downloadUrl: process.env.QINIU_DOWNLOAD_URL || process.env.DOWNLOAD_URL,
     },
-    // Config for upyun (https://www.upyun.com/) storage when storageType value is "upyun"
-    upyun: {
-        storageDir: process.env.UPYUN_STORAGE_DIR,
-        serviceName: process.env.UPYUN_SERVICE_NAME,
-        operatorName: process.env.UPYUN_OPERATOR_NAME,
-        operatorPass: process.env.UPYUN_OPERATOR_PASS,
-        downloadUrl: process.env.UPYUN_DOWNLOAD_URL || process.env.DOWNLOAD_URL,
-    },
     // Config for Amazon s3 (https://aws.amazon.com/cn/s3/) storage when storageType value is "s3".
     s3: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
