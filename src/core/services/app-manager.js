@@ -1,5 +1,10 @@
 'use strict';
-var models = require('../../models');
+import { Apps } from '../../models/apps';
+import { Collaborators } from '../../models/collaborators';
+import { Deployments } from '../../models/deployments';
+import { Users } from '../../models/users';
+import { sequelize } from '../../models/index';
+
 var _ = require('lodash');
 var security = require('../../core/utils/security');
 var AppError = require('../app-error');
@@ -11,12 +16,12 @@ var proto = (module.exports = function () {
 });
 
 proto.findAppByName = function (uid, appName) {
-    return models.Apps.findOne({ where: { name: appName, uid: uid } });
+    return Apps.findOne({ where: { name: appName, uid: uid } });
 };
 
 proto.addApp = function (uid, appName, os, platform, identical) {
-    return models.sequelize.transaction((t) => {
-        return models.Apps.create(
+    return sequelize.transaction((t) => {
+        return Apps.create(
             {
                 name: appName,
                 uid: uid,
@@ -47,54 +52,49 @@ proto.addApp = function (uid, appName, os, platform, identical) {
                 deployment_key: deploymentKey,
             });
             return Promise.all([
-                models.Collaborators.create(
+                Collaborators.create(
                     { appid: appId, uid: uid, roles: 'Owner' },
                     { transaction: t },
                 ),
-                models.Deployments.bulkCreate(deployments, { transaction: t }),
+                Deployments.bulkCreate(deployments, { transaction: t }),
             ]);
         });
     });
 };
 
 proto.deleteApp = function (appId) {
-    return models.sequelize.transaction((t) => {
+    return sequelize.transaction((t) => {
         return Promise.all([
-            models.Apps.destroy({ where: { id: appId }, transaction: t }),
-            models.Collaborators.destroy({ where: { appid: appId }, transaction: t }),
-            models.Deployments.destroy({ where: { appid: appId }, transaction: t }),
+            Apps.destroy({ where: { id: appId }, transaction: t }),
+            Collaborators.destroy({ where: { appid: appId }, transaction: t }),
+            Deployments.destroy({ where: { appid: appId }, transaction: t }),
         ]);
     });
 };
 
 proto.modifyApp = function (appId, params) {
-    return models.Apps.update(params, { where: { id: appId } }).then(
-        ([affectedCount, affectedRows]) => {
-            if (!_.gt(affectedCount, 0)) {
-                throw AppError.AppError('modify errors');
-            }
-            return affectedCount;
-        },
-    );
+    return Apps.update(params, { where: { id: appId } }).then(([affectedCount, affectedRows]) => {
+        if (!_.gt(affectedCount, 0)) {
+            throw AppError.AppError('modify errors');
+        }
+        return affectedCount;
+    });
 };
 
 proto.transferApp = function (appId, fromUid, toUid) {
-    return models.sequelize.transaction((t) => {
+    return sequelize.transaction((t) => {
         return Promise.all([
-            models.Apps.update({ uid: toUid }, { where: { id: appId }, transaction: t }),
-            models.Collaborators.destroy({ where: { appid: appId, uid: fromUid }, transaction: t }),
-            models.Collaborators.destroy({ where: { appid: appId, uid: toUid }, transaction: t }),
-            models.Collaborators.create(
-                { appid: appId, uid: toUid, roles: 'Owner' },
-                { transaction: t },
-            ),
+            Apps.update({ uid: toUid }, { where: { id: appId }, transaction: t }),
+            Collaborators.destroy({ where: { appid: appId, uid: fromUid }, transaction: t }),
+            Collaborators.destroy({ where: { appid: appId, uid: toUid }, transaction: t }),
+            Collaborators.create({ appid: appId, uid: toUid, roles: 'Owner' }, { transaction: t }),
         ]);
     });
 };
 
 proto.listApps = function (uid) {
     const self = this;
-    return models.Collaborators.findAll({ where: { uid: uid } })
+    return Collaborators.findAll({ where: { uid: uid } })
         .then((data) => {
             if (_.isEmpty(data)) {
                 return [];
@@ -103,7 +103,7 @@ proto.listApps = function (uid) {
                     return v.appid;
                 });
                 var Sequelize = require('sequelize');
-                return models.Apps.findAll({ where: { id: { [Sequelize.Op.in]: appIds } } });
+                return Apps.findAll({ where: { id: { [Sequelize.Op.in]: appIds } } });
             }
         })
         .then((appInfos) => {
@@ -134,23 +134,21 @@ proto.listApps = function (uid) {
 proto.getAppDetailInfo = function (appInfo, currentUid) {
     var appId = appInfo.get('id');
     return Promise.all([
-        models.Deployments.findAll({ where: { appid: appId } }),
-        models.Collaborators.findAll({ where: { appid: appId } }).then((collaboratorInfos) => {
+        Deployments.findAll({ where: { appid: appId } }),
+        Collaborators.findAll({ where: { appid: appId } }).then((collaboratorInfos) => {
             return collaboratorInfos.reduce((prev, collaborator) => {
                 return prev.then((allCol) => {
-                    return models.Users.findOne({ where: { id: collaborator.get('uid') } }).then(
-                        (u) => {
-                            var isCurrentAccount = false;
-                            if (_.eq(u.get('id'), currentUid)) {
-                                isCurrentAccount = true;
-                            }
-                            allCol[u.get('email')] = {
-                                permission: collaborator.get('roles'),
-                                isCurrentAccount: isCurrentAccount,
-                            };
-                            return allCol;
-                        },
-                    );
+                    return Users.findOne({ where: { id: collaborator.get('uid') } }).then((u) => {
+                        var isCurrentAccount = false;
+                        if (_.eq(u.get('id'), currentUid)) {
+                            isCurrentAccount = true;
+                        }
+                        allCol[u.get('email')] = {
+                            permission: collaborator.get('roles'),
+                            isCurrentAccount: isCurrentAccount,
+                        };
+                        return allCol;
+                    });
                 });
             }, Promise.resolve({}));
         }),

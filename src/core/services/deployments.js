@@ -1,5 +1,13 @@
 'use strict';
-var models = require('../../models');
+import { Deployments } from '../../models/deployments';
+import { DeploymentsVersions } from '../../models/deployments_versions';
+import { DeploymentsHistory } from '../../models/deployments_history';
+import { Packages } from '../../models/packages';
+import { PackagesDiff } from '../../models/packages_diff';
+import { PackagesMetrics } from '../../models/packages_metrics';
+import { Users } from '../../models/users';
+import { sequelize } from '../../models/index';
+
 var security = require('../../core/utils/security');
 var common = require('../../core/utils/common');
 var _ = require('lodash');
@@ -14,11 +22,11 @@ var proto = (module.exports = function () {
 });
 
 proto.getAllPackageIdsByDeploymentsId = function (deploymentsId) {
-    return models.Packages.findAll({ where: { deployment_id: deploymentsId } });
+    return Packages.findAll({ where: { deployment_id: deploymentsId } });
 };
 
 proto.existDeloymentName = function (appId, name) {
-    return models.Deployments.findOne({
+    return Deployments.findOne({
         where: { appid: appId, name: name },
     }).then((data) => {
         if (!_.isEmpty(data)) {
@@ -31,14 +39,14 @@ proto.existDeloymentName = function (appId, name) {
 
 proto.addDeloyment = function (name, appId, uid) {
     var self = this;
-    return models.Users.findByPk(uid).then((user) => {
+    return Users.findByPk(uid).then((user) => {
         if (_.isEmpty(user)) {
             throw new AppError.AppError("can't find user");
         }
         return self.existDeloymentName(appId, name).then(() => {
             var identical = user.identical;
             var deploymentKey = security.randToken(28) + identical;
-            return models.Deployments.create({
+            return Deployments.create({
                 appid: appId,
                 name: name,
                 deployment_key: deploymentKey,
@@ -51,7 +59,7 @@ proto.addDeloyment = function (name, appId, uid) {
 
 proto.renameDeloymentByName = function (deploymentName, appId, newName) {
     return this.existDeloymentName(appId, newName).then(() => {
-        return models.Deployments.update(
+        return Deployments.update(
             { name: newName },
             { where: { name: deploymentName, appid: appId } },
         ).then(([affectedCount, affectedRow]) => {
@@ -65,7 +73,7 @@ proto.renameDeloymentByName = function (deploymentName, appId, newName) {
 };
 
 proto.deleteDeloymentByName = function (deploymentName, appId) {
-    return models.Deployments.destroy({
+    return Deployments.destroy({
         where: { name: deploymentName, appid: appId },
     }).then((rowNum) => {
         if (_.gt(rowNum, 0)) {
@@ -81,13 +89,13 @@ proto.findDeloymentByName = function (deploymentName, appId) {
         name: deploymentName,
         appId,
     });
-    return models.Deployments.findOne({
+    return Deployments.findOne({
         where: { name: deploymentName, appid: appId },
     });
 };
 
 proto.findPackagesAndOtherInfos = function (packageId) {
-    return models.Packages.findOne({
+    return Packages.findOne({
         where: { id: packageId },
     })
         .then((packageInfo) => {
@@ -96,7 +104,7 @@ proto.findPackagesAndOtherInfos = function (packageId) {
             }
             return Promise.all([
                 Promise.resolve(packageInfo),
-                models.PackagesDiff.findAll({
+                PackagesDiff.findAll({
                     where: { package_id: packageId },
                 }).then((diffs) => {
                     if (diffs.length > 0) {
@@ -114,10 +122,10 @@ proto.findPackagesAndOtherInfos = function (packageId) {
                     }
                     return null;
                 }),
-                models.Users.findOne({
+                Users.findOne({
                     where: { id: packageInfo.released_by },
                 }),
-                models.DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
+                DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
             ]);
         })
         .then(([packageInfo, packageDiffMap, userInfo, deploymentsVersions]) => {
@@ -132,7 +140,7 @@ proto.findPackagesAndOtherInfos = function (packageId) {
 
 proto.findDeloymentsPackages = function (deploymentsVersionsId) {
     var self = this;
-    return models.DeploymentsVersions.findOne({
+    return DeploymentsVersions.findOne({
         where: { id: deploymentsVersionsId },
     }).then((deploymentsVersionsInfo) => {
         if (deploymentsVersionsInfo) {
@@ -170,7 +178,7 @@ proto.formatPackage = function (packageVersion) {
 
 proto.listDeloyments = function (appId) {
     var self = this;
-    return models.Deployments.findAll({ where: { appid: appId } }).then((deploymentsInfos) => {
+    return Deployments.findAll({ where: { appid: appId } }).then((deploymentsInfos) => {
         if (_.isEmpty(deploymentsInfos)) {
             return [];
         }
@@ -198,7 +206,7 @@ proto.listDeloyment = function (deploymentInfo) {
 
 proto.getDeploymentHistory = function (deploymentId) {
     var self = this;
-    return models.DeploymentsHistory.findAll({
+    return DeploymentsHistory.findAll({
         where: { deployment_id: deploymentId },
         order: [['id', 'desc']],
         limit: 15,
@@ -218,13 +226,13 @@ proto.getDeploymentHistory = function (deploymentId) {
 };
 
 proto.deleteDeploymentHistory = function (deploymentId) {
-    return models.sequelize.transaction((t) => {
+    return sequelize.transaction((t) => {
         return Promise.all([
-            models.Deployments.update(
+            Deployments.update(
                 { last_deployment_version_id: 0, label_id: 0 },
                 { where: { id: deploymentId }, transaction: t },
             ),
-            models.DeploymentsHistory.findAll({
+            DeploymentsHistory.findAll({
                 where: { deployment_id: deploymentId },
                 order: [['id', 'desc']],
                 limit: 1000,
@@ -235,7 +243,7 @@ proto.deleteDeploymentHistory = function (deploymentId) {
                     }),
                 );
             }),
-            models.DeploymentsVersions.findAll({
+            DeploymentsVersions.findAll({
                 where: { deployment_id: deploymentId },
                 order: [['id', 'desc']],
                 limit: 1000,
@@ -246,7 +254,7 @@ proto.deleteDeploymentHistory = function (deploymentId) {
                     }),
                 );
             }),
-            models.Packages.findAll({
+            Packages.findAll({
                 where: { deployment_id: deploymentId },
                 order: [['id', 'desc']],
                 limit: 1000,
@@ -255,11 +263,11 @@ proto.deleteDeploymentHistory = function (deploymentId) {
                     rs.map((v) => {
                         return v.destroy({ transaction: t }).then(() => {
                             return Promise.all([
-                                models.PackagesMetrics.destroy({
+                                PackagesMetrics.destroy({
                                     where: { package_id: v.get('id') },
                                     transaction: t,
                                 }),
-                                models.PackagesDiff.destroy({
+                                PackagesDiff.destroy({
                                     where: { package_id: v.get('id') },
                                     transaction: t,
                                 }),

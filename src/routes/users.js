@@ -1,10 +1,14 @@
-var express = require('express');
-var router = express.Router();
-var _ = require('lodash');
-var models = require('../models');
+import express from 'express';
+import { logger } from 'kv-logger';
+import _ from 'lodash';
+
+import { Users } from '../models/users';
+
 var middleware = require('../core/middleware');
 var AccountManager = require('../core/services/account-manager');
 var AppError = require('../core/app-error');
+
+const router = express.Router();
 
 router.get('/', middleware.checkToken, (req, res) => {
     res.send({ title: 'CodePushServer' });
@@ -37,7 +41,7 @@ router.post('/', (req, res, next) => {
 
 router.get('/exists', (req, res, next) => {
     var email = _.trim(_.get(req, 'query.email'));
-    models.Users.findOne({ where: { email: email } })
+    Users.findOne({ where: { email: email } })
         .then((u) => {
             if (!email) {
                 throw new AppError.AppError(`请您输入邮箱地址`);
@@ -56,13 +60,16 @@ router.get('/exists', (req, res, next) => {
 router.post('/registerCode', (req, res, next) => {
     var email = _.get(req, 'body.email');
     var accountManager = new AccountManager();
+    logger.info('try send register code', { email });
     return accountManager
         .sendRegisterCode(email)
         .then(() => {
+            logger.info('send register code success', { email });
             res.send({ status: 'OK' });
         })
         .catch((e) => {
             if (e instanceof AppError.AppError) {
+                logger.warn('send register code error', { email, message: e.message });
                 res.send({ status: 'ERROR', message: e.message });
             } else {
                 next(e);

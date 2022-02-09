@@ -1,15 +1,16 @@
 'use strict';
-var _ = require('lodash');
-var fs = require('fs');
-var os = require('os');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+import { logger } from 'kv-logger';
+import { config } from '../config';
+
 var security = require('../utils/security');
 var common = require('../utils/common');
+var AppError = require('../app-error');
+
 const MANIFEST_FILE_NAME = 'manifest.json';
 const CONTENTS_NAME = 'contents';
-var AppError = require('../app-error');
-var { logger } = require('kv-logger');
-var path = require('path');
-const { config } = require('../config');
 
 var proto = (module.exports = function () {
     function DataCenterManager() {}

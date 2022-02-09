@@ -1,10 +1,17 @@
 'use strict';
-var models = require('../../models');
-var _ = require('lodash');
+import _ from 'lodash';
+import { Deployments } from '../../models/deployments';
+import { DeploymentsVersions } from '../../models/deployments_versions';
+import { Packages } from '../../models/packages';
+import { PackagesDiff } from '../../models/packages_diff';
+import { PackagesMetrics } from '../../models/packages_metrics';
+import { LogReportDeploy } from '../../models/log_report_deploy';
+import { LogReportDownload } from '../../models/log_report_download';
+import { config } from '../config';
+
 var common = require('../utils/common');
 var factory = require('../utils/factory');
 var AppError = require('../app-error');
-var { config } = require('../config');
 var { logger } = require('kv-logger');
 var Sequelize = require('sequelize');
 
@@ -146,13 +153,13 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
     if (_.isEmpty(deploymentKey) || _.isEmpty(appVersion)) {
         return Promise.reject(new AppError.AppError('please input deploymentKey and appVersion'));
     }
-    return models.Deployments.findOne({ where: { deployment_key: deploymentKey } })
+    return Deployments.findOne({ where: { deployment_key: deploymentKey } })
         .then((dep) => {
             if (_.isEmpty(dep)) {
                 throw new AppError.AppError('Not found deployment, check deployment key is right.');
             }
             var version = common.parseVersion(appVersion);
-            return models.DeploymentsVersions.findAll({
+            return DeploymentsVersions.findAll({
                 where: {
                     deployment_id: dep.id,
                     min_version: { [Sequelize.Op.lte]: version },
@@ -183,7 +190,7 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
             if (_.eq(packageId, 0)) {
                 return;
             }
-            return models.Packages.findByPk(packageId)
+            return Packages.findByPk(packageId)
                 .then((packages) => {
                     if (
                         packages &&
@@ -214,7 +221,7 @@ proto.updateCheck = function (deploymentKey, appVersion, label, packageHash, cli
                         !_.isEmpty(packages) &&
                         !_.eq(_.get(packages, 'package_hash', ''), packageHash)
                     ) {
-                        return models.PackagesDiff.findOne({
+                        return PackagesDiff.findOne({
                             where: {
                                 package_id: packages.id,
                                 diff_against_package_hash: packageHash,
@@ -245,12 +252,12 @@ proto.getPackagesInfo = function (deploymentKey, label) {
     if (_.isEmpty(deploymentKey) || _.isEmpty(label)) {
         return Promise.reject(new AppError.AppError('please input deploymentKey and label'));
     }
-    return models.Deployments.findOne({ where: { deployment_key: deploymentKey } })
+    return Deployments.findOne({ where: { deployment_key: deploymentKey } })
         .then((dep) => {
             if (_.isEmpty(dep)) {
                 throw new AppError.AppError('does not found deployment');
             }
-            return models.Packages.findOne({ where: { deployment_id: dep.id, label: label } });
+            return Packages.findOne({ where: { deployment_id: dep.id, label: label } });
         })
         .then((packages) => {
             if (_.isEmpty(packages)) {
@@ -263,15 +270,13 @@ proto.getPackagesInfo = function (deploymentKey, label) {
 proto.reportStatusDownload = function (deploymentKey, label, clientUniqueId) {
     return this.getPackagesInfo(deploymentKey, label).then((packages) => {
         return Promise.all([
-            models.PackagesMetrics.findOne({ where: { package_id: packages.id } }).then(
-                (metrics) => {
-                    if (metrics) {
-                        return metrics.increment('downloaded');
-                    }
-                    return;
-                },
-            ),
-            models.LogReportDownload.create({
+            PackagesMetrics.findOne({ where: { package_id: packages.id } }).then((metrics) => {
+                if (metrics) {
+                    return metrics.increment('downloaded');
+                }
+                return;
+            }),
+            LogReportDownload.create({
                 package_id: packages.id,
                 client_unique_id: clientUniqueId,
             }),
@@ -294,41 +299,39 @@ proto.reportStatusDeploy = function (deploymentKey, label, clientUniqueId, other
         var previous_label = _.get(others, 'previousLabelOrAppVersion');
         if (status > 0) {
             return Promise.all([
-                models.LogReportDeploy.create({
+                LogReportDeploy.create({
                     package_id: packageId,
                     client_unique_id: clientUniqueId,
                     previous_label: previous_label,
                     previous_deployment_key: previous_deployment_key,
                     status: status,
                 }),
-                models.PackagesMetrics.findOne({ where: { package_id: packageId } }).then(
-                    (metrics) => {
-                        if (_.isEmpty(metrics)) {
-                            return;
-                        }
-                        if (_.eq(status, constConfig.DEPLOYMENT_SUCCEEDED)) {
-                            return metrics.increment(['installed', 'active'], { by: 1 });
-                        } else {
-                            return metrics.increment(['installed', 'failed'], { by: 1 });
-                        }
-                    },
-                ),
+                PackagesMetrics.findOne({ where: { package_id: packageId } }).then((metrics) => {
+                    if (_.isEmpty(metrics)) {
+                        return;
+                    }
+                    if (_.eq(status, constConfig.DEPLOYMENT_SUCCEEDED)) {
+                        return metrics.increment(['installed', 'active'], { by: 1 });
+                    } else {
+                        return metrics.increment(['installed', 'failed'], { by: 1 });
+                    }
+                }),
             ]).then(() => {
                 if (previous_deployment_key && previous_label) {
-                    return models.Deployments.findOne({
+                    return Deployments.findOne({
                         where: { deployment_key: previous_deployment_key },
                     })
                         .then((dep) => {
                             if (_.isEmpty(dep)) {
                                 return;
                             }
-                            return models.Packages.findOne({
+                            return Packages.findOne({
                                 where: { deployment_id: dep.id, label: previous_label },
                             }).then((p) => {
                                 if (_.isEmpty(p)) {
                                     return;
                                 }
-                                return models.PackagesMetrics.findOne({
+                                return PackagesMetrics.findOne({
                                     where: { package_id: p.id },
                                 });
                             });

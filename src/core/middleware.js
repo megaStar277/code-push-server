@@ -1,16 +1,20 @@
 'use strict';
+
+import { UserTokens } from '../models/user_tokens';
+import { Users } from '../models/users';
+import { config } from '../core/config';
+
 var _ = require('lodash');
 var security = require('../core/utils/security');
-var models = require('../models');
+
 var moment = require('moment');
 var AppError = require('./app-error');
-const { config } = require('../core/config');
 
 var middleware = module.exports;
 
 var checkAuthToken = function (authToken) {
     var objToken = security.parseToken(authToken);
-    return models.Users.findOne({
+    return Users.findOne({
         where: { identical: objToken.identical },
     })
         .then((users) => {
@@ -18,7 +22,7 @@ var checkAuthToken = function (authToken) {
                 throw new AppError.Unauthorized();
             }
             var Sequelize = require('sequelize');
-            return models.UserTokens.findOne({
+            return UserTokens.findOne({
                 where: {
                     tokens: authToken,
                     uid: users.id,
@@ -53,7 +57,7 @@ var checkAccessToken = function (accessToken) {
         var uid = _.get(authData, 'uid', null);
         var hash = _.get(authData, 'hash', null);
         if (parseInt(uid) > 0) {
-            return models.Users.findOne({
+            return Users.findOne({
                 where: { id: uid },
             })
                 .then((users) => {

@@ -1,21 +1,20 @@
 'use strict';
-const fs = require('fs');
-const fsextra = require('fs-extra');
-const extract = require('extract-zip');
-var _ = require('lodash');
-var validator = require('validator');
-var qiniu = require('qiniu');
+import fs from 'fs';
+import fsextra from 'fs-extra';
+import extract from 'extract-zip';
+import _ from 'lodash';
+import validator from 'validator';
+import qiniu from 'qiniu';
 var upyun = require('upyun');
 const jschardet = require('jschardet');
-const path = require('path');
-const util = require('util');
+import path from 'path';
+import util from 'util';
 const streamPipeline = util.promisify(require('stream').pipeline);
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
+import { logger } from 'kv-logger';
 
-const { config } = require('../config');
+import { config } from '../config';
 var AppError = require('../app-error');
-
-var { logger } = require('kv-logger');
 
 var common = {};
 module.exports = common;

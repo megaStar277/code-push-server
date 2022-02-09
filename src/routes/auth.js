@@ -1,10 +1,10 @@
-const express = require('express');
-const _ = require('lodash');
-const validator = require('validator');
-const { logger } = require('kv-logger');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import _ from 'lodash';
+import validator from 'validator';
+import { logger } from 'kv-logger';
+import jwt from 'jsonwebtoken';
 
-const { config } = require('../core/config');
+import { config } from '../core/config';
 
 const router = express.Router();
 

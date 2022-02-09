@@ -1,5 +1,9 @@
 'use strict';
-var models = require('../../models');
+import { Users } from '../../models/users';
+import { UserTokens } from '../../models/user_tokens';
+import { findCollaboratorsByAppNameAndUid } from '../../models/collaborators';
+import { config } from '../config';
+
 var _ = require('lodash');
 var validator = require('validator');
 var { logger } = require('kv-logger');
@@ -7,7 +11,6 @@ var security = require('../utils/security');
 var factory = require('../utils/factory');
 var moment = require('moment');
 var EmailManager = require('./email-manager');
-var { config } = require('../config');
 var AppError = require('../app-error');
 
 var proto = (module.exports = function () {
@@ -41,11 +44,11 @@ proto.ownerCan = function (uid, appName) {
 };
 
 proto.getCollaborator = function (uid, appName) {
-    return models.Collaborators.findByAppNameAndUid(uid, appName);
+    return findCollaboratorsByAppNameAndUid(uid, appName);
 };
 
 proto.findUserByEmail = function (email) {
-    return models.Users.findOne({ where: { email: email } }).then((data) => {
+    return Users.findOne({ where: { email: email } }).then((data) => {
         if (_.isEmpty(data)) {
             throw new AppError.AppError(email + ' does not exist.');
         } else {
@@ -55,7 +58,7 @@ proto.findUserByEmail = function (email) {
 };
 
 proto.getAllAccessKeyByUid = function (uid) {
-    return models.UserTokens.findAll({
+    return UserTokens.findAll({
         where: { uid: uid },
         order: [['id', 'DESC']],
     }).then((tokens) => {
@@ -73,13 +76,13 @@ proto.getAllAccessKeyByUid = function (uid) {
 };
 
 proto.isExsitAccessKeyName = function (uid, friendlyName) {
-    return models.UserTokens.findOne({
+    return UserTokens.findOne({
         where: { uid: uid, name: friendlyName },
     });
 };
 
 proto.createAccessKey = function (uid, newAccessKey, ttl, friendlyName, createdBy, description) {
-    return models.UserTokens.create({
+    return UserTokens.create({
         uid: uid,
         name: friendlyName,
         tokens: newAccessKey,
@@ -108,7 +111,7 @@ proto.login = function (account, password) {
         where = { username: account };
     }
     var tryLoginTimes = _.get(config, 'common.tryLoginTimes', 0);
-    return models.Users.findOne({ where: where })
+    return Users.findOne({ where: where })
         .then((users) => {
             if (_.isEmpty(users)) {
                 throw new AppError.AppError('您输入的邮箱或密码有误');
@@ -167,7 +170,7 @@ proto.sendRegisterCode = function (email) {
     if (_.isEmpty(email)) {
         return Promise.reject(new AppError.AppError('请您输入邮箱地址'));
     }
-    return models.Users.findOne({ where: { email: email } })
+    return Users.findOne({ where: { email: email } })
         .then((u) => {
             if (u) {
                 throw new AppError.AppError(`"${email}" 已经注册过，请更换邮箱注册`);
@@ -192,7 +195,7 @@ proto.sendRegisterCode = function (email) {
 };
 
 proto.checkRegisterCode = function (email, token) {
-    return models.Users.findOne({ where: { email: email } })
+    return Users.findOne({ where: { email: email } })
         .then((u) => {
             if (u) {
                 throw new AppError.AppError(`"${email}" 已经注册过，请更换邮箱注册`);
@@ -223,7 +226,7 @@ proto.checkRegisterCode = function (email, token) {
 };
 
 proto.register = function (email, password) {
-    return models.Users.findOne({ where: { email: email } })
+    return Users.findOne({ where: { email: email } })
         .then((u) => {
             if (u) {
                 throw new AppError.AppError(`"${email}" 已经注册过，请更换邮箱注册`);
@@ -231,7 +234,7 @@ proto.register = function (email, password) {
         })
         .then(() => {
             var identical = security.randToken(9);
-            return models.Users.create({
+            return Users.create({
                 email: email,
                 password: security.passwordHashSync(password),
                 identical: identical,
@@ -243,7 +246,7 @@ proto.changePassword = function (uid, oldPassword, newPassword) {
     if (!_.isString(newPassword) || newPassword.length < 6) {
         return Promise.reject(new AppError.AppError('请您输入6～20位长度的新密码'));
     }
-    return models.Users.findOne({ where: { id: uid } })
+    return Users.findOne({ where: { id: uid } })
         .then((u) => {
             if (!u) {
                 throw new AppError.AppError(`未找到用户信息`);

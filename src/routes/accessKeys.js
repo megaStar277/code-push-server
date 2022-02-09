@@ -1,12 +1,14 @@
-var express = require('express');
-var router = express.Router();
-var _ = require('lodash');
+import express from 'express';
+import _ from 'lodash';
+import { logger } from 'kv-logger';
+import { UserTokens } from '../models/user_tokens';
+
 var security = require('../core/utils/security');
-var models = require('../models');
 var middleware = require('../core/middleware');
 var accountManager = require('../core/services/account-manager')();
 var AppError = require('../core/app-error');
-var { logger } = require('kv-logger');
+
+const router = express.Router();
 
 router.get('/', middleware.checkToken, (req, res, next) => {
     logger.debug('request get acceesKeys');
@@ -84,7 +86,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
 router.delete('/:name', middleware.checkToken, (req, res, next) => {
     var name = _.trim(decodeURI(req.params.name));
     var uid = req.users.id;
-    return models.UserTokens.destroy({ where: { name: name, uid: uid } })
+    return UserTokens.destroy({ where: { name: name, uid: uid } })
         .then((rowNum) => {
             logger.debug('delete acceesKey:', name);
             res.send({ friendlyName: name });

@@ -1,8 +1,8 @@
-var mysql = require('mysql2');
-var redis = require('redis');
-var should = require('should');
-var fs = require('fs');
-var path = require('path');
+const mysql = require('mysql2');
+const redis = require('redis');
+const should = require('should');
+const fs = require('fs');
+const path = require('path');
 
 const { config } = require('../../../bin/core/config');
 

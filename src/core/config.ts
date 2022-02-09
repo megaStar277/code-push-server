@@ -27,7 +27,7 @@ export const config = {
         password: process.env.RDS_PASSWORD || 'password',
         database: process.env.RDS_DATABASE || 'codepush',
         host: process.env.RDS_HOST || '127.0.0.1',
-        port: process.env.RDS_PORT || 3306,
+        port: toNumber(process.env.RDS_PORT, 3306),
         dialect: 'mysql',
         logging: false,
     },

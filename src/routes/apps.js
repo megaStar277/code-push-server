@@ -1,8 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var _ = require('lodash');
+import express from 'express';
+import _ from 'lodash';
+import validator from 'validator';
+import { config } from '../core/config';
+import { logger } from 'kv-logger';
+
 var middleware = require('../core/middleware');
-var validator = require('validator');
 var accountManager = require('../core/services/account-manager')();
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
@@ -10,8 +12,8 @@ var AppManager = require('../core/services/app-manager');
 var PackageManager = require('../core/services/package-manager');
 var AppError = require('../core/app-error');
 var common = require('../core/utils/common');
-const { config } = require('../core/config');
-const { logger } = require('kv-logger');
+
+const router = express.Router();
 
 function delay(ms) {
     return new Promise(function (resolve) {
@@ -587,7 +589,7 @@ router.get('/:appName/collaborators', middleware.checkToken, (req, res, next) =>
             return collaborators.listCollaborators(col.appid);
         })
         .then((data) => {
-            rs = _.reduce(
+            const rs = _.reduce(
                 data,
                 (result, value, key) => {
                     if (_.eq(key, req.users.email)) {

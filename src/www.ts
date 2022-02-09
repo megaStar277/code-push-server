@@ -10,9 +10,9 @@ import validator from 'validator';
 import _ from 'lodash';
 
 import { app } from './app';
+import { Versions } from './models/versions';
 
 var constConfig = require('./core/const');
-var models = require('./models');
 
 /**
  * Get port from environment and store in Express.
@@ -41,7 +41,7 @@ const server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-models.Versions.findOne({ where: { type: 1 } })
+Versions.findOne({ where: { type: 1 } })
     .then(function (v) {
         if (!v || v.get('version') != constConfig.CURRENT_DB_VERSION) {
             throw new Error(

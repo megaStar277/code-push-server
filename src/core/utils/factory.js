@@ -1,7 +1,7 @@
 'use strict';
-const util = require('util');
-const redis = require('redis');
-const { config } = require('../config');
+import util from 'util';
+import redis from 'redis';
+import { config } from '../config';
 
 const factory = {};
 module.exports = factory;

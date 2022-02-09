@@ -1,5 +1,14 @@
 'use strict';
-var models = require('../../models');
+import { Apps } from '../../models/apps';
+import { Deployments, generateDeploymentsLabelId } from '../../models/deployments';
+import { DeploymentsVersions } from '../../models/deployments_versions';
+import { DeploymentsHistory } from '../../models/deployments_history';
+import { Packages } from '../../models/packages';
+import { PackagesDiff } from '../../models/packages_diff';
+import { PackagesMetrics } from '../../models/packages_metrics';
+import { sequelize } from '../../models/index';
+
+var Sequelize = require('sequelize');
 var security = require('../utils/security');
 var _ = require('lodash');
 var formidable = require('formidable');
@@ -20,24 +29,22 @@ var proto = (module.exports = function () {
 });
 
 proto.getMetricsbyPackageId = function (packageId) {
-    return models.PackagesMetrics.findOne({ where: { package_id: packageId } });
+    return PackagesMetrics.findOne({ where: { package_id: packageId } });
 };
 
 proto.findPackageInfoByDeploymentIdAndLabel = function (deploymentId, label) {
-    return models.Packages.findOne({ where: { deployment_id: deploymentId, label: label } });
+    return Packages.findOne({ where: { deployment_id: deploymentId, label: label } });
 };
 
 proto.findLatestPackageInfoByDeployVersion = function (deploymentsVersionsId) {
-    return models.DeploymentsVersions.findByPk(deploymentsVersionsId).then(
-        (deploymentsVersions) => {
-            if (!deploymentsVersions || deploymentsVersions.current_package_id < 0) {
-                var e = new AppError.AppError('not found last packages');
-                logger.debug(e);
-                throw e;
-            }
-            return models.Packages.findByPk(deploymentsVersions.current_package_id);
-        },
-    );
+    return DeploymentsVersions.findByPk(deploymentsVersionsId).then((deploymentsVersions) => {
+        if (!deploymentsVersions || deploymentsVersions.current_package_id < 0) {
+            var e = new AppError.AppError('not found last packages');
+            logger.debug(e);
+            throw e;
+        }
+        return Packages.findByPk(deploymentsVersions.current_package_id);
+    });
 };
 
 proto.parseReqFile = function (req) {
@@ -73,7 +80,7 @@ proto.createDeploymentsVersionIfNotExist = function (
     maxVersion,
     t,
 ) {
-    return models.DeploymentsVersions.findOrCreate({
+    return DeploymentsVersions.findOrCreate({
         where: {
             deployment_id: deploymentId,
             app_version: appVersion,
@@ -96,7 +103,7 @@ proto.isMatchPackageHash = function (packageId, packageHash) {
         logger.debug(`isMatchPackageHash packageId is 0`);
         return Promise.resolve(false);
     }
-    return models.Packages.findByPk(packageId).then((data) => {
+    return Packages.findByPk(packageId).then((data) => {
         if (data && _.eq(data.get('package_hash'), packageHash)) {
             logger.debug(`isMatchPackageHash data:`, data.get());
             logger.debug(`isMatchPackageHash packageHash exist`);
@@ -126,8 +133,8 @@ proto.createPackage = function (
     var isDisabled = params.isDisabled || 0;
     var originalDeployment = params.originalDeployment || '';
     var self = this;
-    return models.Deployments.generateLabelId(deploymentId).then((labelId) => {
-        return models.sequelize.transaction((t) => {
+    return generateDeploymentsLabelId(deploymentId).then((labelId) => {
+        return sequelize.transaction((t) => {
             return self
                 .createDeploymentsVersionIfNotExist(
                     deploymentId,
@@ -137,7 +144,7 @@ proto.createPackage = function (
                     t,
                 )
                 .then((deploymentsVersions) => {
-                    return models.Packages.create(
+                    return Packages.create(
                         {
                             deployment_version_id: deploymentsVersions.id,
                             deployment_id: deploymentId,
@@ -160,15 +167,12 @@ proto.createPackage = function (
                         deploymentsVersions.set('current_package_id', packages.id);
                         return Promise.all([
                             deploymentsVersions.save({ transaction: t }),
-                            models.Deployments.update(
+                            Deployments.update(
                                 { last_deployment_version_id: deploymentsVersions.id },
                                 { where: { id: deploymentId }, transaction: t },
                             ),
-                            models.PackagesMetrics.create(
-                                { package_id: packages.id },
-                                { transaction: t },
-                            ),
-                            models.DeploymentsHistory.create(
+                            PackagesMetrics.create({ package_id: packages.id }, { transaction: t }),
+                            DeploymentsHistory.create(
                                 { deployment_id: deploymentId, package_id: packages.id },
                                 { transaction: t },
                             ),
@@ -236,7 +240,7 @@ proto.generateOneDiffPackage = function (
     isUseDiffText,
 ) {
     var self = this;
-    return models.PackagesDiff.findOne({
+    return PackagesDiff.findOne({
         where: {
             package_id: packageId,
             diff_against_package_hash: diffPackageHash,
@@ -314,7 +318,7 @@ proto.generateOneDiffPackage = function (
                         return security.qetag(data.path).then((diffHash) => {
                             return common.uploadFileToStorage(diffHash, fileName).then(() => {
                                 var stats = fs.statSync(fileName);
-                                return models.PackagesDiff.create({
+                                return PackagesDiff.create({
                                     package_id: packageId,
                                     diff_against_package_hash: diffPackageHash,
                                     diff_blob_url: diffHash,
@@ -329,10 +333,9 @@ proto.generateOneDiffPackage = function (
 
 proto.createDiffPackagesByLastNums = function (appId, originalPackage, num) {
     var self = this;
-    var Sequelize = require('sequelize');
     var packageId = originalPackage.id;
     return Promise.all([
-        models.Packages.findAll({
+        Packages.findAll({
             where: {
                 deployment_version_id: originalPackage.deployment_version_id,
                 id: { [Sequelize.Op.lt]: packageId },
@@ -340,7 +343,7 @@ proto.createDiffPackagesByLastNums = function (appId, originalPackage, num) {
             order: [['id', 'desc']],
             limit: num,
         }),
-        models.Packages.findAll({
+        Packages.findAll({
             where: {
                 deployment_version_id: originalPackage.deployment_version_id,
                 id: { [Sequelize.Op.lt]: packageId },
@@ -348,7 +351,7 @@ proto.createDiffPackagesByLastNums = function (appId, originalPackage, num) {
             order: [['id', 'asc']],
             limit: 2,
         }),
-        models.Apps.findByPk(appId),
+        Apps.findByPk(appId),
     ])
         .then(([lastNumsPackages, basePackages, appInfo]) => {
             return [
@@ -438,7 +441,7 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
     ])
         .then(([blobHash]) => {
             return security.uploadPackageType(directoryPath).then((type) => {
-                return models.Apps.findByPk(appId).then((appInfo) => {
+                return Apps.findByPk(appId).then((appInfo) => {
                     if (type > 0 && appInfo.os > 0 && appInfo.os != type) {
                         var e = new AppError.AppError('it must be publish it by ios type');
                         logger.debug(e);
@@ -456,7 +459,7 @@ proto.releasePackage = function (appId, deploymentId, packageInfo, filePath, rel
             return dataCenterManager.storePackage(directoryPath).then((dataCenter) => {
                 var packageHash = dataCenter.packageHash;
                 var manifestFile = dataCenter.manifestFilePath;
-                return models.DeploymentsVersions.findOne({
+                return DeploymentsVersions.findOne({
                     where: { deployment_id: deploymentId, app_version: appVersion },
                 })
                     .then((deploymentsVersions) => {
@@ -519,7 +522,7 @@ proto.modifyReleasePackage = function (packageId, params) {
     var isMandatory = _.get(params, 'isMandatory');
     var isDisabled = _.get(params, 'isDisabled');
     var rollout = _.get(params, 'rollout');
-    return models.Packages.findByPk(packageId)
+    return Packages.findByPk(packageId)
         .then((packageInfo) => {
             if (!packageInfo) {
                 throw new AppError.AppError(`packageInfo not found`);
@@ -530,13 +533,13 @@ proto.modifyReleasePackage = function (packageId, params) {
                     throw new AppError.AppError(`--targetBinaryVersion ${appVersion} not support.`);
                 }
                 return Promise.all([
-                    models.DeploymentsVersions.findOne({
+                    DeploymentsVersions.findOne({
                         where: {
                             deployment_id: packageInfo.deployment_id,
                             app_version: appVersion,
                         },
                     }),
-                    models.DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
+                    DeploymentsVersions.findByPk(packageInfo.deployment_version_id),
                 ])
                     .then(([v1, v2]) => {
                         if (v1 && !_.eq(v1.id, v2.id)) {
@@ -546,7 +549,7 @@ proto.modifyReleasePackage = function (packageId, params) {
                         if (!v2) {
                             throw new AppError.AppError(`packages not found.`);
                         }
-                        return models.DeploymentsVersions.update(
+                        return DeploymentsVersions.update(
                             {
                                 app_version: appVersion,
                                 min_version: versionInfo[1],
@@ -578,7 +581,7 @@ proto.modifyReleasePackage = function (packageId, params) {
                     ? constConfig.IS_DISABLED_YES
                     : constConfig.IS_DISABLED_NO;
             }
-            return models.Packages.update(new_params, { where: { id: packageId } });
+            return Packages.update(new_params, { where: { id: packageId } });
         });
 };
 
@@ -588,21 +591,21 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
     var label = _.get(params, 'label', null);
     return new Promise((resolve, reject) => {
         if (label) {
-            return models.Packages.findOne({
+            return Packages.findOne({
                 where: { deployment_id: sourceDeploymentInfo.id, label: label },
             })
                 .then((sourcePack) => {
                     if (!sourcePack) {
                         throw new AppError.AppError('label does not exist.');
                     }
-                    return models.DeploymentsVersions.findByPk(
-                        sourcePack.deployment_version_id,
-                    ).then((deploymentsVersions) => {
-                        if (!deploymentsVersions) {
-                            throw new AppError.AppError('deploymentsVersions does not exist.');
-                        }
-                        resolve([sourcePack, deploymentsVersions]);
-                    });
+                    return DeploymentsVersions.findByPk(sourcePack.deployment_version_id).then(
+                        (deploymentsVersions) => {
+                            if (!deploymentsVersions) {
+                                throw new AppError.AppError('deploymentsVersions does not exist.');
+                            }
+                            resolve([sourcePack, deploymentsVersions]);
+                        },
+                    );
                 })
                 .catch((e) => {
                     reject(e);
@@ -616,13 +619,13 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
             if (_.lte(lastDeploymentVersionId, 0)) {
                 throw new AppError.AppError(`does not exist last_deployment_version_id.`);
             }
-            return models.DeploymentsVersions.findByPk(lastDeploymentVersionId)
+            return DeploymentsVersions.findByPk(lastDeploymentVersionId)
                 .then((deploymentsVersions) => {
                     var sourcePackId = _.get(deploymentsVersions, 'current_package_id', 0);
                     if (_.lte(sourcePackId, 0)) {
                         throw new AppError.AppError(`packageInfo not found.`);
                     }
-                    return models.Packages.findByPk(sourcePackId).then((sourcePack) => {
+                    return Packages.findByPk(sourcePackId).then((sourcePack) => {
                         if (!sourcePack) {
                             throw new AppError.AppError(`packageInfo not found.`);
                         }
@@ -639,7 +642,7 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
             logger.debug('sourcePack', sourcePack);
             logger.debug('deploymentsVersions', deploymentsVersions);
             logger.debug('appFinalVersion', appFinalVersion);
-            return models.DeploymentsVersions.findOne({
+            return DeploymentsVersions.findOne({
                 where: {
                     deployment_id: destDeploymentInfo.id,
                     app_version: appFinalVersion,
@@ -707,14 +710,14 @@ proto.promotePackage = function (sourceDeploymentInfo, destDeploymentInfo, param
 
 proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid) {
     var self = this;
-    return models.DeploymentsVersions.findByPk(deploymentVersionId).then((deploymentsVersions) => {
+    return DeploymentsVersions.findByPk(deploymentVersionId).then((deploymentsVersions) => {
         if (!deploymentsVersions) {
             throw new AppError.AppError('您之前还没有发布过版本');
         }
-        return models.Packages.findByPk(deploymentsVersions.current_package_id)
+        return Packages.findByPk(deploymentsVersions.current_package_id)
             .then((currentPackageInfo) => {
                 if (targetLabel) {
-                    return models.Packages.findAll({
+                    return Packages.findAll({
                         where: { deployment_version_id: deploymentVersionId, label: targetLabel },
                         limit: 1,
                     }).then((rollbackPackageInfos) => {
@@ -767,8 +770,7 @@ proto.rollbackPackage = function (deploymentVersionId, targetLabel, rollbackUid)
 };
 
 proto.getCanRollbackPackages = function (deploymentVersionId) {
-    var Sequelize = require('sequelize');
-    return models.Packages.findAll({
+    return Packages.findAll({
         where: {
             deployment_version_id: deploymentVersionId,
             release_method: {
