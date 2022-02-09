@@ -296,7 +296,12 @@ router.post(
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
-                logger.debug(col);
+                logger.debug('release user check pass', {
+                    uid,
+                    appName,
+                    deploymentName,
+                });
+
                 return deployments
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
@@ -304,6 +309,12 @@ router.post(
                             logger.debug(`does not find the deployment`);
                             throw new AppError.AppError('does not find the deployment');
                         }
+                        logger.debug('release deployment check ok', {
+                            uid,
+                            appName,
+                            deploymentName,
+                        });
+
                         return packageManager
                             .parseReqFile(req)
                             .then((data) => {
@@ -311,7 +322,12 @@ router.post(
                                     logger.debug(`upload file type is invlidate`, data.package);
                                     throw new AppError.AppError('upload file type is invalidate');
                                 }
-                                logger.debug('packageInfo:', data.packageInfo);
+                                logger.debug('release packagee parse ok', {
+                                    uid,
+                                    appName,
+                                    deploymentName,
+                                });
+
                                 return packageManager
                                     .releasePackage(
                                         deploymentInfo.appid,
@@ -356,6 +372,12 @@ router.post(
                     });
             })
             .then(() => {
+                logger.info('release success', {
+                    uid,
+                    appName,
+                    deploymentName,
+                });
+
                 res.send('{"msg": "succeed"}');
             })
             .catch((e) => {
@@ -528,6 +550,12 @@ var rollbackCb = function (req, res, next) {
     var deploymentName = _.trim(req.params.deploymentName);
     var uid = req.users.id;
     var targetLabel = _.trim(_.get(req, 'params.label'));
+    logger.info('try to rollback', {
+        uid,
+        appName,
+        deploymentName,
+        targetLabel,
+    });
     var deployments = new Deployments();
     var packageManager = new PackageManager();
     accountManager
@@ -560,6 +588,13 @@ var rollbackCb = function (req, res, next) {
                 });
         })
         .then(() => {
+            logger.info('rollback success', {
+                uid,
+                appName,
+                deploymentName,
+                targetLabel,
+            });
+
             res.send('ok');
         })
         .catch((e) => {

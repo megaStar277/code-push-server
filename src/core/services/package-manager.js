@@ -249,8 +249,11 @@ proto.generateOneDiffPackage = function (
         if (!_.isEmpty(diffPackage)) {
             return;
         }
-        logger.debug('originDataCenter', originDataCenter);
-        logger.debug('oldPackageDataCenter', oldPackageDataCenter);
+        logger.debug('generateOneDiffPackage', {
+            packageId,
+            originDataCenter,
+            oldPackageDataCenter,
+        });
         var downloadURL = common.getBlobDownloadUrl(diffManifestBlobHash);
         return common
             .createFileFromRequest(downloadURL, path.join(workDirectoryPath, diffManifestBlobHash))
