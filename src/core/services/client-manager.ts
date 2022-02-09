@@ -11,10 +11,10 @@ import { LogReportDeploy } from '../../models/log_report_deploy';
 import { LogReportDownload } from '../../models/log_report_download';
 import { config } from '../config';
 import { AppError } from '../app-error';
+import { redisClient } from '../utils/connections';
 
 var constConfig = require('../const');
 var common = require('../utils/common');
-var factory = require('../utils/factory');
 
 const UPDATE_CHECK = 'UPDATE_CHECK';
 const CHOSEN_MAN = 'CHOSEN_MAN';
@@ -35,20 +35,16 @@ class ClientManager {
             label,
             packageHash,
         );
-        var client = factory.getRedisClient();
-        return client
-            .keys(redisCacheKey)
-            .then((data) => {
-                if (_.isArray(data)) {
-                    return Promise.all(
-                        data.map((key) => {
-                            return client.del(key);
-                        }),
-                    );
-                }
-                return null;
-            })
-            .finally(() => client.quit());
+        return redisClient.keys(redisCacheKey).then((data) => {
+            if (_.isArray(data)) {
+                return Promise.all(
+                    data.map((key) => {
+                        return redisClient.del(key);
+                    }),
+                );
+            }
+            return null;
+        });
     }
 
     updateCheckFromCache(deploymentKey, appVersion, label, packageHash, clientUniqueId) {
@@ -63,29 +59,25 @@ class ClientManager {
             label,
             packageHash,
         );
-        var client = factory.getRedisClient();
-        return client
-            .get(redisCacheKey)
-            .then((data) => {
-                if (data) {
+        return redisClient.get(redisCacheKey).then((data) => {
+            if (data) {
+                try {
+                    logger.debug('updateCheckFromCache read from catch');
+                    var obj = JSON.parse(data);
+                    return obj;
+                } catch (e) {}
+            }
+            return self
+                .updateCheck(deploymentKey, appVersion, label, packageHash, clientUniqueId)
+                .then((rs) => {
                     try {
-                        logger.debug('updateCheckFromCache read from catch');
-                        var obj = JSON.parse(data);
-                        return obj;
+                        logger.debug('updateCheckFromCache read from db');
+                        var strRs = JSON.stringify(rs);
+                        redisClient.setEx(redisCacheKey, EXPIRED, strRs);
                     } catch (e) {}
-                }
-                return self
-                    .updateCheck(deploymentKey, appVersion, label, packageHash, clientUniqueId)
-                    .then((rs) => {
-                        try {
-                            logger.debug('updateCheckFromCache read from db');
-                            var strRs = JSON.stringify(rs);
-                            client.setex(redisCacheKey, EXPIRED, strRs);
-                        } catch (e) {}
-                        return rs;
-                    });
-            })
-            .finally(() => client.quit());
+                    return rs;
+                });
+        });
     }
 
     getChosenManCacheKey(packageId, rollout, clientUniqueId) {
@@ -110,26 +102,22 @@ class ClientManager {
         if (rolloutClientUniqueIdCache === false) {
             return self.random(rollout);
         } else {
-            var client = factory.getRedisClient();
             var redisCacheKey = self.getChosenManCacheKey(packageId, rollout, clientUniqueId);
-            return client
-                .get(redisCacheKey)
-                .then((data) => {
-                    if (data == 1) {
-                        return true;
-                    } else if (data == 2) {
-                        return false;
-                    } else {
-                        return self.random(rollout).then((r) => {
-                            return client
-                                .setex(redisCacheKey, 60 * 60 * 24 * 7, r ? 1 : 2)
-                                .then(() => {
-                                    return r;
-                                });
-                        });
-                    }
-                })
-                .finally(() => client.quit());
+            return redisClient.get(redisCacheKey).then((data) => {
+                if (data == '1') {
+                    return true;
+                } else if (data == '2') {
+                    return false;
+                } else {
+                    return self.random(rollout).then((r) => {
+                        return redisClient
+                            .setEx(redisCacheKey, 60 * 60 * 24 * 7, r ? '1' : '2')
+                            .then(() => {
+                                return r;
+                            });
+                    });
+                }
+            });
         }
     }
 

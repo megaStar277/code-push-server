@@ -19,6 +19,10 @@ $ sudo npm i -g pm2
 
 > notice. mysql8.x default auth caching_sha2_pasword not support in node-mysql2 see [issue](https://github.com/mysqljs/mysql/pull/1962)
 
+## Install Redis
+
+-   [Redis Quick Start](https://redis.io/topics/quickstart)
+
 ## Get code-push-server from NPM
 
 ```shell

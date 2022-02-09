@@ -1,10 +1,10 @@
 const mysql = require('mysql2');
-const redis = require('redis');
 const should = require('should');
 const fs = require('fs');
 const path = require('path');
 
 const { config } = require('../../../bin/core/config');
+const { redisClient } = require('../../../bin/core/utils/connections');
 
 describe('api/init/database.js', function () {
     describe('create database', function (done) {
@@ -29,12 +29,15 @@ describe('api/init/database.js', function () {
 
     describe('flushall redis', function (done) {
         it('should flushall redis successful', function (done) {
-            var client = redis.createClient(config.redis.default);
-            client.flushall(function (err, reply) {
-                should.not.exist(err);
-                reply.toLowerCase().should.equal('ok');
-                done();
-            });
+            redisClient
+                .flushAll()
+                .then(function (reply) {
+                    reply.toLowerCase().should.equal('ok');
+                    done();
+                })
+                .catch(function (err) {
+                    should.not.exist(err);
+                });
         });
     });
 

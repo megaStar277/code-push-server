@@ -4,7 +4,7 @@ const should = require('should');
 const _ = require('lodash');
 
 const security = require('../../../bin/core/utils/security');
-const factory = require('../../../bin/core/utils/factory');
+const { redisClient } = require('../../../bin/core/utils/connections');
 
 describe('api/users/users.test.js', function () {
     var accountExist = 'lisong2010@gmail.com';
@@ -89,14 +89,10 @@ describe('api/users/users.test.js', function () {
         var account2 = '522539441@qq.com2';
         var storageToken;
         before(function (done) {
-            var client = factory.getRedisClient();
-            client
-                .get(registerKey)
-                .then(function (t) {
-                    storageToken = t;
-                    done();
-                })
-                .finally(() => client.quit());
+            redisClient.get(registerKey).then(function (t) {
+                storageToken = t;
+                done();
+            });
         });
 
         it('should not check register code successful when email already exists', function (done) {
@@ -156,14 +152,10 @@ describe('api/users/users.test.js', function () {
     describe('sign up', function (done) {
         var storageToken;
         before(function (done) {
-            var client = factory.getRedisClient();
-            client
-                .get(registerKey)
-                .then(function (t) {
-                    storageToken = t;
-                    done();
-                })
-                .finally(() => client.quit());
+            redisClient.get(registerKey).then(function (t) {
+                storageToken = t;
+                done();
+            });
         });
 
         it('should not sign up successful when password length invalid', function (done) {

@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import _ from 'lodash';
-import { sequelize } from './index';
+import { sequelize } from '../core/utils/connections';
 
 const { AppError } = require('../core/app-error');
 

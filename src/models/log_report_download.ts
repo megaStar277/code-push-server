@@ -1,5 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
-import { sequelize } from './index';
+import { sequelize } from '../core/utils/connections';
 
 interface LogReportDownloadInterface extends Model {
     id: number;

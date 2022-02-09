@@ -4,7 +4,7 @@ import { Apps } from '../../models/apps';
 import { Collaborators } from '../../models/collaborators';
 import { Deployments } from '../../models/deployments';
 import { Users } from '../../models/users';
-import { sequelize } from '../../models/index';
+import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
 
 var security = require('../../core/utils/security');

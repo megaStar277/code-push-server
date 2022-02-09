@@ -9,7 +9,7 @@ import { Packages } from '../../models/packages';
 import { PackagesDiff } from '../../models/packages_diff';
 import { PackagesMetrics } from '../../models/packages_metrics';
 import { Users } from '../../models/users';
-import { sequelize } from '../../models/index';
+import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
 
 var security = require('../../core/utils/security');
