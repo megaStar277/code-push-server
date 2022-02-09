@@ -17,13 +17,7 @@ router.get('/password', (req, res) => {
 });
 
 router.get('/login', (req, res) => {
-    var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
-    if (codePushWebUrl && validator.isURL(codePushWebUrl)) {
-        logger.debug(`login redirect:${codePushWebUrl}`);
-        res.redirect(`${codePushWebUrl}/login`);
-    } else {
-        res.render('auth/login', { title: 'CodePushServer', email: req.query.email || '' });
-    }
+    res.render('auth/login', { title: 'CodePushServer', email: req.query.email || '' });
 });
 
 router.get('/link', (req, res) => {
@@ -31,17 +25,10 @@ router.get('/link', (req, res) => {
 });
 
 router.get('/register', (req, res) => {
-    var codePushWebUrl = _.get(config, 'common.codePushWebUrl');
-    var isRedirect = false;
-    if (codePushWebUrl && validator.isURL(codePushWebUrl)) {
-        logger.debug(`register redirect:${codePushWebUrl}`);
-        res.redirect(`${codePushWebUrl}/register`);
+    if (_.get(config, 'common.allowRegistration')) {
+        res.render('auth/register', { title: 'CodePushServer', email: req.query.email || '' });
     } else {
-        if (_.get(config, 'common.allowRegistration')) {
-            res.render('auth/register', { title: 'CodePushServer', email: req.query.email || '' });
-        } else {
-            res.redirect(`/auth/login`);
-        }
+        res.redirect(`/auth/login`);
     }
 });
 

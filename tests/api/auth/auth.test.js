@@ -10,20 +10,7 @@ describe('api/auth/test.js', function () {
     var password = '123456';
 
     describe('sign in view', function (done) {
-        it('should show sign in redirect view successful', function (done) {
-            _.set(config, 'common.codePushWebUrl', 'http://127.0.0.1:3001');
-            request
-                .get('/auth/login')
-                .send()
-                .end(function (err, res) {
-                    should.not.exist(err);
-                    res.status.should.equal(302);
-                    done();
-                });
-        });
-
         it('should show sign in view successful', function (done) {
-            _.set(config, 'common.codePushWebUrl', null);
             request
                 .get('/auth/login')
                 .send()
@@ -48,21 +35,7 @@ describe('api/auth/test.js', function () {
                 });
         });
 
-        it('should show sign up redirect view successful', function (done) {
-            _.set(config, 'common.codePushWebUrl', 'http://127.0.0.1:3001');
-            _.set(config, 'common.allowRegistration', true);
-            request
-                .get('/auth/register')
-                .send()
-                .end(function (err, res) {
-                    should.not.exist(err);
-                    res.status.should.equal(302);
-                    done();
-                });
-        });
-
         it('should show sign up view successful', function (done) {
-            _.set(config, 'common.codePushWebUrl', null);
             _.set(config, 'common.allowRegistration', true);
             request
                 .get('/auth/register')

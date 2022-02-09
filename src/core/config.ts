@@ -104,9 +104,6 @@ export const config = {
         updateCheckCache: toBool(process.env.UPDATE_CHECK_CACHE),
         // options value is (true | false), when it's true, it will cache rollout results in redis
         rolloutClientUniqueIdCache: toBool(process.env.ROLLOUT_CLIENT_UNIQUE_ID_CACHE),
-
-        // CodePush Web(https://github.com/lisong/code-push-web) login address.
-        //codePushWebUrl: "http://127.0.0.1:3001/login",
     },
     // Config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
     smtpConfig: {
