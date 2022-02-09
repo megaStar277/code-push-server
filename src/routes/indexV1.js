@@ -3,8 +3,7 @@ import _ from 'lodash';
 import { logger } from 'kv-logger';
 
 import { AppError } from '../core/app-error';
-
-var ClientManager = require('../core/services/client-manager');
+import { clientManager } from '../core/services/client-manager';
 
 const router = express.Router();
 
@@ -15,7 +14,6 @@ router.get('/update_check', (req, res, next) => {
     var packageHash = _.get(req, 'query.package_hash');
     var isCompanion = _.get(req, 'query.is_companion');
     var clientUniqueId = _.get(req, 'query.client_unique_id');
-    var clientManager = new ClientManager();
     logger.debug('/update_check req.query', req.query);
     clientManager
         .updateCheckFromCache(deploymentKey, appVersion, label, packageHash, clientUniqueId)
@@ -65,7 +63,6 @@ router.post('/report_status/download', (req, res) => {
     var clientUniqueId = _.get(req, 'body.client_unique_id');
     var label = _.get(req, 'body.label');
     var deploymentKey = _.get(req, 'body.deployment_key');
-    var clientManager = new ClientManager();
     clientManager.reportStatusDownload(deploymentKey, label, clientUniqueId).catch((err) => {
         if (!err instanceof AppError) {
             logger.error(err);
@@ -79,7 +76,6 @@ router.post('/report_status/deploy', (req, res) => {
     var clientUniqueId = _.get(req, 'body.client_unique_id');
     var label = _.get(req, 'body.label');
     var deploymentKey = _.get(req, 'body.deployment_key');
-    var clientManager = new ClientManager();
     clientManager
         .reportStatusDeploy(deploymentKey, label, clientUniqueId, req.body)
         .catch((err) => {

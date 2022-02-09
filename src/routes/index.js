@@ -3,9 +3,9 @@ import _ from 'lodash';
 import { logger } from 'kv-logger';
 
 import { AppError } from '../core/app-error';
+import { clientManager } from '../core/services/client-manager';
 
 var middleware = require('../core/middleware');
-var ClientManager = require('../core/services/client-manager');
 
 const router = express.Router();
 
@@ -23,7 +23,6 @@ router.get('/updateCheck', (req, res, next) => {
     var label = _.get(req, 'query.label');
     var packageHash = _.get(req, 'query.packageHash');
     var clientUniqueId = _.get(req, 'query.clientUniqueId');
-    var clientManager = new ClientManager();
     logger.debug('/updateCheck', {
         query: req.query,
     });
@@ -62,7 +61,6 @@ router.post('/reportStatus/download', (req, res) => {
     var clientUniqueId = _.get(req, 'body.clientUniqueId');
     var label = _.get(req, 'body.label');
     var deploymentKey = _.get(req, 'body.deploymentKey');
-    var clientManager = new ClientManager();
     clientManager.reportStatusDownload(deploymentKey, label, clientUniqueId).catch((err) => {
         if (!err instanceof AppError) {
             logger.error(err);
@@ -78,7 +76,6 @@ router.post('/reportStatus/deploy', (req, res) => {
     var clientUniqueId = _.get(req, 'body.clientUniqueId');
     var label = _.get(req, 'body.label');
     var deploymentKey = _.get(req, 'body.deploymentKey');
-    var clientManager = new ClientManager();
     clientManager
         .reportStatusDeploy(deploymentKey, label, clientUniqueId, req.body)
         .catch((err) => {

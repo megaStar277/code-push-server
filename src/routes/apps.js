@@ -6,6 +6,7 @@ import { logger } from 'kv-logger';
 
 import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
+import { clientManager } from '../core/services/client-manager';
 
 var middleware = require('../core/middleware');
 var Deployments = require('../core/services/deployments');
@@ -358,8 +359,6 @@ router.post(
                                 //clear cache if exists.
                                 if (_.get(config, 'common.updateCheckCache', false) !== false) {
                                     delay(2500).then(() => {
-                                        var ClientManager = require('../core/services/client-manager');
-                                        var clientManager = new ClientManager();
                                         clientManager.clearUpdateCheckCache(
                                             deploymentInfo.deployment_key,
                                             '*',
@@ -437,8 +436,6 @@ router.patch(
                                 //clear cache if exists.
                                 if (_.get(config, 'common.updateCheckCache', false) !== false) {
                                     delay(2500).then(() => {
-                                        var ClientManager = require('../core/services/client-manager');
-                                        var clientManager = new ClientManager();
                                         clientManager.clearUpdateCheckCache(
                                             deploymentInfo.deployment_key,
                                             '*',
@@ -520,8 +517,6 @@ router.post(
                         //clear cache if exists.
                         if (_.get(config, 'common.updateCheckCache', false) !== false) {
                             delay(2500).then(() => {
-                                var ClientManager = require('../core/services/client-manager');
-                                var clientManager = new ClientManager();
                                 clientManager.clearUpdateCheckCache(
                                     destDeploymentInfo.deployment_key,
                                     '*',
@@ -580,8 +575,6 @@ var rollbackCb = function (req, res, next) {
                     //clear cache if exists.
                     if (_.get(config, 'common.updateCheckCache', false) !== false) {
                         delay(2500).then(() => {
-                            var ClientManager = require('../core/services/client-manager');
-                            var clientManager = new ClientManager();
                             clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
                         });
                     }
