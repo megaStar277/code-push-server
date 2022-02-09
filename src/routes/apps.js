@@ -5,9 +5,9 @@ import { config } from '../core/config';
 import { logger } from 'kv-logger';
 
 import { AppError } from '../core/app-error';
+import { accountManager } from '../core/services/account-manager';
 
 var middleware = require('../core/middleware');
-var accountManager = require('../core/services/account-manager')();
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
 var AppManager = require('../core/services/app-manager');

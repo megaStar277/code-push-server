@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken';
 
 import { config } from '../core/config';
 import { AppError } from '../core/app-error';
+import { accountManager } from '../core/services/account-manager';
 
-var accountManager = require('../core/services/account-manager')();
 var security = require('../core/utils/security');
 
 const router = express.Router();

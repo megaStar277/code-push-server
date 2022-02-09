@@ -4,9 +4,9 @@ import _ from 'lodash';
 
 import { Users } from '../models/users';
 import { AppError } from '../core/app-error';
+import { accountManager } from '../core/services/account-manager';
 
 var middleware = require('../core/middleware');
-var AccountManager = require('../core/services/account-manager');
 
 const router = express.Router();
 
@@ -18,7 +18,6 @@ router.post('/', (req, res, next) => {
     var email = _.trim(_.get(req, 'body.email'));
     var token = _.trim(_.get(req, 'body.token'));
     var password = _.trim(_.get(req, 'body.password'));
-    var accountManager = new AccountManager();
     return accountManager
         .checkRegisterCode(email, token)
         .then((u) => {
@@ -59,7 +58,6 @@ router.get('/exists', (req, res, next) => {
 
 router.post('/registerCode', (req, res, next) => {
     var email = _.get(req, 'body.email');
-    var accountManager = new AccountManager();
     logger.info('try send register code', { email });
     return accountManager
         .sendRegisterCode(email)
@@ -80,7 +78,6 @@ router.post('/registerCode', (req, res, next) => {
 router.get('/registerCode/exists', (req, res, next) => {
     var email = _.trim(_.get(req, 'query.email'));
     var token = _.trim(_.get(req, 'query.token'));
-    var accountManager = new AccountManager();
     return accountManager
         .checkRegisterCode(email, token)
         .then(() => {
@@ -100,7 +97,6 @@ router.patch('/password', middleware.checkToken, (req, res, next) => {
     var oldPassword = _.trim(_.get(req, 'body.oldPassword'));
     var newPassword = _.trim(_.get(req, 'body.newPassword'));
     var uid = req.users.id;
-    var accountManager = new AccountManager();
     return accountManager
         .changePassword(uid, oldPassword, newPassword)
         .then(() => {

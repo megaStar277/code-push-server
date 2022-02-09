@@ -3,10 +3,10 @@ import _ from 'lodash';
 import { logger } from 'kv-logger';
 import { UserTokens } from '../models/user_tokens';
 import { AppError } from '../core/app-error';
+import { accountManager } from '../core/services/account-manager';
 
 var security = require('../core/utils/security');
 var middleware = require('../core/middleware');
-var accountManager = require('../core/services/account-manager')();
 
 const router = express.Router();
 
