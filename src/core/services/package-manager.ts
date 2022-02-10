@@ -17,11 +17,19 @@ import { PackagesDiff } from '../../models/packages_diff';
 import { PackagesMetrics } from '../../models/packages_metrics';
 import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
+import {
+    DIFF_MANIFEST_FILE_NAME,
+    IS_DISABLED_NO,
+    IS_DISABLED_YES,
+    IS_MANDATORY_NO,
+    IS_MANDATORY_YES,
+    RELEAS_EMETHOD_PROMOTE,
+    RELEAS_EMETHOD_UPLOAD,
+} from '../const';
 
 var dataCenterManager = require('./datacenter-manager')();
 var security = require('../utils/security');
 var common = require('../utils/common');
-var constConfig = require('../const');
 
 class PackageManager {
     getMetricsbyPackageId = function (packageId) {
@@ -108,7 +116,7 @@ class PackageManager {
     }
 
     createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params) {
-        var releaseMethod = params.releaseMethod || constConfig.RELEAS_EMETHOD_UPLOAD;
+        var releaseMethod = params.releaseMethod || RELEAS_EMETHOD_UPLOAD;
         var releaseUid = params.releaseUid || 0;
         var isMandatory = params.isMandatory || 0;
         var size = params.size || 0;
@@ -212,7 +220,7 @@ class PackageManager {
                 var file = files[i];
                 zipFile.addFile(path.join(baseDirectoryPath, file), slash(file));
             }
-            zipFile.addFile(hotCodePushFile, constConfig.DIFF_MANIFEST_FILE_NAME);
+            zipFile.addFile(hotCodePushFile, DIFF_MANIFEST_FILE_NAME);
             zipFile.end();
         });
     }
@@ -441,14 +449,10 @@ class PackageManager {
             .then(([packageHash, manifestHash, blobHash]) => {
                 var stats = fs.statSync(filePath);
                 var params = {
-                    releaseMethod: constConfig.RELEAS_EMETHOD_UPLOAD,
+                    releaseMethod: RELEAS_EMETHOD_UPLOAD,
                     releaseUid: releaseUid,
-                    isMandatory: isMandatory
-                        ? constConfig.IS_MANDATORY_YES
-                        : constConfig.IS_MANDATORY_NO,
-                    isDisabled: isDisabled
-                        ? constConfig.IS_DISABLED_YES
-                        : constConfig.IS_DISABLED_NO,
+                    isMandatory: isMandatory ? IS_MANDATORY_YES : IS_MANDATORY_NO,
+                    isDisabled: isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO,
                     rollout: rollout,
                     size: stats.size,
                     description: description,
@@ -523,14 +527,10 @@ class PackageManager {
                     new_params.rollout = rollout;
                 }
                 if (_.isBoolean(isMandatory)) {
-                    new_params.is_mandatory = isMandatory
-                        ? constConfig.IS_MANDATORY_YES
-                        : constConfig.IS_MANDATORY_NO;
+                    new_params.is_mandatory = isMandatory ? IS_MANDATORY_YES : IS_MANDATORY_NO;
                 }
                 if (_.isBoolean(isDisabled)) {
-                    new_params.is_disabled = isDisabled
-                        ? constConfig.IS_DISABLED_YES
-                        : constConfig.IS_DISABLED_NO;
+                    new_params.is_disabled = isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO;
                 }
                 return Packages.update(new_params, { where: { id: packageId } });
             });
@@ -624,7 +624,7 @@ class PackageManager {
                     throw new AppError(`targetBinaryVersion ${appVersion} not support.`);
                 }
                 var create_params = {
-                    releaseMethod: constConfig.RELEAS_EMETHOD_PROMOTE,
+                    releaseMethod: RELEAS_EMETHOD_PROMOTE,
                     releaseUid: params.promoteUid || 0,
                     rollout: params.rollout || 100,
                     size: sourcePack.size,
@@ -638,15 +638,13 @@ class PackageManager {
                 };
                 if (_.isBoolean(params.isMandatory)) {
                     create_params.isMandatory = params.isMandatory
-                        ? constConfig.IS_MANDATORY_YES
-                        : constConfig.IS_MANDATORY_NO;
+                        ? IS_MANDATORY_YES
+                        : IS_MANDATORY_NO;
                 } else {
                     create_params.isMandatory = sourcePack.is_mandatory;
                 }
                 if (_.isBoolean(params.isDisabled)) {
-                    create_params.isDisabled = params.isDisabled
-                        ? constConfig.IS_DISABLED_YES
-                        : constConfig.IS_DISABLED_NO;
+                    create_params.isDisabled = params.isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO;
                 } else {
                     create_params.isDisabled = sourcePack.is_disabled;
                 }
@@ -731,10 +729,7 @@ class PackageManager {
             where: {
                 deployment_version_id: deploymentVersionId,
                 release_method: {
-                    [Op.in]: [
-                        constConfig.RELEAS_EMETHOD_UPLOAD,
-                        constConfig.RELEAS_EMETHOD_PROMOTE,
-                    ],
+                    [Op.in]: [RELEAS_EMETHOD_UPLOAD, RELEAS_EMETHOD_PROMOTE],
                 },
             },
             order: [['id', 'desc']],

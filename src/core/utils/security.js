@@ -4,6 +4,7 @@ import _ from 'lodash';
 import crypto from 'crypto';
 
 import { AppError } from '../app-error';
+import { ANDROID, IOS } from '../const';
 
 var bcrypt = require('bcryptjs');
 var qetag = require('../utils/qetag');
@@ -123,17 +124,16 @@ security.uploadPackageType = function (directoryPath) {
                     logger.debug(`uploadPackageType empty files`);
                     reject(new AppError('empty files'));
                 } else {
-                    var constName = require('../const');
                     const AREGEX = /android\.bundle/;
                     const AREGEX_IOS = /main\.jsbundle/;
                     var packageType = 0;
                     _.forIn(files, function (value) {
                         if (AREGEX.test(value)) {
-                            packageType = constName.ANDROID;
+                            packageType = ANDROID;
                             return false;
                         }
                         if (AREGEX_IOS.test(value)) {
-                            packageType = constName.IOS;
+                            packageType = IOS;
                             return false;
                         }
                     });

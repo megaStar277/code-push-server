@@ -8,8 +8,7 @@ import path from 'path';
 import _ from 'lodash';
 import mysql from 'mysql2';
 import yargs from 'yargs';
-
-const constConfig = require('./core/const');
+import { CURRENT_DB_VERSION } from './core/const';
 
 var argv = yargs
     .usage('Usage: $0 <command> [options]')
@@ -117,7 +116,7 @@ if (command === 'init') {
         .query('select `version` from `versions` where `type`=1 limit 1')
         .then((rs) => {
             version_no = _.get(rs, '0.version', '0.0.1');
-            if (version_no == constConfig.CURRENT_DB_VERSION) {
+            if (version_no == CURRENT_DB_VERSION) {
                 console.log('Everything up-to-date.');
                 process.exit(0);
             }

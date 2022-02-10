@@ -8,6 +8,18 @@ import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
 import { clientManager } from '../core/services/client-manager';
 import { packageManager } from '../core/services/package-manager';
+import {
+    IOS,
+    IOS_NAME,
+    ANDROID,
+    ANDROID_NAME,
+    WINDOWS,
+    WINDOWS_NAME,
+    REACT_NATIVE,
+    REACT_NATIVE_NAME,
+    CORDOVA,
+    CORDOVA_NAME,
+} from '../core/const';
 
 var middleware = require('../core/middleware');
 var Deployments = require('../core/services/deployments');
@@ -804,28 +816,27 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         uid,
         ...req.body,
     });
-    var constName = require('../core/const');
     var appName = req.body.name;
     if (_.isEmpty(appName)) {
         return res.status(406).send('Please input name!');
     }
     var osName = _.toLower(req.body.os);
     var os;
-    if (osName == _.toLower(constName.IOS_NAME)) {
-        os = constName.IOS;
-    } else if (osName == _.toLower(constName.ANDROID_NAME)) {
-        os = constName.ANDROID;
-    } else if (osName == _.toLower(constName.WINDOWS_NAME)) {
-        os = constName.WINDOWS;
+    if (osName == _.toLower(IOS_NAME)) {
+        os = IOS;
+    } else if (osName == _.toLower(ANDROID_NAME)) {
+        os = ANDROID;
+    } else if (osName == _.toLower(WINDOWS_NAME)) {
+        os = WINDOWS;
     } else {
         return res.status(406).send('Please input os [iOS|Android|Windows]!');
     }
     var platformName = _.toLower(req.body.platform);
     var platform;
-    if (platformName == _.toLower(constName.REACT_NATIVE_NAME)) {
-        platform = constName.REACT_NATIVE;
-    } else if (platformName == _.toLower(constName.CORDOVA_NAME)) {
-        platform = constName.CORDOVA;
+    if (platformName == _.toLower(REACT_NATIVE_NAME)) {
+        platform = REACT_NATIVE;
+    } else if (platformName == _.toLower(CORDOVA_NAME)) {
+        platform = CORDOVA;
     } else {
         return res.status(406).send('Please input platform [React-Native|Cordova]!');
     }

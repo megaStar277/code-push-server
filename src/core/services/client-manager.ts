@@ -13,7 +13,8 @@ import { config } from '../config';
 import { AppError } from '../app-error';
 import { redisClient } from '../utils/connections';
 
-var constConfig = require('../const');
+import { DEPLOYMENT_FAILED, DEPLOYMENT_SUCCEEDED } from '../const';
+
 var common = require('../utils/common');
 
 const UPDATE_CHECK = 'UPDATE_CHECK';
@@ -279,9 +280,9 @@ class ClientManager {
             var statusText = _.get(others, 'status');
             var status = 0;
             if (_.eq(statusText, 'DeploymentSucceeded')) {
-                status = constConfig.DEPLOYMENT_SUCCEEDED;
+                status = DEPLOYMENT_SUCCEEDED;
             } else if (_.eq(statusText, 'DeploymentFailed')) {
-                status = constConfig.DEPLOYMENT_FAILED;
+                status = DEPLOYMENT_FAILED;
             }
             var packageId = packages.id;
             var previous_deployment_key = _.get(others, 'previousDeploymentKey');
@@ -300,7 +301,7 @@ class ClientManager {
                             if (_.isEmpty(metrics)) {
                                 return;
                             }
-                            if (_.eq(status, constConfig.DEPLOYMENT_SUCCEEDED)) {
+                            if (_.eq(status, DEPLOYMENT_SUCCEEDED)) {
                                 return metrics.increment(['installed', 'active'], { by: 1 });
                             } else {
                                 return metrics.increment(['installed', 'failed'], { by: 1 });

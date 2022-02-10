@@ -12,7 +12,7 @@ import _ from 'lodash';
 import { app } from './app';
 import { Versions } from './models/versions';
 
-var constConfig = require('./core/const');
+import { CURRENT_DB_VERSION } from './core/const';
 
 /**
  * Get port from environment and store in Express.
@@ -43,7 +43,7 @@ const server = http.createServer(app);
  */
 Versions.findOne({ where: { type: 1 } })
     .then(function (v) {
-        if (!v || v.get('version') != constConfig.CURRENT_DB_VERSION) {
+        if (!v || v.version != CURRENT_DB_VERSION) {
             throw new Error(
                 'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
             );

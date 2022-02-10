@@ -6,6 +6,20 @@ import { Deployments } from '../../models/deployments';
 import { Users } from '../../models/users';
 import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
+import {
+    IOS,
+    IOS_NAME,
+    ANDROID,
+    ANDROID_NAME,
+    WINDOWS,
+    WINDOWS_NAME,
+    CORDOVA,
+    CORDOVA_NAME,
+    REACT_NATIVE,
+    REACT_NATIVE_NAME,
+    STAGING,
+    PRODUCTION,
+} from '../const';
 
 var security = require('../../core/utils/security');
 
@@ -32,13 +46,12 @@ proto.addApp = function (uid, appName, os, platform, identical) {
                 transaction: t,
             },
         ).then((apps) => {
-            var constName = require('../const');
             var appId = apps.id;
             var deployments = [];
             var deploymentKey = security.randToken(28) + identical;
             deployments.push({
                 appid: appId,
-                name: constName.PRODUCTION,
+                name: PRODUCTION,
                 last_deployment_version_id: 0,
                 label_id: 0,
                 deployment_key: deploymentKey,
@@ -46,7 +59,7 @@ proto.addApp = function (uid, appName, os, platform, identical) {
             deploymentKey = security.randToken(28) + identical;
             deployments.push({
                 appid: appId,
-                name: constName.STAGING,
+                name: STAGING,
                 last_deployment_version_id: 0,
                 label_id: 0,
                 deployment_key: deploymentKey,
@@ -110,18 +123,17 @@ proto.listApps = function (uid) {
             var rs = Promise.all(
                 _.values(appInfos).map((v) => {
                     return self.getAppDetailInfo(v, uid).then((info) => {
-                        var constName = require('../const');
-                        if (info.os == constName.IOS) {
-                            info.os = constName.IOS_NAME;
-                        } else if (info.os == constName.ANDROID) {
-                            info.os = constName.ANDROID_NAME;
-                        } else if (info.os == constName.WINDOWS) {
-                            info.os = constName.WINDOWS_NAME;
+                        if (info.os == IOS) {
+                            info.os = IOS_NAME;
+                        } else if (info.os == ANDROID) {
+                            info.os = ANDROID_NAME;
+                        } else if (info.os == WINDOWS) {
+                            info.os = WINDOWS_NAME;
                         }
-                        if (info.platform == constName.REACT_NATIVE) {
-                            info.platform = constName.REACT_NATIVE_NAME;
-                        } else if (info.platform == constName.CORDOVA) {
-                            info.platform = constName.CORDOVA_NAME;
+                        if (info.platform == REACT_NATIVE) {
+                            info.platform = REACT_NATIVE_NAME;
+                        } else if (info.platform == CORDOVA) {
+                            info.platform = CORDOVA_NAME;
                         }
                         return info;
                     });
