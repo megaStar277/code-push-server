@@ -7,12 +7,12 @@ import { logger } from 'kv-logger';
 import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
 import { clientManager } from '../core/services/client-manager';
+import { packageManager } from '../core/services/package-manager';
 
 var middleware = require('../core/middleware');
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
 var AppManager = require('../core/services/app-manager');
-var PackageManager = require('../core/services/package-manager');
 var common = require('../core/utils/common');
 
 const router = express.Router();
@@ -117,7 +117,6 @@ router.get(
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
         var deployments = new Deployments();
-        var packageManager = new PackageManager();
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
@@ -294,7 +293,6 @@ router.post(
             deploymentName,
         });
         var deployments = new Deployments();
-        var packageManager = new PackageManager();
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
@@ -400,7 +398,6 @@ router.patch(
         var deploymentName = _.trim(req.params.deploymentName);
         var uid = req.users.id;
         var deployments = new Deployments();
-        var packageManager = new PackageManager();
         var label = _.get(req, 'body.packageInfo.label');
         accountManager
             .collaboratorCan(uid, appName)
@@ -469,7 +466,6 @@ router.post(
         var sourceDeploymentName = _.trim(req.params.sourceDeploymentName);
         var destDeploymentName = _.trim(req.params.destDeploymentName);
         var uid = req.users.id;
-        var packageManager = new PackageManager();
         var deployments = new Deployments();
         accountManager
             .collaboratorCan(uid, appName)
@@ -553,7 +549,6 @@ var rollbackCb = function (req, res, next) {
         targetLabel,
     });
     var deployments = new Deployments();
-    var packageManager = new PackageManager();
     accountManager
         .collaboratorCan(uid, appName)
         .then((col) => {

@@ -7,6 +7,9 @@ interface AppsInterface extends Model {
     uid: number;
     os: number;
     platform: number;
+    /**
+     * @deprecated is_use_diff_text is no longer supported
+     */
     is_use_diff_text: number;
     created_at: Date;
     updated_at: Date;

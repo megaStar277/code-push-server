@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../core/utils/connections';
 
-interface PackagesInterface extends Model {
+export interface PackagesInterface extends Model {
     id: number;
     deployment_version_id: number;
     deployment_id: number;
