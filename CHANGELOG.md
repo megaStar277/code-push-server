@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/shm-open/code-push-server/compare/v1.2.0...v2.0.0) (2022-02-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop is_use_diff_text support
+* drop codePushWeb redirect support
+* drop upyun support
+* drop CONFIG_FILE support, please use env variable config items
+
+### Features
+
+* drop upyun support ([57bbdc5](https://github.com/shm-open/code-push-server/commit/57bbdc58d7c9174f4d00ad9ec1525f5f828e00b4))
+
+
+### Bug Fixes
+
+* **deps:** update dependency aws-sdk to v2.1072.0 ([82f41e0](https://github.com/shm-open/code-push-server/commit/82f41e0e347802a851534af3d9558fe1a3919936))
+* **deps:** update dependency sequelize to v6.16.0 ([e3bb1e4](https://github.com/shm-open/code-push-server/commit/e3bb1e4f223f9a43430318fe20fc1af759c30721))
+* **deps:** update dependency sequelize to v6.16.1 ([568a5b0](https://github.com/shm-open/code-push-server/commit/568a5b02b280eb9211948a4d6a7380efac33d199))
+* update deps redis to v4, reuse the same redis client without quit ([98c2ca6](https://github.com/shm-open/code-push-server/commit/98c2ca60a3285353c9ce3cdab5f8eee1b9deffba))
+
+
+* drop codePushWeb redirect support ([255ea15](https://github.com/shm-open/code-push-server/commit/255ea1530aba7a57c66e0e304fa6c7b23485f219))
+* turn package-manager to ts ([e067aed](https://github.com/shm-open/code-push-server/commit/e067aed251a5376bc437502c9ceee86f9408988e))
+* turn top level app/www to ts ([76d8898](https://github.com/shm-open/code-push-server/commit/76d8898e563bbf52361b87b615bf7c13f40409e0))
+
 ## [1.2.0](https://github.com/shm-open/code-push-server/compare/v1.1.1...v1.2.0) (2022-02-08)
 
 
