@@ -1,10 +1,3 @@
-function define(name, value) {
-    Object.defineProperty(exports, name, {
-        value: value,
-        enumerable: true,
-    });
-}
-
 //定义支持的平台
 export const IOS = 1;
 export const IOS_NAME = 'iOS';
