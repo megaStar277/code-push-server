@@ -498,7 +498,6 @@ class PackageManager {
                     ])
                         .then(([v1, v2]) => {
                             if (v1 && !_.eq(v1.id, v2.id)) {
-                                logger.debug(v1);
                                 throw new AppError(`${appVersion} already exist.`);
                             }
                             if (!v2) {
