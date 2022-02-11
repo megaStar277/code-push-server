@@ -1,5 +1,11 @@
 import os from 'os';
-import { setLogTransports, ConsoleTransport, LogLevelFilter, logger } from 'kv-logger';
+import {
+    setLogTransports,
+    ConsoleLogTransport,
+    logger,
+    LogLevel,
+    withLogLevelFilter,
+} from 'kv-logger';
 
 function toBool(str: string): boolean {
     return str === 'true' || str === '1';
@@ -125,12 +131,11 @@ export const config = {
 } as const;
 
 // config logger - make sure its ready before anyting else
-setLogTransports([
-    new LogLevelFilter(
-        new ConsoleTransport(config.log.format as 'text' | 'json'),
-        config.log.level as 'error' | 'warn' | 'info' | 'debug',
+setLogTransports(
+    withLogLevelFilter(config.log.level as LogLevel)(
+        new ConsoleLogTransport(config.log.format as 'text' | 'json'),
     ),
-]);
+);
 
 const env = process.env.NODE_ENV || 'development';
 logger.info(`use config`, {
