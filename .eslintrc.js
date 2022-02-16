@@ -1,7 +1,10 @@
 module.exports = {
     extends: ['@shm-open/eslint-config-bundle'],
     rules: {
+        // temp disables - will be removed once we have all js files converted to ts
         '@typescript-eslint/no-var-requires': 'off',
+        'import/no-unused-modules': 'off',
+
         '@typescript-eslint/naming-convention': [
             'error',
             {
@@ -28,7 +31,7 @@ module.exports = {
             },
             {
                 selector: 'objectLiteralProperty',
-                format: ['camelCase', 'snake_case', 'UPPER_CASE'],
+                format: ['camelCase', 'snake_case', 'UPPER_CASE', 'PascalCase'],
             },
         ],
     },

@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 export class AppError extends Error {
-    constructor(message) {
-        super(message);
+    constructor(message: string | Error) {
+        super(message instanceof Error ? message.message : message);
         this.name = 'AppError';
     }
 
@@ -9,7 +9,7 @@ export class AppError extends Error {
 }
 
 export class NotFound extends AppError {
-    constructor(message) {
+    constructor(message?: string | Error) {
         super(message || 'Not Found');
         this.name = 'NotFoundError';
     }
@@ -18,7 +18,7 @@ export class NotFound extends AppError {
 }
 
 export class Unauthorized extends AppError {
-    constructor(message) {
+    constructor(message?: string | Error) {
         super(message || 'Unauthorized');
         this.name = 'UnauthorizedError';
     }

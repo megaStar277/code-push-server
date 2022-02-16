@@ -29,6 +29,7 @@ import {
 import { sequelize } from '../utils/connections';
 import { qetag } from '../utils/qetag';
 import { randToken, uploadPackageType } from '../utils/security';
+import { uploadFileToStorage } from '../utils/storage';
 
 const common = require('../utils/common');
 const dataCenterManager = require('./datacenter-manager')();
@@ -116,7 +117,14 @@ class PackageManager {
         });
     }
 
-    createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params) {
+    createPackage(
+        deploymentId,
+        appVersion,
+        packageHash,
+        manifestHash: string,
+        blobHash: string,
+        params,
+    ) {
         const releaseMethod = params.releaseMethod || RELEASE_METHOD_UPLOAD;
         const releaseUid = params.releaseUid || 0;
         const isMandatory = params.isMandatory || 0;
@@ -273,7 +281,7 @@ class PackageManager {
                         hotCodePushFile,
                     ).then((data) => {
                         return qetag(data.path).then((diffHash) => {
-                            return common.uploadFileToStorage(diffHash, fileName).then(() => {
+                            return uploadFileToStorage(diffHash, fileName).then(() => {
                                 const stats = fs.statSync(fileName);
                                 return PackagesDiff.create({
                                     package_id: packageId,
@@ -427,8 +435,8 @@ class PackageManager {
                         })
                         .then((manifestHash) => {
                             return Promise.all([
-                                common.uploadFileToStorage(manifestHash, manifestFile),
-                                common.uploadFileToStorage(blobHash, filePath),
+                                uploadFileToStorage(manifestHash, manifestFile),
+                                uploadFileToStorage(blobHash, filePath),
                             ]).then(() => [packageHash, manifestHash, blobHash]);
                         });
                 });

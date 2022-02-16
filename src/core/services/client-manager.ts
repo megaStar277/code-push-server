@@ -195,7 +195,7 @@ class ClientManager {
                         ) {
                             rs.packageId = packageId;
                             rs.targetBinaryRange = deploymentsVersions.app_version;
-                            rs.downloadURL = common.getBlobDownloadUrl(_.get(packages, 'blob_url'));
+                            rs.downloadURL = common.getBlobDownloadUrl(packages.blob_url);
                             rs.downloadUrl = rs.downloadURL;
                             rs.description = _.get(packages, 'description', '');
                             rs.isAvailable = !_.eq(packages.is_disabled, 1);

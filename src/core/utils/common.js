@@ -3,15 +3,10 @@ import fsextra from 'fs-extra';
 import extract from 'extract-zip';
 import _ from 'lodash';
 import validator from 'validator';
-import qiniu from 'qiniu';
 import jschardet from 'jschardet';
-import path from 'path';
 import util from 'util';
 import fetch from 'node-fetch';
 import { logger } from 'kv-logger';
-import AWS from 'aws-sdk';
-import COS from 'cos-nodejs-sdk-v5';
-import ALY from 'aliyun-sdk';
 
 import { config } from '../config';
 import { AppError } from '../app-error';
@@ -209,87 +204,6 @@ common.unzipFile = async function (zipFile, outputPath) {
     return outputPath;
 };
 
-common.getUploadTokenQiniu = function (mac, bucket, key) {
-    var options = {
-        scope: bucket + ':' + key,
-    };
-    var putPolicy = new qiniu.rs.PutPolicy(options);
-    return putPolicy.uploadToken(mac);
-};
-
-common.uploadFileToStorage = function (key, filePath) {
-    var storageType = _.get(config, 'common.storageType');
-    if (storageType === 'local') {
-        return common.uploadFileToLocal(key, filePath);
-    } else if (storageType === 's3') {
-        return common.uploadFileToS3(key, filePath);
-    } else if (storageType === 'oss') {
-        return common.uploadFileToOSS(key, filePath);
-    } else if (storageType === 'qiniu') {
-        return common.uploadFileToQiniu(key, filePath);
-    } else if (storageType === 'tencentcloud') {
-        return common.uploadFileToTencentCloud(key, filePath);
-    }
-    throw new AppError(`${storageType} storageType does not support.`);
-};
-
-common.uploadFileToLocal = function (key, filePath) {
-    return new Promise((resolve, reject) => {
-        var storageDir = _.get(config, 'local.storageDir');
-        if (!storageDir) {
-            throw new AppError('please set config local storageDir');
-        }
-        if (key.length < 3) {
-            logger.error(`generate key is too short, key value:${key}`);
-            throw new AppError('generate key is too short.');
-        }
-        try {
-            logger.debug(`uploadFileToLocal check directory ${storageDir} fs.R_OK`);
-            fs.accessSync(storageDir, fs.W_OK);
-            logger.debug(`uploadFileToLocal directory ${storageDir} fs.R_OK is ok`);
-        } catch (e) {
-            logger.error(e);
-            throw new AppError(e.message);
-        }
-        var subDir = key.substr(0, 2).toLowerCase();
-        var finalDir = path.join(storageDir, subDir);
-        var fileName = path.join(finalDir, key);
-        if (fs.existsSync(fileName)) {
-            return resolve(key);
-        }
-        var stats = fs.statSync(storageDir);
-        if (!stats.isDirectory()) {
-            var e = new AppError(`${storageDir} must be directory`);
-            logger.error(e);
-            throw e;
-        }
-        if (!fs.existsSync(`${finalDir}`)) {
-            fs.mkdirSync(`${finalDir}`);
-            logger.debug(`uploadFileToLocal mkdir:${finalDir}`);
-        }
-        try {
-            fs.accessSync(filePath, fs.R_OK);
-        } catch (e) {
-            logger.error(e);
-            throw new AppError(e.message);
-        }
-        stats = fs.statSync(filePath);
-        if (!stats.isFile()) {
-            var e = new AppError(`${filePath} must be file`);
-            logger.error(e);
-            throw e;
-        }
-        fsextra.copy(filePath, fileName, (err) => {
-            if (err) {
-                logger.error(new AppError(err.message));
-                return reject(new AppError(err.message));
-            }
-            logger.debug(`uploadFileToLocal copy file ${key} success.`);
-            resolve(key);
-        });
-    });
-};
-
 common.getBlobDownloadUrl = function (blobUrl) {
     var fileName = blobUrl;
     var storageType = _.get(config, 'common.storageType');
@@ -303,144 +217,6 @@ common.getBlobDownloadUrl = function (blobUrl) {
         throw e;
     }
     return `${downloadUrl}/${fileName}`;
-};
-
-common.uploadFileToQiniu = function (key, filePath) {
-    return new Promise((resolve, reject) => {
-        var accessKey = _.get(config, 'qiniu.accessKey');
-        var secretKey = _.get(config, 'qiniu.secretKey');
-        var bucket = _.get(config, 'qiniu.bucketName', '');
-        var mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
-        var conf = new qiniu.conf.Config();
-        var bucketManager = new qiniu.rs.BucketManager(mac, conf);
-        bucketManager.stat(bucket, key, (respErr, respBody, respInfo) => {
-            if (respErr) {
-                logger.debug('uploadFileToQiniu file stat:', respErr);
-                return reject(new AppError(respErr.message));
-            }
-            logger.debug('uploadFileToQiniu file stat respBody:', respBody);
-            logger.debug('uploadFileToQiniu file stat respInfo:', respInfo);
-            if (respInfo.statusCode == 200) {
-                resolve(respBody.hash);
-            } else {
-                try {
-                    var uploadToken = common.getUploadTokenQiniu(mac, bucket, key);
-                } catch (e) {
-                    return reject(new AppError(e.message));
-                }
-                var formUploader = new qiniu.form_up.FormUploader(conf);
-                var putExtra = new qiniu.form_up.PutExtra();
-                formUploader.putFile(
-                    uploadToken,
-                    key,
-                    filePath,
-                    putExtra,
-                    (respErr, respBody, respInfo) => {
-                        if (respErr) {
-                            logger.error('uploadFileToQiniu putFile:', respErr);
-                            // 上传失败， 处理返回代码
-                            return reject(new AppError(JSON.stringify(respErr)));
-                        } else {
-                            logger.debug('uploadFileToQiniu putFile respBody:', respBody);
-                            logger.debug('uploadFileToQiniu putFile respInfo:', respInfo);
-                            // 上传成功， 处理返回值
-                            if (respInfo.statusCode == 200) {
-                                return resolve(respBody.hash);
-                            } else {
-                                return reject(new AppError(respBody.error));
-                            }
-                        }
-                    },
-                );
-            }
-        });
-    });
-};
-
-common.uploadFileToS3 = function (key, filePath) {
-    return new Promise((resolve, reject) => {
-        AWS.config.update({
-            accessKeyId: _.get(config, 's3.accessKeyId'),
-            secretAccessKey: _.get(config, 's3.secretAccessKey'),
-            sessionToken: _.get(config, 's3.sessionToken'),
-            region: _.get(config, 's3.region'),
-        });
-        var s3 = new AWS.S3({
-            params: { Bucket: _.get(config, 's3.bucketName') },
-        });
-        fs.readFile(filePath, (err, data) => {
-            s3.upload(
-                {
-                    Key: key,
-                    Body: data,
-                    ACL: 'public-read',
-                },
-                (err, response) => {
-                    if (err) {
-                        reject(new AppError(JSON.stringify(err)));
-                    } else {
-                        resolve(response.ETag);
-                    }
-                },
-            );
-        });
-    });
-};
-
-common.uploadFileToOSS = function (key, filePath) {
-    var ossStream = require('aliyun-oss-upload-stream')(
-        new ALY.OSS({
-            accessKeyId: _.get(config, 'oss.accessKeyId'),
-            secretAccessKey: _.get(config, 'oss.secretAccessKey'),
-            endpoint: _.get(config, 'oss.endpoint'),
-            apiVersion: '2013-10-15',
-        }),
-    );
-    if (!_.isEmpty(_.get(config, 'oss.prefix', ''))) {
-        key = `${_.get(config, 'oss.prefix')}/${key}`;
-    }
-    var upload = ossStream.upload({
-        Bucket: _.get(config, 'oss.bucketName'),
-        Key: key,
-    });
-
-    return new Promise((resolve, reject) => {
-        upload.on('error', (error) => {
-            logger.debug('uploadFileToOSS', error);
-            reject(error);
-        });
-
-        upload.on('uploaded', (details) => {
-            logger.debug('uploadFileToOSS', details);
-            resolve(details.ETag);
-        });
-        fs.createReadStream(filePath).pipe(upload);
-    });
-};
-
-common.uploadFileToTencentCloud = function (key, filePath) {
-    return new Promise((resolve, reject) => {
-        var cosIn = new COS({
-            SecretId: _.get(config, 'tencentcloud.accessKeyId'),
-            SecretKey: _.get(config, 'tencentcloud.secretAccessKey'),
-        });
-        cosIn.sliceUploadFile(
-            {
-                Bucket: _.get(config, 'tencentcloud.bucketName'),
-                Region: _.get(config, 'tencentcloud.region'),
-                Key: key,
-                FilePath: filePath,
-            },
-            function (err, data) {
-                logger.debug('uploadFileToTencentCloud', { err, data });
-                if (err) {
-                    reject(new AppError(JSON.stringify(err)));
-                } else {
-                    resolve(data.Key);
-                }
-            },
-        );
-    });
 };
 
 common.diffCollectionsSync = function (collection1, collection2) {
