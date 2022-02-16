@@ -1,14 +1,12 @@
 import express from 'express';
 import _ from 'lodash';
-import validator from 'validator';
 import { logger } from 'kv-logger';
 import jwt from 'jsonwebtoken';
 
 import { config } from '../core/config';
 import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
-
-var security = require('../core/utils/security');
+import { md5 } from '../core/utils/security';
 
 const router = express.Router();
 
@@ -56,7 +54,7 @@ router.post('/login', (req, res, next) => {
                 uid: users.id,
             });
             return jwt.sign(
-                { uid: users.id, hash: security.md5(users.ack_code), expiredIn: 7200 },
+                { uid: users.id, hash: md5(users.ack_code), expiredIn: 7200 },
                 tokenSecret,
             );
         })

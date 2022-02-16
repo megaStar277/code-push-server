@@ -4,8 +4,8 @@ import { logger } from 'kv-logger';
 import { UserTokens } from '../models/user_tokens';
 import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
+import { randToken } from '../core/utils/security';
 
-var security = require('../core/utils/security');
 var middleware = require('../core/middleware');
 
 const router = express.Router();
@@ -35,7 +35,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         uid,
         ...req.body,
     });
-    var newAccessKey = security.randToken(28).concat(identical);
+    var newAccessKey = randToken(28).concat(identical);
     return accountManager
         .isExsitAccessKeyName(uid, friendlyName)
         .then((data) => {

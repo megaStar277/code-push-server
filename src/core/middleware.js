@@ -5,13 +5,12 @@ import { UserTokens } from '../models/user_tokens';
 import { Users } from '../models/users';
 import { config } from '../core/config';
 import { AppError, Unauthorized } from './app-error';
-
-var security = require('../core/utils/security');
+import { parseToken, md5 } from '../core/utils/security';
 
 var middleware = module.exports;
 
 var checkAuthToken = function (authToken) {
-    var objToken = security.parseToken(authToken);
+    var objToken = parseToken(authToken);
     return Users.findOne({
         where: { identical: objToken.identical },
     })
@@ -61,7 +60,7 @@ var checkAccessToken = function (accessToken) {
                     if (_.isEmpty(users)) {
                         throw new Unauthorized();
                     }
-                    if (!_.eq(hash, security.md5(users.get('ack_code')))) {
+                    if (!_.eq(hash, md5(users.get('ack_code')))) {
                         throw new Unauthorized();
                     }
                     resolve(users);

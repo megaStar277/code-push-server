@@ -3,13 +3,13 @@ const request = require('supertest')(app);
 const should = require('should');
 const _ = require('lodash');
 
-const security = require('../../../bin/core/utils/security');
+const { md5 } = require('../../../bin/core/utils/security');
 const { redisClient } = require('../../../bin/core/utils/connections');
 
 describe('api/users/users.test.js', function () {
     var accountExist = 'lisong2010@gmail.com';
     var account = '522539441@qq.com';
-    var registerKey = `REGISTER_CODE_${security.md5(account)}`;
+    var registerKey = `REGISTER_CODE_${md5(account)}`;
     var password = '654321';
     var newPassword = '123456';
 

@@ -11,8 +11,8 @@ import { PackagesMetrics } from '../../models/packages_metrics';
 import { Users } from '../../models/users';
 import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
+import { randToken } from '../../core/utils/security';
 
-var security = require('../../core/utils/security');
 var common = require('../../core/utils/common');
 
 var proto = (module.exports = function () {
@@ -45,7 +45,7 @@ proto.addDeloyment = function (name, appId, uid) {
         }
         return self.existDeloymentName(appId, name).then(() => {
             var identical = user.identical;
-            var deploymentKey = security.randToken(28) + identical;
+            var deploymentKey = randToken(28) + identical;
             return Deployments.create({
                 appid: appId,
                 name: name,

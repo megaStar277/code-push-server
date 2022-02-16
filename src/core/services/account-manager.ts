@@ -9,8 +9,8 @@ import { Users } from '../../models/users';
 import { AppError } from '../app-error';
 import { config } from '../config';
 import { redisClient } from '../utils/connections';
+import { passwordVerifySync, randToken, md5, passwordHashSync } from '../utils/security';
 
-const security = require('../utils/security');
 const EmailManager = require('./email-manager');
 
 const loginLimitPre = 'LOGIN_LIMIT_PRE_';
@@ -132,7 +132,7 @@ class AccountManager {
                 return users;
             })
             .then((users) => {
-                if (!security.passwordVerifySync(password, users.password)) {
+                if (!passwordVerifySync(password, users.password)) {
                     if (tryLoginTimes > 0) {
                         const loginKey = `${loginLimitPre}${users.id}`;
                         redisClient.exists(loginKey).then((isExists) => {
@@ -163,9 +163,9 @@ class AccountManager {
             })
             .then(() => {
                 // 将token临时存储到redis
-                const token = security.randToken(40);
+                const token = randToken(40);
                 return redisClient
-                    .setEx(`${registerCode}${security.md5(email)}`, expired, token)
+                    .setEx(`${registerCode}${md5(email)}`, expired, token)
                     .then(() => {
                         return token;
                     });
@@ -185,7 +185,7 @@ class AccountManager {
                 }
             })
             .then(() => {
-                const registerKey = `${registerCode}${security.md5(email)}`;
+                const registerKey = `${registerCode}${md5(email)}`;
                 return redisClient.get(registerKey).then((storageToken) => {
                     if (_.isEmpty(storageToken)) {
                         throw new AppError(`验证码已经失效，请您重新获取`);
@@ -211,10 +211,10 @@ class AccountManager {
                 }
             })
             .then(() => {
-                const identical = security.randToken(9);
+                const identical = randToken(9);
                 return Users.create({
                     email,
-                    password: security.passwordHashSync(password),
+                    password: passwordHashSync(password),
                     identical,
                 });
             });
@@ -232,12 +232,12 @@ class AccountManager {
                 return u;
             })
             .then((u) => {
-                const isEq = security.passwordVerifySync(oldPassword, u.get('password'));
+                const isEq = passwordVerifySync(oldPassword, u.get('password'));
                 if (!isEq) {
                     throw new AppError(`您输入的旧密码不正确，请重新输入`);
                 }
-                u.set('password', security.passwordHashSync(newPassword));
-                u.set('ack_code', security.randToken(5));
+                u.set('password', passwordHashSync(newPassword));
+                u.set('ack_code', randToken(5));
                 return u.save();
             });
     }

@@ -20,8 +20,7 @@ import {
     STAGING,
     PRODUCTION,
 } from '../const';
-
-var security = require('../../core/utils/security');
+import { randToken } from '../../core/utils/security';
 
 var proto = (module.exports = function () {
     function AppManager() {}
@@ -48,7 +47,7 @@ proto.addApp = function (uid, appName, os, platform, identical) {
         ).then((apps) => {
             var appId = apps.id;
             var deployments = [];
-            var deploymentKey = security.randToken(28) + identical;
+            var deploymentKey = randToken(28) + identical;
             deployments.push({
                 appid: appId,
                 name: PRODUCTION,
@@ -56,7 +55,7 @@ proto.addApp = function (uid, appName, os, platform, identical) {
                 label_id: 0,
                 deployment_key: deploymentKey,
             });
-            deploymentKey = security.randToken(28) + identical;
+            deploymentKey = randToken(28) + identical;
             deployments.push({
                 appid: appId,
                 name: STAGING,

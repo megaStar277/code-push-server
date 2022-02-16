@@ -28,9 +28,9 @@ import {
 } from '../const';
 import { sequelize } from '../utils/connections';
 import { qetag } from '../utils/qetag';
+import { randToken, uploadPackageType } from '../utils/security';
 
 const common = require('../utils/common');
-const security = require('../utils/security');
 const dataCenterManager = require('./datacenter-manager')();
 
 class PackageManager {
@@ -326,7 +326,7 @@ class PackageManager {
         const packageHash = _.get(originalPackage, 'package_hash');
         // const manifest_blob_url = _.get(originalPackage, 'manifest_blob_url');
         const blobUrl = _.get(originalPackage, 'blob_url');
-        const workDirectoryPath = path.join(os.tmpdir(), `codepush_${security.randToken(32)}`);
+        const workDirectoryPath = path.join(os.tmpdir(), `codepush_${randToken(32)}`);
         logger.debug('createDiffPackages using dir', { workDirectoryPath });
         return common
             .createEmptyFolder(workDirectoryPath)
@@ -372,7 +372,7 @@ class PackageManager {
         const { rollout } = packageInfo; // 灰度百分比
         const { isMandatory } = packageInfo; // 是否强制更新，无法跳过
         const tmpDir = os.tmpdir();
-        const directoryPathParent = path.join(tmpDir, `codepuh_${security.randToken(32)}`);
+        const directoryPathParent = path.join(tmpDir, `codepuh_${randToken(32)}`);
         const directoryPath = path.join(directoryPathParent, 'current');
         logger.debug(`releasePackage generate an random dir path: ${directoryPath}`);
         return Promise.all([
@@ -382,7 +382,7 @@ class PackageManager {
             }),
         ])
             .then(([blobHash]) => {
-                return security.uploadPackageType(directoryPath).then((type) => {
+                return uploadPackageType(directoryPath).then((type) => {
                     return Apps.findByPk(appId).then((appInfo) => {
                         if (type > 0 && appInfo.os > 0 && appInfo.os !== type) {
                             const e = new AppError('it must be publish it by ios type');

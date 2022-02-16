@@ -4,8 +4,8 @@ import path from 'path';
 import { logger } from 'kv-logger';
 import { config } from '../config';
 import { AppError } from '../app-error';
+import { calcAllFileSha256, packageHashSync } from '../utils/security';
 
-var security = require('../utils/security');
 var common = require('../utils/common');
 
 const MANIFEST_FILE_NAME = 'manifest.json';
@@ -60,8 +60,8 @@ proto.validateStore = function (providePackageHash) {
         logger.debug(`validateStore providePackageHash not exist`);
         return Promise.resolve(false);
     }
-    return security.calcAllFileSha256(contentPath).then((manifestJson) => {
-        var packageHash = security.packageHashSync(manifestJson);
+    return calcAllFileSha256(contentPath).then((manifestJson) => {
+        var packageHash = packageHashSync(manifestJson);
         logger.debug(`validateStore packageHash:`, packageHash);
         try {
             var manifestJsonLocal = JSON.parse(fs.readFileSync(manifestFile));
@@ -69,7 +69,7 @@ proto.validateStore = function (providePackageHash) {
             logger.debug(`validateStore manifestFile contents invilad`);
             return false;
         }
-        var packageHashLocal = security.packageHashSync(manifestJsonLocal);
+        var packageHashLocal = packageHashSync(manifestJsonLocal);
         logger.debug(`validateStore packageHashLocal:`, packageHashLocal);
         if (_.eq(providePackageHash, packageHash) && _.eq(providePackageHash, packageHashLocal)) {
             logger.debug(`validateStore store files is ok`);
@@ -86,8 +86,8 @@ proto.storePackage = function (sourceDst, force) {
         force = false;
     }
     var self = this;
-    return security.calcAllFileSha256(sourceDst).then((manifestJson) => {
-        var packageHash = security.packageHashSync(manifestJson);
+    return calcAllFileSha256(sourceDst).then((manifestJson) => {
+        var packageHash = packageHashSync(manifestJson);
         logger.debug('storePackage manifestJson packageHash:', packageHash);
         var dataDir = self.getDataDir();
         var packageHashPath = path.join(dataDir, packageHash);

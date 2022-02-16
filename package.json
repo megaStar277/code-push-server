@@ -70,6 +70,7 @@
   },
   "devDependencies": {
     "@shm-open/eslint-config-bundle": "1.8.2",
+    "@types/bcryptjs": "2.4.2",
     "@types/body-parser": "1.19.2",
     "@types/cookie-parser": "1.4.2",
     "@types/fs-extra": "9.0.13",
@@ -77,6 +78,7 @@
     "@types/lodash": "4.14.178",
     "@types/node-fetch": "2.6.1",
     "@types/nodemailer": "6.4.4",
+    "@types/recursive-readdir": "2.2.0",
     "@types/validator": "13.7.1",
     "@types/yazl": "2.4.2",
     "concurrently": "7.0.0",
