@@ -3,7 +3,6 @@ import fsextra from 'fs-extra';
 import extract from 'extract-zip';
 import _ from 'lodash';
 import validator from 'validator';
-import jschardet from 'jschardet';
 import util from 'util';
 import fetch from 'node-fetch';
 import { logger } from 'kv-logger';
@@ -15,22 +14,6 @@ const streamPipeline = util.promisify(require('stream').pipeline);
 
 var common = {};
 module.exports = common;
-
-common.detectIsTextFile = function (filePath) {
-    var fd = fs.openSync(filePath, 'r');
-    var buffer = Buffer.alloc(4096);
-    fs.readSync(fd, buffer, 0, 4096, 0);
-    fs.closeSync(fd);
-    var rs = jschardet.detect(buffer);
-    logger.debug('detectIsTextFile:', {
-        filePath,
-        rs,
-    });
-    if (rs.confidence == 1) {
-        return true;
-    }
-    return false;
-};
 
 common.parseVersion = function (versionNo) {
     var version = '0';
