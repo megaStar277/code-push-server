@@ -27,6 +27,7 @@ import {
     RELEASE_METHOD_UPLOAD,
 } from '../const';
 import { sequelize } from '../utils/connections';
+import { qetag } from '../utils/qetag';
 
 const common = require('../utils/common');
 const security = require('../utils/security');
@@ -271,7 +272,7 @@ class PackageManager {
                         dataCenterContentPath,
                         hotCodePushFile,
                     ).then((data) => {
-                        return security.qetag(data.path).then((diffHash) => {
+                        return qetag(data.path).then((diffHash) => {
                             return common.uploadFileToStorage(diffHash, fileName).then(() => {
                                 const stats = fs.statSync(fileName);
                                 return PackagesDiff.create({
@@ -359,7 +360,7 @@ class PackageManager {
     }
 
     // eslint-disable-next-line max-lines-per-function
-    releasePackage(appId, deploymentId, packageInfo, filePath, releaseUid) {
+    releasePackage(appId, deploymentId, packageInfo, filePath: string, releaseUid) {
         const { appVersion } = packageInfo;
         const versionInfo = common.validatorVersion(appVersion);
         if (!versionInfo[0]) {
@@ -375,7 +376,7 @@ class PackageManager {
         const directoryPath = path.join(directoryPathParent, 'current');
         logger.debug(`releasePackage generate an random dir path: ${directoryPath}`);
         return Promise.all([
-            security.qetag(filePath),
+            qetag(filePath),
             common.createEmptyFolder(directoryPath).then(() => {
                 return common.unzipFile(filePath, directoryPath);
             }),
@@ -422,7 +423,7 @@ class PackageManager {
                                 logger.debug(e.message);
                                 throw e;
                             }
-                            return security.qetag(manifestFile);
+                            return qetag(manifestFile);
                         })
                         .then((manifestHash) => {
                             return Promise.all([

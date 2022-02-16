@@ -74,27 +74,6 @@ security.packageHashSync = function (jsonData) {
     return security.stringSha256Sync(manifestString);
 };
 
-//参数为buffer或者readableStream或者文件路径
-security.qetag = function (buffer) {
-    if (typeof buffer === 'string') {
-        try {
-            logger.debug(`Check upload file ${buffer} fs.R_OK`);
-            fs.accessSync(buffer, fs.R_OK);
-            logger.debug(`Pass upload file ${buffer}`);
-        } catch (e) {
-            logger.error(e);
-            return Promise.reject(new AppError(e.message));
-        }
-    }
-    logger.debug(`generate file identical`);
-    return new Promise((resolve, reject) => {
-        qetag(buffer, (data) => {
-            logger.debug('identical:', data);
-            resolve(data);
-        });
-    });
-};
-
 security.sha256AllFiles = function (files) {
     return new Promise((resolve, reject) => {
         var results = {};
