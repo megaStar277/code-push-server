@@ -1,21 +1,21 @@
-import { Op } from 'sequelize';
-import _ from 'lodash';
-import formidable from 'formidable';
+/* eslint-disable max-lines */
 import fs from 'fs';
-import slash from 'slash';
 import os from 'os';
 import path from 'path';
+import formidable from 'formidable';
 import { logger } from 'kv-logger';
+import _ from 'lodash';
+import { Op } from 'sequelize';
+import slash from 'slash';
 import yazl from 'yazl';
 
 import { Apps } from '../../models/apps';
 import { Deployments, generateDeploymentsLabelId } from '../../models/deployments';
-import { DeploymentsVersions } from '../../models/deployments_versions';
 import { DeploymentsHistory } from '../../models/deployments_history';
+import { DeploymentsVersions } from '../../models/deployments_versions';
 import { Packages, PackagesInterface } from '../../models/packages';
 import { PackagesDiff } from '../../models/packages_diff';
 import { PackagesMetrics } from '../../models/packages_metrics';
-import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
 import {
     DIFF_MANIFEST_FILE_NAME,
@@ -23,38 +23,39 @@ import {
     IS_DISABLED_YES,
     IS_MANDATORY_NO,
     IS_MANDATORY_YES,
-    RELEAS_EMETHOD_PROMOTE,
-    RELEAS_EMETHOD_UPLOAD,
+    RELEASE_METHOD_PROMOTE,
+    RELEASE_METHOD_UPLOAD,
 } from '../const';
+import { sequelize } from '../utils/connections';
 
-var dataCenterManager = require('./datacenter-manager')();
-var security = require('../utils/security');
-var common = require('../utils/common');
+const common = require('../utils/common');
+const security = require('../utils/security');
+const dataCenterManager = require('./datacenter-manager')();
 
 class PackageManager {
-    getMetricsbyPackageId = function (packageId) {
+    getMetricsbyPackageId(packageId) {
         return PackagesMetrics.findOne({ where: { package_id: packageId } });
-    };
+    }
 
-    findPackageInfoByDeploymentIdAndLabel = function (deploymentId, label) {
-        return Packages.findOne({ where: { deployment_id: deploymentId, label: label } });
-    };
+    findPackageInfoByDeploymentIdAndLabel(deploymentId, label) {
+        return Packages.findOne({ where: { deployment_id: deploymentId, label } });
+    }
 
-    findLatestPackageInfoByDeployVersion = function (deploymentsVersionsId) {
+    findLatestPackageInfoByDeployVersion(deploymentsVersionsId) {
         return DeploymentsVersions.findByPk(deploymentsVersionsId).then((deploymentsVersions) => {
             if (!deploymentsVersions || deploymentsVersions.current_package_id < 0) {
-                var e = new AppError('not found last packages');
+                const e = new AppError('not found last packages');
                 logger.debug(e);
                 throw e;
             }
             return Packages.findByPk(deploymentsVersions.current_package_id);
         });
-    };
+    }
 
     parseReqFile(req) {
         logger.debug('parseReqFile');
         return new Promise((resolve, reject) => {
-            var form = formidable();
+            const form = formidable();
             form.parse(req, (err, fields, files) => {
                 if (err) {
                     logger.debug('parseReqFile:', err);
@@ -108,73 +109,66 @@ class PackageManager {
                 logger.debug(`isMatchPackageHash data:`, data.get());
                 logger.debug(`isMatchPackageHash packageHash exist`);
                 return true;
-            } else {
-                logger.debug(`isMatchPackageHash package is null`);
-                return false;
             }
+            logger.debug(`isMatchPackageHash package is null`);
+            return false;
         });
     }
 
     createPackage(deploymentId, appVersion, packageHash, manifestHash, blobHash, params) {
-        var releaseMethod = params.releaseMethod || RELEAS_EMETHOD_UPLOAD;
-        var releaseUid = params.releaseUid || 0;
-        var isMandatory = params.isMandatory || 0;
-        var size = params.size || 0;
-        var rollout = params.rollout || 100;
-        var description = params.description || '';
-        var originalLabel = params.originalLabel || '';
-        var isDisabled = params.isDisabled || 0;
-        var originalDeployment = params.originalDeployment || '';
-        var self = this;
+        const releaseMethod = params.releaseMethod || RELEASE_METHOD_UPLOAD;
+        const releaseUid = params.releaseUid || 0;
+        const isMandatory = params.isMandatory || 0;
+        const size = params.size || 0;
+        const rollout = params.rollout || 100;
+        const description = params.description || '';
+        const originalLabel = params.originalLabel || '';
+        const isDisabled = params.isDisabled || 0;
+        const originalDeployment = params.originalDeployment || '';
         return generateDeploymentsLabelId(deploymentId).then((labelId) => {
             return sequelize.transaction((t) => {
-                return self
-                    .createDeploymentsVersionIfNotExist(
-                        deploymentId,
-                        appVersion,
-                        params.min_version,
-                        params.max_version,
-                        t,
-                    )
-                    .then((deploymentsVersions) => {
-                        return Packages.create(
-                            {
-                                deployment_version_id: deploymentsVersions.id,
-                                deployment_id: deploymentId,
-                                description: description,
-                                package_hash: packageHash,
-                                blob_url: blobHash,
-                                size: size,
-                                manifest_blob_url: manifestHash,
-                                release_method: releaseMethod,
-                                label: 'v' + labelId,
-                                released_by: releaseUid,
-                                is_mandatory: isMandatory,
-                                is_disabled: isDisabled,
-                                rollout: rollout,
-                                original_label: originalLabel,
-                                original_deployment: originalDeployment,
-                            },
-                            { transaction: t },
-                        ).then((packages) => {
-                            deploymentsVersions.set('current_package_id', packages.id);
-                            return Promise.all([
-                                deploymentsVersions.save({ transaction: t }),
-                                Deployments.update(
-                                    { last_deployment_version_id: deploymentsVersions.id },
-                                    { where: { id: deploymentId }, transaction: t },
-                                ),
-                                PackagesMetrics.create(
-                                    { package_id: packages.id },
-                                    { transaction: t },
-                                ),
-                                DeploymentsHistory.create(
-                                    { deployment_id: deploymentId, package_id: packages.id },
-                                    { transaction: t },
-                                ),
-                            ]).then(() => packages);
-                        });
+                return this.createDeploymentsVersionIfNotExist(
+                    deploymentId,
+                    appVersion,
+                    params.min_version,
+                    params.max_version,
+                    t,
+                ).then((deploymentsVersions) => {
+                    return Packages.create(
+                        {
+                            deployment_version_id: deploymentsVersions.id,
+                            deployment_id: deploymentId,
+                            description,
+                            package_hash: packageHash,
+                            blob_url: blobHash,
+                            size,
+                            manifest_blob_url: manifestHash,
+                            release_method: releaseMethod,
+                            label: `v${labelId}`,
+                            released_by: releaseUid,
+                            is_mandatory: isMandatory,
+                            is_disabled: isDisabled,
+                            rollout,
+                            original_label: originalLabel,
+                            original_deployment: originalDeployment,
+                        },
+                        { transaction: t },
+                    ).then((packages) => {
+                        deploymentsVersions.set('current_package_id', packages.id);
+                        return Promise.all([
+                            deploymentsVersions.save({ transaction: t }),
+                            Deployments.update(
+                                { last_deployment_version_id: deploymentsVersions.id },
+                                { where: { id: deploymentId }, transaction: t },
+                            ),
+                            PackagesMetrics.create({ package_id: packages.id }, { transaction: t }),
+                            DeploymentsHistory.create(
+                                { deployment_id: deploymentId, package_id: packages.id },
+                                { transaction: t },
+                            ),
+                        ]).then(() => packages);
                     });
+                });
             });
         });
     }
@@ -183,28 +177,27 @@ class PackageManager {
         return dataCenterManager.validateStore(packageHash).then((isValidate) => {
             if (isValidate) {
                 return dataCenterManager.getPackageInfo(packageHash);
-            } else {
-                var downloadURL = common.getBlobDownloadUrl(blobHash);
-                return common
-                    .createFileFromRequest(downloadURL, path.join(workDirectoryPath, blobHash))
-                    .then((download) => {
-                        return common
-                            .unzipFile(
-                                path.join(workDirectoryPath, blobHash),
-                                path.join(workDirectoryPath, 'current'),
-                            )
-                            .then((outputPath) => {
-                                return dataCenterManager.storePackage(outputPath, true);
-                            });
-                    });
             }
+            const downloadURL = common.getBlobDownloadUrl(blobHash);
+            return common
+                .createFileFromRequest(downloadURL, path.join(workDirectoryPath, blobHash))
+                .then(() => {
+                    return common
+                        .unzipFile(
+                            path.join(workDirectoryPath, blobHash),
+                            path.join(workDirectoryPath, 'current'),
+                        )
+                        .then((outputPath) => {
+                            return dataCenterManager.storePackage(outputPath, true);
+                        });
+                });
         });
     }
 
     zipDiffPackage(fileName, files, baseDirectoryPath, hotCodePushFile) {
         return new Promise<{ isTemporary: boolean; path: string }>((resolve, reject) => {
-            var zipFile = new yazl.ZipFile();
-            var writeStream = fs.createWriteStream(fileName);
+            const zipFile = new yazl.ZipFile();
+            const writeStream = fs.createWriteStream(fileName);
             writeStream.on('error', (error) => {
                 reject(error);
             });
@@ -216,8 +209,8 @@ class PackageManager {
                 .on('close', () => {
                     resolve({ isTemporary: true, path: fileName });
                 });
-            for (var i = 0; i < files.length; ++i) {
-                var file = files[i];
+            for (let i = 0; i < files.length; i += 1) {
+                const file = files[i];
                 zipFile.addFile(path.join(baseDirectoryPath, file), slash(file));
             }
             zipFile.addFile(hotCodePushFile, DIFF_MANIFEST_FILE_NAME);
@@ -233,7 +226,6 @@ class PackageManager {
         diffPackageHash,
         diffManifestBlobHash,
     ) {
-        var self = this;
         return PackagesDiff.findOne({
             where: {
                 package_id: packageId,
@@ -241,60 +233,62 @@ class PackageManager {
             },
         }).then((diffPackage) => {
             if (!_.isEmpty(diffPackage)) {
-                return;
+                return undefined;
             }
             logger.debug('generateOneDiffPackage', {
                 packageId,
                 originDataCenter,
                 oldPackageDataCenter,
             });
-            var downloadURL = common.getBlobDownloadUrl(diffManifestBlobHash);
+            const downloadURL = common.getBlobDownloadUrl(diffManifestBlobHash);
             return common
                 .createFileFromRequest(
                     downloadURL,
                     path.join(workDirectoryPath, diffManifestBlobHash),
                 )
                 .then(() => {
-                    var dataCenterContentPath = path.join(workDirectoryPath, 'dataCenter');
+                    const dataCenterContentPath = path.join(workDirectoryPath, 'dataCenter');
                     common.copySync(originDataCenter.contentPath, dataCenterContentPath);
-                    var oldPackageDataCenterContentPath = oldPackageDataCenter.contentPath;
-                    var originManifestJson = JSON.parse(
+                    // const oldPackageDataCenterContentPath = oldPackageDataCenter.contentPath;
+                    const originManifestJson = JSON.parse(
                         fs.readFileSync(originDataCenter.manifestFilePath, 'utf8'),
                     );
-                    var diffManifestJson = JSON.parse(
+                    const diffManifestJson = JSON.parse(
                         fs.readFileSync(path.join(workDirectoryPath, diffManifestBlobHash), 'utf8'),
                     );
-                    var json = common.diffCollectionsSync(originManifestJson, diffManifestJson);
-                    var files = _.concat(json.diff, json.collection1Only);
-                    var hotcodepush = { deletedFiles: json.collection2Only, patchedFiles: [] };
-                    var hotCodePushFile = path.join(
+                    const json = common.diffCollectionsSync(originManifestJson, diffManifestJson);
+                    const files = _.concat(json.diff, json.collection1Only);
+                    const hotcodepush = { deletedFiles: json.collection2Only, patchedFiles: [] };
+                    const hotCodePushFile = path.join(
                         workDirectoryPath,
                         `${diffManifestBlobHash}_hotcodepush`,
                     );
                     fs.writeFileSync(hotCodePushFile, JSON.stringify(hotcodepush));
-                    var fileName = path.join(workDirectoryPath, `${diffManifestBlobHash}.zip`);
-                    return self
-                        .zipDiffPackage(fileName, files, dataCenterContentPath, hotCodePushFile)
-                        .then((data) => {
-                            return security.qetag(data.path).then((diffHash) => {
-                                return common.uploadFileToStorage(diffHash, fileName).then(() => {
-                                    var stats = fs.statSync(fileName);
-                                    return PackagesDiff.create({
-                                        package_id: packageId,
-                                        diff_against_package_hash: diffPackageHash,
-                                        diff_blob_url: diffHash,
-                                        diff_size: stats.size,
-                                    });
+                    const fileName = path.join(workDirectoryPath, `${diffManifestBlobHash}.zip`);
+                    return this.zipDiffPackage(
+                        fileName,
+                        files,
+                        dataCenterContentPath,
+                        hotCodePushFile,
+                    ).then((data) => {
+                        return security.qetag(data.path).then((diffHash) => {
+                            return common.uploadFileToStorage(diffHash, fileName).then(() => {
+                                const stats = fs.statSync(fileName);
+                                return PackagesDiff.create({
+                                    package_id: packageId,
+                                    diff_against_package_hash: diffPackageHash,
+                                    diff_blob_url: diffHash,
+                                    diff_size: stats.size,
                                 });
                             });
                         });
+                    });
                 });
         });
     }
 
     createDiffPackagesByLastNums(appId, originalPackage, num) {
-        var self = this;
-        var packageId = originalPackage.id;
+        const packageId = originalPackage.id;
         return Promise.all([
             Packages.findAll({
                 where: {
@@ -312,16 +306,12 @@ class PackageManager {
                 order: [['id', 'asc']],
                 limit: 2,
             }),
-            Apps.findByPk(appId),
         ])
-            .then(([lastNumsPackages, basePackages, appInfo]) => {
-                return [
-                    _.uniqBy(_.unionBy(lastNumsPackages, basePackages, 'id'), 'package_hash'),
-                    appInfo,
-                ];
+            .then(([lastNumsPackages, basePackages]) => {
+                return _.uniqBy(_.unionBy(lastNumsPackages, basePackages, 'id'), 'package_hash');
             })
-            .then(([lastNumsPackages, appInfo]) => {
-                return self.createDiffPackages(originalPackage, lastNumsPackages);
+            .then((lastNumsPackages) => {
+                return this.createDiffPackages(originalPackage, lastNumsPackages);
             });
     }
 
@@ -332,60 +322,57 @@ class PackageManager {
         if (destPackages.length <= 0) {
             return null;
         }
-        var self = this;
-        var package_hash = _.get(originalPackage, 'package_hash');
-        var manifest_blob_url = _.get(originalPackage, 'manifest_blob_url');
-        var blob_url = _.get(originalPackage, 'blob_url');
-        var workDirectoryPath = path.join(os.tmpdir(), 'codepush_' + security.randToken(32));
+        const packageHash = _.get(originalPackage, 'package_hash');
+        // const manifest_blob_url = _.get(originalPackage, 'manifest_blob_url');
+        const blobUrl = _.get(originalPackage, 'blob_url');
+        const workDirectoryPath = path.join(os.tmpdir(), `codepush_${security.randToken(32)}`);
         logger.debug('createDiffPackages using dir', { workDirectoryPath });
         return common
             .createEmptyFolder(workDirectoryPath)
-            .then(() => self.downloadPackageAndExtract(workDirectoryPath, package_hash, blob_url))
+            .then(() => this.downloadPackageAndExtract(workDirectoryPath, packageHash, blobUrl))
             .then((originDataCenter) =>
                 Promise.all(
                     destPackages.map((v) => {
-                        var diffWorkDirectoryPath = path.join(
+                        const diffWorkDirectoryPath = path.join(
                             workDirectoryPath,
                             _.get(v, 'package_hash'),
                         );
                         common.createEmptyFolderSync(diffWorkDirectoryPath);
-                        return self
-                            .downloadPackageAndExtract(
+                        return this.downloadPackageAndExtract(
+                            diffWorkDirectoryPath,
+                            _.get(v, 'package_hash'),
+                            _.get(v, 'blob_url'),
+                        ).then((oldPackageDataCenter) =>
+                            this.generateOneDiffPackage(
                                 diffWorkDirectoryPath,
-                                _.get(v, 'package_hash'),
-                                _.get(v, 'blob_url'),
-                            )
-                            .then((oldPackageDataCenter) =>
-                                self.generateOneDiffPackage(
-                                    diffWorkDirectoryPath,
-                                    originalPackage.id,
-                                    originDataCenter,
-                                    oldPackageDataCenter,
-                                    v.package_hash,
-                                    v.manifest_blob_url,
-                                ),
-                            );
+                                originalPackage.id,
+                                originDataCenter,
+                                oldPackageDataCenter,
+                                v.package_hash,
+                                v.manifest_blob_url,
+                            ),
+                        );
                     }),
                 ),
             )
             .finally(() => common.deleteFolderSync(workDirectoryPath));
     }
 
+    // eslint-disable-next-line max-lines-per-function
     releasePackage(appId, deploymentId, packageInfo, filePath, releaseUid) {
-        var self = this;
-        var appVersion = packageInfo.appVersion;
-        var versionInfo = common.validatorVersion(appVersion);
+        const { appVersion } = packageInfo;
+        const versionInfo = common.validatorVersion(appVersion);
         if (!versionInfo[0]) {
             logger.debug(`releasePackage targetBinaryVersion ${appVersion} not support.`);
             return Promise.reject(new AppError(`targetBinaryVersion ${appVersion} not support.`));
         }
-        var description = packageInfo.description; //描述
-        var isDisabled = packageInfo.isDisabled; //是否立刻下载
-        var rollout = packageInfo.rollout; //灰度百分比
-        var isMandatory = packageInfo.isMandatory; //是否强制更新，无法跳过
-        var tmpDir = os.tmpdir();
-        var directoryPathParent = path.join(tmpDir, 'codepuh_' + security.randToken(32));
-        var directoryPath = path.join(directoryPathParent, 'current');
+        const { description } = packageInfo; // 描述
+        const { isDisabled } = packageInfo; // 是否立刻下载
+        const { rollout } = packageInfo; // 灰度百分比
+        const { isMandatory } = packageInfo; // 是否强制更新，无法跳过
+        const tmpDir = os.tmpdir();
+        const directoryPathParent = path.join(tmpDir, `codepuh_${security.randToken(32)}`);
+        const directoryPath = path.join(directoryPathParent, 'current');
         logger.debug(`releasePackage generate an random dir path: ${directoryPath}`);
         return Promise.all([
             security.qetag(filePath),
@@ -396,12 +383,12 @@ class PackageManager {
             .then(([blobHash]) => {
                 return security.uploadPackageType(directoryPath).then((type) => {
                     return Apps.findByPk(appId).then((appInfo) => {
-                        if (type > 0 && appInfo.os > 0 && appInfo.os != type) {
-                            var e = new AppError('it must be publish it by ios type');
+                        if (type > 0 && appInfo.os > 0 && appInfo.os !== type) {
+                            const e = new AppError('it must be publish it by ios type');
                             logger.debug(e);
                             throw e;
                         } else {
-                            //不验证
+                            // 不验证
                             logger.debug(`Unknown package type:`, {
                                 type,
                                 os: appInfo.os,
@@ -412,10 +399,9 @@ class PackageManager {
                 });
             })
             .then((blobHash) => {
-                var dataCenterManager = require('./datacenter-manager')();
                 return dataCenterManager.storePackage(directoryPath).then((dataCenter) => {
-                    var packageHash = dataCenter.packageHash;
-                    var manifestFile = dataCenter.manifestFilePath;
+                    const { packageHash } = dataCenter;
+                    const manifestFile = dataCenter.manifestFilePath;
                     return DeploymentsVersions.findOne({
                         where: { deployment_id: deploymentId, app_version: appVersion },
                     })
@@ -423,14 +409,14 @@ class PackageManager {
                             if (!deploymentsVersions) {
                                 return false;
                             }
-                            return self.isMatchPackageHash(
+                            return this.isMatchPackageHash(
                                 deploymentsVersions.get('current_package_id'),
                                 packageHash,
                             );
                         })
                         .then((isExist) => {
                             if (isExist) {
-                                var e = new AppError(
+                                const e = new AppError(
                                     "The uploaded package is identical to the contents of the specified deployment's current release.",
                                 );
                                 logger.debug(e.message);
@@ -447,19 +433,19 @@ class PackageManager {
                 });
             })
             .then(([packageHash, manifestHash, blobHash]) => {
-                var stats = fs.statSync(filePath);
-                var params = {
-                    releaseMethod: RELEAS_EMETHOD_UPLOAD,
-                    releaseUid: releaseUid,
+                const stats = fs.statSync(filePath);
+                const params = {
+                    releaseMethod: RELEASE_METHOD_UPLOAD,
+                    releaseUid,
                     isMandatory: isMandatory ? IS_MANDATORY_YES : IS_MANDATORY_NO,
                     isDisabled: isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO,
-                    rollout: rollout,
+                    rollout,
                     size: stats.size,
-                    description: description,
+                    description,
                     min_version: versionInfo[1],
                     max_version: versionInfo[2],
                 };
-                return self.createPackage(
+                return this.createPackage(
                     deploymentId,
                     appVersion,
                     packageHash,
@@ -472,18 +458,18 @@ class PackageManager {
     }
 
     modifyReleasePackage(packageId, params) {
-        var appVersion = _.get(params, 'appVersion');
-        var description = _.get(params, 'description');
-        var isMandatory = _.get(params, 'isMandatory');
-        var isDisabled = _.get(params, 'isDisabled');
-        var rollout = _.get(params, 'rollout');
+        const appVersion = _.get(params, 'appVersion');
+        const description = _.get(params, 'description');
+        const isMandatory = _.get(params, 'isMandatory');
+        const isDisabled = _.get(params, 'isDisabled');
+        const rollout = _.get(params, 'rollout');
         return Packages.findByPk(packageId)
             .then((packageInfo) => {
                 if (!packageInfo) {
                     throw new AppError(`packageInfo not found`);
                 }
                 if (!_.isNull(appVersion)) {
-                    var versionInfo = common.validatorVersion(appVersion);
+                    const versionInfo = common.validatorVersion(appVersion);
                     if (!versionInfo[0]) {
                         throw new AppError(`--targetBinaryVersion ${appVersion} not support.`);
                     }
@@ -519,30 +505,30 @@ class PackageManager {
                 return packageInfo;
             })
             .then((packageInfo) => {
-                var new_params = {
+                const newParams = {
                     description: description || packageInfo.description,
                 } as PackagesInterface;
                 if (_.isInteger(rollout)) {
-                    new_params.rollout = rollout;
+                    newParams.rollout = rollout;
                 }
                 if (_.isBoolean(isMandatory)) {
-                    new_params.is_mandatory = isMandatory ? IS_MANDATORY_YES : IS_MANDATORY_NO;
+                    newParams.is_mandatory = isMandatory ? IS_MANDATORY_YES : IS_MANDATORY_NO;
                 }
                 if (_.isBoolean(isDisabled)) {
-                    new_params.is_disabled = isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO;
+                    newParams.is_disabled = isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO;
                 }
-                return Packages.update(new_params, { where: { id: packageId } });
+                return Packages.update(newParams, { where: { id: packageId } });
             });
     }
 
+    // eslint-disable-next-line max-lines-per-function
     promotePackage(sourceDeploymentInfo, destDeploymentInfo, params) {
-        var self = this;
-        var appVersion = _.get(params, 'appVersion', null);
-        var label = _.get(params, 'label', null);
+        const appVersion = _.get(params, 'appVersion', null);
+        const label = _.get(params, 'label', null);
         return new Promise((resolve, reject) => {
             if (label) {
-                return Packages.findOne({
-                    where: { deployment_id: sourceDeploymentInfo.id, label: label },
+                Packages.findOne({
+                    where: { deployment_id: sourceDeploymentInfo.id, label },
                 })
                     .then((sourcePack) => {
                         if (!sourcePack) {
@@ -560,35 +546,36 @@ class PackageManager {
                     .catch((e) => {
                         reject(e);
                     });
-            } else {
-                var lastDeploymentVersionId = _.get(
-                    sourceDeploymentInfo,
-                    'last_deployment_version_id',
-                    0,
-                );
-                if (_.lte(lastDeploymentVersionId, 0)) {
-                    throw new AppError(`does not exist last_deployment_version_id.`);
-                }
-                return DeploymentsVersions.findByPk(lastDeploymentVersionId)
-                    .then((deploymentsVersions) => {
-                        var sourcePackId = _.get(deploymentsVersions, 'current_package_id', 0);
-                        if (_.lte(sourcePackId, 0)) {
+                return;
+            }
+            const lastDeploymentVersionId = _.get(
+                sourceDeploymentInfo,
+                'last_deployment_version_id',
+                0,
+            );
+            if (_.lte(lastDeploymentVersionId, 0)) {
+                throw new AppError(`does not exist last_deployment_version_id.`);
+            }
+
+            DeploymentsVersions.findByPk(lastDeploymentVersionId)
+                .then((deploymentsVersions) => {
+                    const sourcePackId = _.get(deploymentsVersions, 'current_package_id', 0);
+                    if (_.lte(sourcePackId, 0)) {
+                        throw new AppError(`packageInfo not found.`);
+                    }
+                    return Packages.findByPk(sourcePackId).then((sourcePack) => {
+                        if (!sourcePack) {
                             throw new AppError(`packageInfo not found.`);
                         }
-                        return Packages.findByPk(sourcePackId).then((sourcePack) => {
-                            if (!sourcePack) {
-                                throw new AppError(`packageInfo not found.`);
-                            }
-                            resolve([sourcePack, deploymentsVersions]);
-                        });
-                    })
-                    .catch((e) => {
-                        reject(e);
+                        resolve([sourcePack, deploymentsVersions]);
                     });
-            }
+                })
+                .catch((e) => {
+                    reject(e);
+                });
         })
             .then(([sourcePack, deploymentsVersions]) => {
-                var appFinalVersion = appVersion || deploymentsVersions.app_version;
+                const appFinalVersion = appVersion || deploymentsVersions.app_version;
                 logger.debug('sourcePack', sourcePack);
                 logger.debug('deploymentsVersions', deploymentsVersions);
                 logger.debug('appFinalVersion', appFinalVersion);
@@ -602,7 +589,7 @@ class PackageManager {
                         if (!destDeploymentsVersions) {
                             return false;
                         }
-                        return self.isMatchPackageHash(
+                        return this.isMatchPackageHash(
                             destDeploymentsVersions.get('current_package_id'),
                             sourcePack.package_hash,
                         );
@@ -613,17 +600,17 @@ class PackageManager {
                                 "The uploaded package is identical to the contents of the specified deployment's current release.",
                             );
                         }
-                        return [sourcePack, deploymentsVersions, appFinalVersion];
+                        return [sourcePack, appFinalVersion];
                     });
             })
-            .then(([sourcePack, deploymentsVersions, appFinalVersion]) => {
-                var versionInfo = common.validatorVersion(appFinalVersion);
+            .then(([sourcePack, appFinalVersion]) => {
+                const versionInfo = common.validatorVersion(appFinalVersion);
                 if (!versionInfo[0]) {
                     logger.debug(`targetBinaryVersion ${appVersion} not support.`);
                     throw new AppError(`targetBinaryVersion ${appVersion} not support.`);
                 }
-                var create_params = {
-                    releaseMethod: RELEAS_EMETHOD_PROMOTE,
+                const createParams = {
+                    releaseMethod: RELEASE_METHOD_PROMOTE,
                     releaseUid: params.promoteUid || 0,
                     rollout: params.rollout || 100,
                     size: sourcePack.size,
@@ -636,30 +623,29 @@ class PackageManager {
                     isDisabled: 0,
                 };
                 if (_.isBoolean(params.isMandatory)) {
-                    create_params.isMandatory = params.isMandatory
+                    createParams.isMandatory = params.isMandatory
                         ? IS_MANDATORY_YES
                         : IS_MANDATORY_NO;
                 } else {
-                    create_params.isMandatory = sourcePack.is_mandatory;
+                    createParams.isMandatory = sourcePack.is_mandatory;
                 }
                 if (_.isBoolean(params.isDisabled)) {
-                    create_params.isDisabled = params.isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO;
+                    createParams.isDisabled = params.isDisabled ? IS_DISABLED_YES : IS_DISABLED_NO;
                 } else {
-                    create_params.isDisabled = sourcePack.is_disabled;
+                    createParams.isDisabled = sourcePack.is_disabled;
                 }
-                return self.createPackage(
+                return this.createPackage(
                     destDeploymentInfo.id,
                     appFinalVersion,
                     sourcePack.package_hash,
                     sourcePack.manifest_blob_url,
                     sourcePack.blob_url,
-                    create_params,
+                    createParams,
                 );
             });
     }
 
     rollbackPackage(deploymentVersionId, targetLabel, rollbackUid) {
-        var self = this;
         return DeploymentsVersions.findByPk(deploymentVersionId).then((deploymentsVersions) => {
             if (!deploymentsVersions) {
                 throw new AppError('您之前还没有发布过版本');
@@ -676,19 +662,18 @@ class PackageManager {
                         }).then((rollbackPackageInfos) => {
                             return [currentPackageInfo, rollbackPackageInfos];
                         });
-                    } else {
-                        return self
-                            .getCanRollbackPackages(deploymentVersionId)
-                            .then((rollbackPackageInfos) => {
-                                return [currentPackageInfo, rollbackPackageInfos];
-                            });
                     }
+                    return this.getCanRollbackPackages(deploymentVersionId).then(
+                        (rollbackPackageInfos) => {
+                            return [currentPackageInfo, rollbackPackageInfos];
+                        },
+                    );
                 })
                 .then(([currentPackageInfo, rollbackPackageInfos]) => {
                     if (currentPackageInfo && rollbackPackageInfos.length > 0) {
-                        for (var i = rollbackPackageInfos.length - 1; i >= 0; i--) {
+                        for (let i = rollbackPackageInfos.length - 1; i >= 0; i -= 1) {
                             if (
-                                rollbackPackageInfos[i].package_hash !=
+                                rollbackPackageInfos[i].package_hash !==
                                 currentPackageInfo.package_hash
                             ) {
                                 return rollbackPackageInfos[i];
@@ -698,7 +683,7 @@ class PackageManager {
                     throw new AppError('没有可供回滚的版本');
                 })
                 .then((rollbackPackage) => {
-                    var params = {
+                    const params = {
                         releaseMethod: 'Rollback',
                         releaseUid: rollbackUid,
                         isMandatory: rollbackPackage.is_mandatory,
@@ -711,7 +696,7 @@ class PackageManager {
                         min_version: deploymentsVersions.min_version,
                         max_version: deploymentsVersions.max_version,
                     };
-                    return self.createPackage(
+                    return this.createPackage(
                         deploymentsVersions.deployment_id,
                         deploymentsVersions.app_version,
                         rollbackPackage.package_hash,
@@ -728,7 +713,7 @@ class PackageManager {
             where: {
                 deployment_version_id: deploymentVersionId,
                 release_method: {
-                    [Op.in]: [RELEAS_EMETHOD_UPLOAD, RELEAS_EMETHOD_PROMOTE],
+                    [Op.in]: [RELEASE_METHOD_UPLOAD, RELEASE_METHOD_PROMOTE],
                 },
             },
             order: [['id', 'desc']],

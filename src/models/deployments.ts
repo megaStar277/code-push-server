@@ -1,5 +1,5 @@
-import { DataTypes, Model } from 'sequelize';
 import _ from 'lodash';
+import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../core/utils/connections';
 
 const { AppError } = require('../core/app-error');
@@ -42,17 +42,18 @@ export const Deployments = sequelize.define<DeploymentsInterface>(
 );
 
 export function generateDeploymentsLabelId(deploymentId: number) {
-    return sequelize.transaction(function (t) {
+    return sequelize.transaction((t) => {
         return Deployments.findByPk(deploymentId, {
             transaction: t,
             lock: t.LOCK.UPDATE,
-        }).then(function (data) {
+        }).then((data) => {
             if (_.isEmpty(data)) {
                 throw new AppError('does not find deployment');
             }
-            data.label_id = data.label_id + 1;
-            return data.save({ transaction: t }).then(function (data) {
-                return data.label_id;
+            // eslint-disable-next-line no-param-reassign
+            data.label_id += 1;
+            return data.save({ transaction: t }).then((d) => {
+                return d.label_id;
             });
         });
     });

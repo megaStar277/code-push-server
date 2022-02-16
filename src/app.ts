@@ -1,22 +1,22 @@
-import express from 'express';
-import path from 'path';
-import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
-import helmet from 'helmet';
-import _ from 'lodash';
 import fs from 'fs';
+import path from 'path';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import helmet from 'helmet';
 import { logger } from 'kv-logger';
+import _ from 'lodash';
 
-import { config } from './core/config';
 import { AppError, NotFound } from './core/app-error';
+import { config } from './core/config';
 
-const routes = require('./routes/index');
-const indexV1 = require('./routes/indexV1');
-const auth = require('./routes/auth');
 const accessKeys = require('./routes/accessKeys');
 const account = require('./routes/account');
-const users = require('./routes/users');
 const apps = require('./routes/apps');
+const auth = require('./routes/auth');
+const routes = require('./routes/index');
+const indexV1 = require('./routes/indexV1');
+const users = require('./routes/users');
 
 export const app = express();
 
@@ -35,7 +35,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../public')));
 
 logger.debug('use set Access-Control Header');
-app.all('*', function (req, res, next) {
+app.all('*', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header(
         'Access-Control-Allow-Headers',
@@ -45,27 +45,28 @@ app.all('*', function (req, res, next) {
     next();
 });
 
-logger.debug('config common.storageType value: ' + _.get(config, 'common.storageType'));
+logger.debug(`config common.storageType value: ${_.get(config, 'common.storageType')}`);
 
 if (_.get(config, 'common.storageType') === 'local') {
-    var localStorageDir = _.get(config, 'local.storageDir');
+    const localStorageDir = _.get(config, 'local.storageDir');
     if (localStorageDir) {
-        logger.debug('config common.storageDir value: ' + localStorageDir);
+        logger.debug(`config common.storageDir value: ${localStorageDir}`);
 
         if (!fs.existsSync(localStorageDir)) {
-            var e = new Error(`Please create dir ${localStorageDir}`);
+            const e = new Error(`Please create dir ${localStorageDir}`);
             logger.error(e);
             throw e;
         }
         try {
             logger.debug('checking storageDir fs.W_OK | fs.R_OK');
+            // eslint-disable-next-line no-bitwise
             fs.accessSync(localStorageDir, fs.constants.W_OK | fs.constants.R_OK);
             logger.debug('storageDir fs.W_OK | fs.R_OK is ok');
         } catch (e) {
             logger.error(e);
             throw e;
         }
-        logger.debug('static download uri value: ' + _.get(config, 'local.public', '/download'));
+        logger.debug(`static download uri value: ${_.get(config, 'local.public', '/download')}`);
         app.use(_.get(config, 'local.public', '/download'), express.static(localStorageDir));
     } else {
         logger.error('please config local storageDir');
@@ -81,12 +82,14 @@ app.use('/users', users);
 app.use('/apps', apps);
 
 // 404 handler
-app.use(function (req, res, next) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((req, res, next) => {
     throw new NotFound(`${req.method} ${req.url} not found`);
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err, req, res, next) => {
     if (err instanceof AppError) {
         res.status(err.status).send(err.message);
         logger.debug(err);

@@ -1,22 +1,22 @@
-import _ from 'lodash';
-import validator from 'validator';
 import { logger } from 'kv-logger';
+import _ from 'lodash';
 import moment from 'moment';
+import validator from 'validator';
 
-import { Users } from '../../models/users';
-import { UserTokens } from '../../models/user_tokens';
 import { findCollaboratorsByAppNameAndUid } from '../../models/collaborators';
-import { config } from '../config';
+import { UserTokens } from '../../models/user_tokens';
+import { Users } from '../../models/users';
 import { AppError } from '../app-error';
+import { config } from '../config';
 import { redisClient } from '../utils/connections';
 
-var security = require('../utils/security');
-var EmailManager = require('./email-manager');
+const security = require('../utils/security');
+const EmailManager = require('./email-manager');
 
-const LOGIN_LIMIT_PRE = 'LOGIN_LIMIT_PRE_';
-const REGISTER_CODE = 'REGISTER_CODE_';
-const EXPIRED = 1200;
-const EXPIRED_SPEED = 10;
+const loginLimitPre = 'LOGIN_LIMIT_PRE_';
+const registerCode = 'REGISTER_CODE_';
+const expired = 1200;
+const expiredSpeed = 10;
 
 class AccountManager {
     collaboratorCan(uid: number, appName: string) {
@@ -44,9 +44,9 @@ class AccountManager {
     }
 
     findUserByEmail(email: string) {
-        return Users.findOne({ where: { email: email } }).then((data) => {
+        return Users.findOne({ where: { email } }).then((data) => {
             if (_.isEmpty(data)) {
-                throw new AppError(email + ' does not exist.');
+                throw new AppError(`${email} does not exist.`);
             } else {
                 return data;
             }
@@ -55,26 +55,28 @@ class AccountManager {
 
     getAllAccessKeyByUid(uid: number) {
         return UserTokens.findAll({
-            where: { uid: uid },
+            where: { uid },
             order: [['id', 'DESC']],
         }).then((tokens) => {
-            return _.map(tokens, function (v) {
+            return _.map(tokens, (v) => {
                 return {
                     name: '(hidden)',
-                    createdTime: parseInt(moment(v.created_at).format('x')),
+                    createdTime: moment(v.created_at).unix(),
                     createdBy: v.created_by,
-                    expires: parseInt(moment(v.expires_at).format('x')),
+                    expires: moment(v.expires_at).unix(),
                     friendlyName: v.name,
                     description: v.description,
                 };
             });
         });
     }
+
     isExsitAccessKeyName(uid: number, friendlyName: string) {
         return UserTokens.findOne({
-            where: { uid: uid, name: friendlyName },
+            where: { uid, name: friendlyName },
         });
     }
+
     createAccessKey(
         uid: number,
         newAccessKey: string,
@@ -84,10 +86,10 @@ class AccountManager {
         description: string,
     ) {
         return UserTokens.create({
-            uid: uid,
+            uid,
             name: friendlyName,
             tokens: newAccessKey,
-            description: description,
+            description,
             created_by: createdBy,
             expires_at: moment()
                 .add(ttl / 1000, 'seconds')
@@ -103,14 +105,14 @@ class AccountManager {
         if (_.isEmpty(password)) {
             return Promise.reject(new AppError('请您输入密码'));
         }
-        var where = {};
+        let where = {};
         if (validator.isEmail(account)) {
             where = { email: account };
         } else {
             where = { username: account };
         }
         const { tryLoginTimes } = config.common;
-        return Users.findOne({ where: where })
+        return Users.findOne({ where })
             .then((users) => {
                 if (_.isEmpty(users)) {
                     throw new AppError('您输入的邮箱或密码有误');
@@ -119,24 +121,23 @@ class AccountManager {
             })
             .then((users) => {
                 if (tryLoginTimes > 0) {
-                    const loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
+                    const loginKey = `${loginLimitPre}${users.id}`;
                     return redisClient.get(loginKey).then((loginErrorTimes) => {
                         if (Number(loginErrorTimes) > tryLoginTimes) {
                             throw new AppError(`您输入密码错误次数超过限制，帐户已经锁定`);
                         }
                         return users;
                     });
-                } else {
-                    return users;
                 }
+                return users;
             })
             .then((users) => {
                 if (!security.passwordVerifySync(password, users.password)) {
                     if (tryLoginTimes > 0) {
-                        const loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
+                        const loginKey = `${loginLimitPre}${users.id}`;
                         redisClient.exists(loginKey).then((isExists) => {
                             if (!isExists) {
-                                var expires = moment().endOf('day').unix() - moment().unix();
+                                const expires = moment().endOf('day').unix() - moment().unix();
                                 redisClient.setEx(loginKey, expires, '1');
                                 return;
                             }
@@ -154,37 +155,37 @@ class AccountManager {
         if (_.isEmpty(email)) {
             return Promise.reject(new AppError('请您输入邮箱地址'));
         }
-        return Users.findOne({ where: { email: email } })
+        return Users.findOne({ where: { email } })
             .then((u) => {
                 if (u) {
                     throw new AppError(`"${email}" 已经注册过，请更换邮箱注册`);
                 }
             })
             .then(() => {
-                //将token临时存储到redis
-                var token = security.randToken(40);
+                // 将token临时存储到redis
+                const token = security.randToken(40);
                 return redisClient
-                    .setEx(`${REGISTER_CODE}${security.md5(email)}`, EXPIRED, token)
+                    .setEx(`${registerCode}${security.md5(email)}`, expired, token)
                     .then(() => {
                         return token;
                     });
             })
             .then((token) => {
-                //将token发送到用户邮箱
-                var emailManager = new EmailManager();
+                // 将token发送到用户邮箱
+                const emailManager = new EmailManager();
                 return emailManager.sendRegisterCode(email, token);
             });
     }
 
     checkRegisterCode(email: string, token: string) {
-        return Users.findOne({ where: { email: email } })
+        return Users.findOne({ where: { email } })
             .then((u) => {
                 if (u) {
                     throw new AppError(`"${email}" 已经注册过，请更换邮箱注册`);
                 }
             })
             .then(() => {
-                var registerKey = `${REGISTER_CODE}${security.md5(email)}`;
+                const registerKey = `${registerCode}${security.md5(email)}`;
                 return redisClient.get(registerKey).then((storageToken) => {
                     if (_.isEmpty(storageToken)) {
                         throw new AppError(`验证码已经失效，请您重新获取`);
@@ -192,7 +193,7 @@ class AccountManager {
                     if (!_.eq(token, storageToken)) {
                         redisClient.ttl(registerKey).then((ttl) => {
                             if (ttl > 0) {
-                                redisClient.expire(registerKey, ttl - EXPIRED_SPEED);
+                                redisClient.expire(registerKey, ttl - expiredSpeed);
                             }
                         });
                         throw new AppError(`您输入的验证码不正确，请重新输入`);
@@ -203,18 +204,18 @@ class AccountManager {
     }
 
     register(email: string, password: string) {
-        return Users.findOne({ where: { email: email } })
+        return Users.findOne({ where: { email } })
             .then((u) => {
                 if (u) {
                     throw new AppError(`"${email}" 已经注册过，请更换邮箱注册`);
                 }
             })
             .then(() => {
-                var identical = security.randToken(9);
+                const identical = security.randToken(9);
                 return Users.create({
-                    email: email,
+                    email,
                     password: security.passwordHashSync(password),
-                    identical: identical,
+                    identical,
                 });
             });
     }
@@ -231,7 +232,7 @@ class AccountManager {
                 return u;
             })
             .then((u) => {
-                var isEq = security.passwordVerifySync(oldPassword, u.get('password'));
+                const isEq = security.passwordVerifySync(oldPassword, u.get('password'));
                 if (!isEq) {
                     throw new AppError(`您输入的旧密码不正确，请重新输入`);
                 }

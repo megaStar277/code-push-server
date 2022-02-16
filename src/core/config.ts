@@ -12,7 +12,7 @@ function toBool(str: string): boolean {
 }
 
 function toNumber(str: string, defaultValue: number): number {
-    var num = Number(str);
+    const num = Number(str);
     if (Number.isNaN(num)) {
         return defaultValue;
     }
@@ -48,7 +48,7 @@ export const config = {
     s3: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        sessionToken: process.env.AWS_SESSION_TOKEN, //(optional)
+        sessionToken: process.env.AWS_SESSION_TOKEN, // (optional)
         bucketName: process.env.AWS_BUCKET_NAME,
         region: process.env.AWS_REGION,
         // binary files download host address.
@@ -139,6 +139,6 @@ setLogTransports(
 
 const env = process.env.NODE_ENV || 'development';
 logger.info(`use config`, {
-    env: env,
+    env,
     storageType: config.common.storageType,
 });

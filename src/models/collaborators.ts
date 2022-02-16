@@ -35,7 +35,7 @@ export async function findCollaboratorsByAppNameAndUid(uid: number, appName: str
     const sql =
         'SELECT b.* FROM `apps` as a left join `collaborators` as b  on (a.id = b.appid) where a.name= :appName and b.uid = :uid and a.`deleted_at` IS NULL and b.`deleted_at` IS NULL limit 0,1';
     const data = await sequelize.query(sql, {
-        replacements: { appName: appName, uid: uid },
+        replacements: { appName, uid },
         model: Collaborators,
     });
     return data.pop();

@@ -1,79 +1,20 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
-
-import { logger } from 'kv-logger';
 import http from 'http';
-import validator from 'validator';
+import { logger } from 'kv-logger';
 import _ from 'lodash';
-
+import validator from 'validator';
 import { app } from './app';
-import { Versions } from './models/versions';
-
 import { CURRENT_DB_VERSION } from './core/const';
-
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || '3000');
-
-var host = null;
-if (process.env.HOST) {
-    logger.debug('process.env.HOST ' + process.env.HOST);
-    if (validator.isIP(process.env.HOST)) {
-        logger.debug(process.env.HOST + ' valid');
-        host = process.env.HOST;
-    } else {
-        logger.warn('process.env.HOST ' + process.env.HOST + ' is invalid, use 0.0.0.0 instead');
-    }
-}
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-const server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-Versions.findOne({ where: { type: 1 } })
-    .then(function (v) {
-        if (!v || v.version != CURRENT_DB_VERSION) {
-            throw new Error(
-                'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
-            );
-        }
-        server.listen(port, host);
-        server.on('error', onError);
-        server.on('listening', onListening);
-        return;
-    })
-    .catch(function (e) {
-        if (_.startsWith(e.message, 'ER_NO_SUCH_TABLE')) {
-            logger.error(
-                new Error(
-                    'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
-                ),
-            );
-        } else {
-            logger.error(e);
-        }
-        process.exit(1);
-    });
+import { Versions } from './models/versions';
 
 /**
  * Normalize a port into a number, string, or false.
  */
+function normalizePort(val): number | string | false {
+    const port = parseInt(val, 10);
 
-function normalizePort(val): number | string | boolean {
-    var port = parseInt(val, 10);
-
-    if (isNaN(port)) {
+    if (Number.isNaN(port)) {
         // named pipe
         return val;
     }
@@ -86,37 +27,68 @@ function normalizePort(val): number | string | boolean {
     return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
+// check if the db is initialized
+Versions.findOne({ where: { type: 1 } })
+    .then((v) => {
+        if (!v || v.version !== CURRENT_DB_VERSION) {
+            throw new Error(
+                'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
+            );
+        }
+        // create server and listen
+        const server = http.createServer(app);
 
-function onError(error) {
-    if (error.syscall !== 'listen') {
-        throw error;
-    }
+        const port = normalizePort(process.env.PORT || '3000');
 
-    var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+        let host = null;
+        if (process.env.HOST) {
+            logger.debug(`process.env.HOST ${process.env.HOST}`);
+            if (validator.isIP(process.env.HOST)) {
+                logger.debug(`${process.env.HOST} valid`);
+                host = process.env.HOST;
+            } else {
+                logger.warn(`process.env.HOST ${process.env.HOST} is invalid, use 0.0.0.0 instead`);
+            }
+        }
 
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-        case 'EACCES':
-            logger.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            logger.error(bind + ' is already in use');
-            process.exit(1);
-            break;
-        default:
+        server.listen(port, host);
+
+        server.on('error', (error: Error & { syscall: string; code: string }) => {
+            if (error.syscall === 'listen') {
+                const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+
+                // handle specific listen errors with friendly messages
+                switch (error.code) {
+                    case 'EACCES':
+                        logger.error(`${bind} requires elevated privileges`);
+                        process.exit(1);
+                        break;
+                    case 'EADDRINUSE':
+                        logger.error(`${bind} is already in use`);
+                        process.exit(1);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            logger.error(error);
             throw error;
-    }
-}
+        });
 
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-    var addr = server.address();
-    logger.info('server is listening on ', addr);
-}
+        server.on('listening', () => {
+            const addr = server.address();
+            logger.info('server is listening on ', addr);
+        });
+    })
+    .catch((e) => {
+        if (_.startsWith(e.message, 'ER_NO_SUCH_TABLE')) {
+            logger.error(
+                new Error(
+                    'Please upgrade your database. use `npm run upgrade` or `code-push-server-db upgrade`',
+                ),
+            );
+        } else {
+            logger.error(e);
+        }
+        process.exit(1);
+    });
