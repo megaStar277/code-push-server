@@ -1,7 +1,6 @@
 import { logger } from 'kv-logger';
 import _ from 'lodash';
 import { Op } from 'sequelize';
-
 import { Deployments } from '../../models/deployments';
 import { DeploymentsVersions } from '../../models/deployments_versions';
 import { LogReportDeploy } from '../../models/log_report_deploy';
@@ -12,13 +11,12 @@ import { PackagesMetrics } from '../../models/packages_metrics';
 import { AppError } from '../app-error';
 import { config } from '../config';
 import { DEPLOYMENT_FAILED, DEPLOYMENT_SUCCEEDED } from '../const';
+import { parseVersion, getBlobDownloadUrl } from '../utils/common';
 import { redisClient } from '../utils/connections';
-
-const common = require('../utils/common');
 
 const updateCheck = 'UPDATE_CHECK';
 const chosenMan = 'CHOSEN_MAN';
-const EXPIRED = 600;
+const expired = 600;
 
 class ClientManager {
     getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash) {
@@ -78,7 +76,7 @@ class ClientManager {
                 try {
                     logger.debug('updateCheckFromCache read from db');
                     const strRs = JSON.stringify(rs);
-                    redisClient.setEx(redisCacheKey, EXPIRED, strRs);
+                    redisClient.setEx(redisCacheKey, expired, strRs);
                 } catch (e) {
                     // do nothing
                 }
@@ -156,7 +154,7 @@ class ClientManager {
                 if (_.isEmpty(dep)) {
                     throw new AppError('Not found deployment, check deployment key is right.');
                 }
-                const version = common.parseVersion(appVersion);
+                const version = parseVersion(appVersion);
                 return DeploymentsVersions.findAll({
                     where: {
                         deployment_id: dep.id,
@@ -195,7 +193,7 @@ class ClientManager {
                         ) {
                             rs.packageId = packageId;
                             rs.targetBinaryRange = deploymentsVersions.app_version;
-                            rs.downloadURL = common.getBlobDownloadUrl(packages.blob_url);
+                            rs.downloadURL = getBlobDownloadUrl(packages.blob_url);
                             rs.downloadUrl = rs.downloadURL;
                             rs.description = _.get(packages, 'description', '');
                             rs.isAvailable = !_.eq(packages.is_disabled, 1);
@@ -223,10 +221,10 @@ class ClientManager {
                                 },
                             }).then((diffPackage) => {
                                 if (!_.isEmpty(diffPackage)) {
-                                    rs.downloadURL = common.getBlobDownloadUrl(
+                                    rs.downloadURL = getBlobDownloadUrl(
                                         _.get(diffPackage, 'diff_blob_url'),
                                     );
-                                    rs.downloadUrl = common.getBlobDownloadUrl(
+                                    rs.downloadUrl = getBlobDownloadUrl(
                                         _.get(diffPackage, 'diff_blob_url'),
                                     );
                                     rs.packageSize = _.get(diffPackage, 'diff_size', 0);

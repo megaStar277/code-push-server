@@ -5,8 +5,7 @@ import { logger } from 'kv-logger';
 import { config } from '../config';
 import { AppError } from '../app-error';
 import { calcAllFileSha256, packageHashSync } from '../utils/security';
-
-var common = require('../utils/common');
+import { createEmptyFolder, copy } from '../utils/common';
 
 const MANIFEST_FILE_NAME = 'manifest.json';
 const CONTENTS_NAME = 'contents';
@@ -103,8 +102,8 @@ proto.storePackage = function (sourceDst, force) {
                 );
             } else {
                 logger.debug(`storePackage cover from sourceDst:`, sourceDst);
-                return common.createEmptyFolder(packageHashPath).then(() => {
-                    return common.copy(sourceDst, contentPath).then(() => {
+                return createEmptyFolder(packageHashPath).then(() => {
+                    return copy(sourceDst, contentPath).then(() => {
                         var manifestString = JSON.stringify(manifestJson);
                         fs.writeFileSync(manifestFile, manifestString);
                         return self.buildPackageInfo(

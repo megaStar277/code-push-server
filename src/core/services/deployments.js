@@ -12,8 +12,7 @@ import { Users } from '../../models/users';
 import { sequelize } from '../utils/connections';
 import { AppError } from '../app-error';
 import { randToken } from '../../core/utils/security';
-
-var common = require('../../core/utils/common');
+import { getBlobDownloadUrl } from '../../core/utils/common';
 
 var proto = (module.exports = function () {
     function Deployments() {}
@@ -113,7 +112,7 @@ proto.findPackagesAndOtherInfos = function (packageId) {
                             (result, v) => {
                                 result[_.get(v, 'diff_against_package_hash')] = {
                                     size: _.get(v, 'diff_size'),
-                                    url: common.getBlobDownloadUrl(_.get(v, 'diff_blob_url')),
+                                    url: getBlobDownloadUrl(_.get(v, 'diff_blob_url')),
                                 };
                                 return result;
                             },
@@ -161,11 +160,9 @@ proto.formatPackage = function (packageVersion) {
         rollout: 100,
         appVersion: _.get(packageVersion, 'deploymentsVersions.app_version'),
         packageHash: _.get(packageVersion, 'packageInfo.package_hash'),
-        blobUrl: common.getBlobDownloadUrl(_.get(packageVersion, 'packageInfo.blob_url')),
+        blobUrl: getBlobDownloadUrl(_.get(packageVersion, 'packageInfo.blob_url')),
         size: _.get(packageVersion, 'packageInfo.size'),
-        manifestBlobUrl: common.getBlobDownloadUrl(
-            _.get(packageVersion, 'packageInfo.manifest_blob_url'),
-        ),
+        manifestBlobUrl: getBlobDownloadUrl(_.get(packageVersion, 'packageInfo.manifest_blob_url')),
         diffPackageMap: _.get(packageVersion, 'packageDiffMap'),
         releaseMethod: _.get(packageVersion, 'packageInfo.release_method'),
         uploadTime: parseInt(moment(_.get(packageVersion, 'packageInfo.updated_at')).format('x')),

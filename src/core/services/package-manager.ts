@@ -26,12 +26,22 @@ import {
     RELEASE_METHOD_PROMOTE,
     RELEASE_METHOD_UPLOAD,
 } from '../const';
+import {
+    getBlobDownloadUrl,
+    createFileFromRequest,
+    unzipFile,
+    copySync,
+    diffCollectionsSync,
+    createEmptyFolder,
+    createEmptyFolderSync,
+    deleteFolderSync,
+    validatorVersion,
+} from '../utils/common';
 import { sequelize } from '../utils/connections';
 import { qetag } from '../utils/qetag';
 import { randToken, uploadPackageType } from '../utils/security';
 import { uploadFileToStorage } from '../utils/storage';
 
-const common = require('../utils/common');
 const dataCenterManager = require('./datacenter-manager')();
 
 class PackageManager {
@@ -187,19 +197,17 @@ class PackageManager {
             if (isValidate) {
                 return dataCenterManager.getPackageInfo(packageHash);
             }
-            const downloadURL = common.getBlobDownloadUrl(blobHash);
-            return common
-                .createFileFromRequest(downloadURL, path.join(workDirectoryPath, blobHash))
-                .then(() => {
-                    return common
-                        .unzipFile(
-                            path.join(workDirectoryPath, blobHash),
-                            path.join(workDirectoryPath, 'current'),
-                        )
-                        .then((outputPath) => {
-                            return dataCenterManager.storePackage(outputPath, true);
-                        });
-                });
+            const downloadURL = getBlobDownloadUrl(blobHash);
+            return createFileFromRequest(downloadURL, path.join(workDirectoryPath, blobHash)).then(
+                () => {
+                    return unzipFile(
+                        path.join(workDirectoryPath, blobHash),
+                        path.join(workDirectoryPath, 'current'),
+                    ).then((outputPath) => {
+                        return dataCenterManager.storePackage(outputPath, true);
+                    });
+                },
+            );
         });
     }
 
@@ -249,50 +257,48 @@ class PackageManager {
                 originDataCenter,
                 oldPackageDataCenter,
             });
-            const downloadURL = common.getBlobDownloadUrl(diffManifestBlobHash);
-            return common
-                .createFileFromRequest(
-                    downloadURL,
-                    path.join(workDirectoryPath, diffManifestBlobHash),
-                )
-                .then(() => {
-                    const dataCenterContentPath = path.join(workDirectoryPath, 'dataCenter');
-                    common.copySync(originDataCenter.contentPath, dataCenterContentPath);
-                    // const oldPackageDataCenterContentPath = oldPackageDataCenter.contentPath;
-                    const originManifestJson = JSON.parse(
-                        fs.readFileSync(originDataCenter.manifestFilePath, 'utf8'),
-                    );
-                    const diffManifestJson = JSON.parse(
-                        fs.readFileSync(path.join(workDirectoryPath, diffManifestBlobHash), 'utf8'),
-                    );
-                    const json = common.diffCollectionsSync(originManifestJson, diffManifestJson);
-                    const files = _.concat(json.diff, json.collection1Only);
-                    const hotcodepush = { deletedFiles: json.collection2Only, patchedFiles: [] };
-                    const hotCodePushFile = path.join(
-                        workDirectoryPath,
-                        `${diffManifestBlobHash}_hotcodepush`,
-                    );
-                    fs.writeFileSync(hotCodePushFile, JSON.stringify(hotcodepush));
-                    const fileName = path.join(workDirectoryPath, `${diffManifestBlobHash}.zip`);
-                    return this.zipDiffPackage(
-                        fileName,
-                        files,
-                        dataCenterContentPath,
-                        hotCodePushFile,
-                    ).then((data) => {
-                        return qetag(data.path).then((diffHash) => {
-                            return uploadFileToStorage(diffHash, fileName).then(() => {
-                                const stats = fs.statSync(fileName);
-                                return PackagesDiff.create({
-                                    package_id: packageId,
-                                    diff_against_package_hash: diffPackageHash,
-                                    diff_blob_url: diffHash,
-                                    diff_size: stats.size,
-                                });
+            const downloadURL = getBlobDownloadUrl(diffManifestBlobHash);
+            return createFileFromRequest(
+                downloadURL,
+                path.join(workDirectoryPath, diffManifestBlobHash),
+            ).then(() => {
+                const dataCenterContentPath = path.join(workDirectoryPath, 'dataCenter');
+                copySync(originDataCenter.contentPath, dataCenterContentPath);
+                // const oldPackageDataCenterContentPath = oldPackageDataCenter.contentPath;
+                const originManifestJson = JSON.parse(
+                    fs.readFileSync(originDataCenter.manifestFilePath, 'utf8'),
+                );
+                const diffManifestJson = JSON.parse(
+                    fs.readFileSync(path.join(workDirectoryPath, diffManifestBlobHash), 'utf8'),
+                );
+                const json = diffCollectionsSync(originManifestJson, diffManifestJson);
+                const files = _.concat(json.diff, json.collection1Only);
+                const hotcodepush = { deletedFiles: json.collection2Only, patchedFiles: [] };
+                const hotCodePushFile = path.join(
+                    workDirectoryPath,
+                    `${diffManifestBlobHash}_hotcodepush`,
+                );
+                fs.writeFileSync(hotCodePushFile, JSON.stringify(hotcodepush));
+                const fileName = path.join(workDirectoryPath, `${diffManifestBlobHash}.zip`);
+                return this.zipDiffPackage(
+                    fileName,
+                    files,
+                    dataCenterContentPath,
+                    hotCodePushFile,
+                ).then((data) => {
+                    return qetag(data.path).then((diffHash) => {
+                        return uploadFileToStorage(diffHash, fileName).then(() => {
+                            const stats = fs.statSync(fileName);
+                            return PackagesDiff.create({
+                                package_id: packageId,
+                                diff_against_package_hash: diffPackageHash,
+                                diff_blob_url: diffHash,
+                                diff_size: stats.size,
                             });
                         });
                     });
                 });
+            });
         });
     }
 
@@ -336,8 +342,7 @@ class PackageManager {
         const blobUrl = _.get(originalPackage, 'blob_url');
         const workDirectoryPath = path.join(os.tmpdir(), `codepush_${randToken(32)}`);
         logger.debug('createDiffPackages using dir', { workDirectoryPath });
-        return common
-            .createEmptyFolder(workDirectoryPath)
+        return createEmptyFolder(workDirectoryPath)
             .then(() => this.downloadPackageAndExtract(workDirectoryPath, packageHash, blobUrl))
             .then((originDataCenter) =>
                 Promise.all(
@@ -346,7 +351,7 @@ class PackageManager {
                             workDirectoryPath,
                             _.get(v, 'package_hash'),
                         );
-                        common.createEmptyFolderSync(diffWorkDirectoryPath);
+                        createEmptyFolderSync(diffWorkDirectoryPath);
                         return this.downloadPackageAndExtract(
                             diffWorkDirectoryPath,
                             _.get(v, 'package_hash'),
@@ -364,13 +369,13 @@ class PackageManager {
                     }),
                 ),
             )
-            .finally(() => common.deleteFolderSync(workDirectoryPath));
+            .finally(() => deleteFolderSync(workDirectoryPath));
     }
 
     // eslint-disable-next-line max-lines-per-function
     releasePackage(appId, deploymentId, packageInfo, filePath: string, releaseUid) {
         const { appVersion } = packageInfo;
-        const versionInfo = common.validatorVersion(appVersion);
+        const versionInfo = validatorVersion(appVersion);
         if (!versionInfo[0]) {
             logger.debug(`releasePackage targetBinaryVersion ${appVersion} not support.`);
             return Promise.reject(new AppError(`targetBinaryVersion ${appVersion} not support.`));
@@ -385,8 +390,8 @@ class PackageManager {
         logger.debug(`releasePackage generate an random dir path: ${directoryPath}`);
         return Promise.all([
             qetag(filePath),
-            common.createEmptyFolder(directoryPath).then(() => {
-                return common.unzipFile(filePath, directoryPath);
+            createEmptyFolder(directoryPath).then(() => {
+                return unzipFile(filePath, directoryPath);
             }),
         ])
             .then(([blobHash]) => {
@@ -463,7 +468,7 @@ class PackageManager {
                     params,
                 );
             })
-            .finally(() => common.deleteFolderSync(directoryPathParent));
+            .finally(() => deleteFolderSync(directoryPathParent));
     }
 
     modifyReleasePackage(packageId, params) {
@@ -478,7 +483,7 @@ class PackageManager {
                     throw new AppError(`packageInfo not found`);
                 }
                 if (!_.isNull(appVersion)) {
-                    const versionInfo = common.validatorVersion(appVersion);
+                    const versionInfo = validatorVersion(appVersion);
                     if (!versionInfo[0]) {
                         throw new AppError(`--targetBinaryVersion ${appVersion} not support.`);
                     }
@@ -613,7 +618,7 @@ class PackageManager {
                     });
             })
             .then(([sourcePack, appFinalVersion]) => {
-                const versionInfo = common.validatorVersion(appFinalVersion);
+                const versionInfo = validatorVersion(appFinalVersion);
                 if (!versionInfo[0]) {
                     logger.debug(`targetBinaryVersion ${appVersion} not support.`);
                     throw new AppError(`targetBinaryVersion ${appVersion} not support.`);

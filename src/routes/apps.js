@@ -20,12 +20,12 @@ import {
     CORDOVA,
     CORDOVA_NAME,
 } from '../core/const';
+import { deleteFolderSync } from '../core/utils/common';
 
 var middleware = require('../core/middleware');
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
 var AppManager = require('../core/services/app-manager');
-var common = require('../core/utils/common');
 
 const router = express.Router();
 
@@ -349,7 +349,7 @@ router.post(
                                         uid,
                                     )
                                     .finally(() => {
-                                        common.deleteFolderSync(data.package.filepath);
+                                        deleteFolderSync(data.package.filepath);
                                     });
                             })
                             .then((packages) => {
