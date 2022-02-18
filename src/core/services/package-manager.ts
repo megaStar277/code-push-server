@@ -8,7 +8,6 @@ import _ from 'lodash';
 import { Op } from 'sequelize';
 import slash from 'slash';
 import yazl from 'yazl';
-
 import { Apps } from '../../models/apps';
 import { Deployments, generateDeploymentsLabelId } from '../../models/deployments';
 import { DeploymentsHistory } from '../../models/deployments_history';
@@ -41,8 +40,7 @@ import { sequelize } from '../utils/connections';
 import { qetag } from '../utils/qetag';
 import { randToken, uploadPackageType } from '../utils/security';
 import { uploadFileToStorage } from '../utils/storage';
-
-const dataCenterManager = require('./datacenter-manager')();
+import { dataCenterManager } from './datacenter-manager';
 
 class PackageManager {
     getMetricsbyPackageId(packageId) {
