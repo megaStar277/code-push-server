@@ -24,8 +24,7 @@ import { deleteFolderSync } from '../core/utils/common';
 import { appManager } from '../core/services/app-manager';
 import { collaboratorsManager } from '../core/services/collaborators-manager';
 import { deploymentsManager } from '../core/services/deployments-manager';
-
-var middleware = require('../core/middleware');
+import { checkToken } from '../core/middleware';
 
 const router = express.Router();
 
@@ -35,7 +34,7 @@ function delay(ms) {
     });
 }
 
-router.get('/', middleware.checkToken, (req, res, next) => {
+router.get('/', checkToken, (req, res, next) => {
     var uid = req.users.id;
     appManager
         .listApps(uid)
@@ -51,7 +50,7 @@ router.get('/', middleware.checkToken, (req, res, next) => {
         });
 });
 
-router.get('/:appName/deployments', middleware.checkToken, (req, res, next) => {
+router.get('/:appName/deployments', checkToken, (req, res, next) => {
     var uid = req.users.id;
     var appName = _.trim(req.params.appName);
     accountManager
@@ -71,7 +70,7 @@ router.get('/:appName/deployments', middleware.checkToken, (req, res, next) => {
         });
 });
 
-router.get('/:appName/deployments/:deploymentName', middleware.checkToken, (req, res, next) => {
+router.get('/:appName/deployments/:deploymentName', checkToken, (req, res, next) => {
     var uid = req.users.id;
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
@@ -97,7 +96,7 @@ router.get('/:appName/deployments/:deploymentName', middleware.checkToken, (req,
         });
 });
 
-router.post('/:appName/deployments', middleware.checkToken, (req, res, next) => {
+router.post('/:appName/deployments', checkToken, (req, res, next) => {
     var uid = req.users.id;
     var appName = _.trim(req.params.appName);
     var name = req.body.name;
@@ -118,129 +117,117 @@ router.post('/:appName/deployments', middleware.checkToken, (req, res, next) => 
         });
 });
 
-router.get(
-    '/:appName/deployments/:deploymentName/metrics',
-    middleware.checkToken,
-    (req, res, next) => {
-        var uid = req.users.id;
-        var appName = _.trim(req.params.appName);
-        var deploymentName = _.trim(req.params.deploymentName);
-        accountManager
-            .collaboratorCan(uid, appName)
-            .then((col) => {
-                return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
-                    .then((deploymentInfo) => {
-                        if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError('does not find the deployment');
+router.get('/:appName/deployments/:deploymentName/metrics', checkToken, (req, res, next) => {
+    var uid = req.users.id;
+    var appName = _.trim(req.params.appName);
+    var deploymentName = _.trim(req.params.deploymentName);
+    accountManager
+        .collaboratorCan(uid, appName)
+        .then((col) => {
+            return deploymentsManager
+                .findDeloymentByName(deploymentName, col.appid)
+                .then((deploymentInfo) => {
+                    if (_.isEmpty(deploymentInfo)) {
+                        throw new AppError('does not find the deployment');
+                    }
+                    return deploymentInfo;
+                });
+        })
+        .then((deploymentInfo) => {
+            return deploymentsManager.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
+        })
+        .then((packagesInfos) => {
+            return packagesInfos.reduce((prev, v) => {
+                return prev.then((result) => {
+                    return packageManager.getMetricsbyPackageId(v.get('id')).then((metrics) => {
+                        if (metrics) {
+                            result[v.get('label')] = {
+                                active: metrics.get('active'),
+                                downloaded: metrics.get('downloaded'),
+                                failed: metrics.get('failed'),
+                                installed: metrics.get('installed'),
+                            };
                         }
-                        return deploymentInfo;
+                        return result;
                     });
-            })
-            .then((deploymentInfo) => {
-                return deploymentsManager.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
-            })
-            .then((packagesInfos) => {
-                return packagesInfos.reduce((prev, v) => {
-                    return prev.then((result) => {
-                        return packageManager.getMetricsbyPackageId(v.get('id')).then((metrics) => {
-                            if (metrics) {
-                                result[v.get('label')] = {
-                                    active: metrics.get('active'),
-                                    downloaded: metrics.get('downloaded'),
-                                    failed: metrics.get('failed'),
-                                    installed: metrics.get('installed'),
-                                };
-                            }
-                            return result;
-                        });
-                    });
-                }, Promise.resolve({}));
-            })
-            .then((rs) => {
-                res.send({ metrics: rs });
-            })
-            .catch((e) => {
-                if (e instanceof AppError) {
-                    res.send({ metrics: null });
-                } else {
-                    next(e);
-                }
-            });
-    },
-);
+                });
+            }, Promise.resolve({}));
+        })
+        .then((rs) => {
+            res.send({ metrics: rs });
+        })
+        .catch((e) => {
+            if (e instanceof AppError) {
+                res.send({ metrics: null });
+            } else {
+                next(e);
+            }
+        });
+});
 
-router.get(
-    '/:appName/deployments/:deploymentName/history',
-    middleware.checkToken,
-    (req, res, next) => {
-        var uid = req.users.id;
-        var appName = _.trim(req.params.appName);
-        var deploymentName = _.trim(req.params.deploymentName);
-        accountManager
-            .collaboratorCan(uid, appName)
-            .then((col) => {
-                return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
-                    .then((deploymentInfo) => {
-                        if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError('does not find the deployment');
-                        }
-                        return deploymentInfo;
-                    });
-            })
-            .then((deploymentInfo) => {
-                return deploymentsManager.getDeploymentHistory(deploymentInfo.id);
-            })
-            .then((rs) => {
-                res.send({ history: _.pullAll(rs, [null, false]) });
-            })
-            .catch((e) => {
-                if (e instanceof AppError) {
-                    res.status(406).send(e.message);
-                } else {
-                    next(e);
-                }
-            });
-    },
-);
+router.get('/:appName/deployments/:deploymentName/history', checkToken, (req, res, next) => {
+    var uid = req.users.id;
+    var appName = _.trim(req.params.appName);
+    var deploymentName = _.trim(req.params.deploymentName);
+    accountManager
+        .collaboratorCan(uid, appName)
+        .then((col) => {
+            return deploymentsManager
+                .findDeloymentByName(deploymentName, col.appid)
+                .then((deploymentInfo) => {
+                    if (_.isEmpty(deploymentInfo)) {
+                        throw new AppError('does not find the deployment');
+                    }
+                    return deploymentInfo;
+                });
+        })
+        .then((deploymentInfo) => {
+            return deploymentsManager.getDeploymentHistory(deploymentInfo.id);
+        })
+        .then((rs) => {
+            res.send({ history: _.pullAll(rs, [null, false]) });
+        })
+        .catch((e) => {
+            if (e instanceof AppError) {
+                res.status(406).send(e.message);
+            } else {
+                next(e);
+            }
+        });
+});
 
-router.delete(
-    '/:appName/deployments/:deploymentName/history',
-    middleware.checkToken,
-    (req, res, next) => {
-        var uid = req.users.id;
-        var appName = _.trim(req.params.appName);
-        var deploymentName = _.trim(req.params.deploymentName);
-        accountManager
-            .ownerCan(uid, appName)
-            .then((col) => {
-                return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
-                    .then((deploymentInfo) => {
-                        if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError('does not find the deployment');
-                        }
-                        return deploymentInfo;
-                    });
-            })
-            .then((deploymentInfo) => {
-                return deploymentsManager.deleteDeploymentHistory(deploymentInfo.id);
-            })
-            .then((rs) => {
-                res.send('ok');
-            })
-            .catch((e) => {
-                if (e instanceof AppError) {
-                    res.status(406).send(e.message);
-                } else {
-                    next(e);
-                }
-            });
-    },
-);
+router.delete('/:appName/deployments/:deploymentName/history', checkToken, (req, res, next) => {
+    var uid = req.users.id;
+    var appName = _.trim(req.params.appName);
+    var deploymentName = _.trim(req.params.deploymentName);
+    accountManager
+        .ownerCan(uid, appName)
+        .then((col) => {
+            return deploymentsManager
+                .findDeloymentByName(deploymentName, col.appid)
+                .then((deploymentInfo) => {
+                    if (_.isEmpty(deploymentInfo)) {
+                        throw new AppError('does not find the deployment');
+                    }
+                    return deploymentInfo;
+                });
+        })
+        .then((deploymentInfo) => {
+            return deploymentsManager.deleteDeploymentHistory(deploymentInfo.id);
+        })
+        .then((rs) => {
+            res.send('ok');
+        })
+        .catch((e) => {
+            if (e instanceof AppError) {
+                res.status(406).send(e.message);
+            } else {
+                next(e);
+            }
+        });
+});
 
-router.patch('/:appName/deployments/:deploymentName', middleware.checkToken, (req, res, next) => {
+router.patch('/:appName/deployments/:deploymentName', checkToken, (req, res, next) => {
     var name = req.body.name;
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
@@ -262,7 +249,7 @@ router.patch('/:appName/deployments/:deploymentName', middleware.checkToken, (re
         });
 });
 
-router.delete('/:appName/deployments/:deploymentName', middleware.checkToken, (req, res, next) => {
+router.delete('/:appName/deployments/:deploymentName', checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
     var uid = req.users.id;
@@ -283,185 +270,177 @@ router.delete('/:appName/deployments/:deploymentName', middleware.checkToken, (r
         });
 });
 
-router.post(
-    '/:appName/deployments/:deploymentName/release',
-    middleware.checkToken,
-    (req, res, next) => {
-        var appName = _.trim(req.params.appName);
-        var deploymentName = _.trim(req.params.deploymentName);
-        var uid = req.users.id;
+router.post('/:appName/deployments/:deploymentName/release', checkToken, (req, res, next) => {
+    var appName = _.trim(req.params.appName);
+    var deploymentName = _.trim(req.params.deploymentName);
+    var uid = req.users.id;
 
-        logger.info('try to release', {
-            uid,
-            appName,
-            deploymentName,
-        });
-        accountManager
-            .collaboratorCan(uid, appName)
-            .then((col) => {
-                logger.debug('release user check pass', {
-                    uid,
-                    appName,
-                    deploymentName,
-                });
+    logger.info('try to release', {
+        uid,
+        appName,
+        deploymentName,
+    });
+    accountManager
+        .collaboratorCan(uid, appName)
+        .then((col) => {
+            logger.debug('release user check pass', {
+                uid,
+                appName,
+                deploymentName,
+            });
 
-                return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
-                    .then((deploymentInfo) => {
-                        if (_.isEmpty(deploymentInfo)) {
-                            logger.debug(`does not find the deployment`);
-                            throw new AppError('does not find the deployment');
-                        }
-                        logger.debug('release deployment check ok', {
-                            uid,
-                            appName,
-                            deploymentName,
-                        });
+            return deploymentsManager
+                .findDeloymentByName(deploymentName, col.appid)
+                .then((deploymentInfo) => {
+                    if (_.isEmpty(deploymentInfo)) {
+                        logger.debug(`does not find the deployment`);
+                        throw new AppError('does not find the deployment');
+                    }
+                    logger.debug('release deployment check ok', {
+                        uid,
+                        appName,
+                        deploymentName,
+                    });
 
-                        return packageManager
-                            .parseReqFile(req)
-                            .then((data) => {
-                                if (data.package.mimetype != 'application/zip') {
-                                    logger.debug(`upload file type is invlidate`, data.package);
-                                    throw new AppError('upload file type is invalidate');
-                                }
-                                logger.debug('release packagee parse ok', {
+                    return packageManager
+                        .parseReqFile(req)
+                        .then((data) => {
+                            if (data.package.mimetype != 'application/zip') {
+                                logger.debug(`upload file type is invlidate`, data.package);
+                                throw new AppError('upload file type is invalidate');
+                            }
+                            logger.debug('release packagee parse ok', {
+                                uid,
+                                appName,
+                                deploymentName,
+                            });
+
+                            return packageManager
+                                .releasePackage(
+                                    deploymentInfo.appid,
+                                    deploymentInfo.id,
+                                    data.packageInfo,
+                                    data.package.filepath,
                                     uid,
-                                    appName,
-                                    deploymentName,
+                                )
+                                .finally(() => {
+                                    deleteFolderSync(data.package.filepath);
                                 });
-
-                                return packageManager
-                                    .releasePackage(
-                                        deploymentInfo.appid,
-                                        deploymentInfo.id,
-                                        data.packageInfo,
-                                        data.package.filepath,
-                                        uid,
-                                    )
-                                    .finally(() => {
-                                        deleteFolderSync(data.package.filepath);
-                                    });
-                            })
-                            .then((packages) => {
-                                if (packages) {
-                                    delay(1000).then(() => {
-                                        packageManager
-                                            .createDiffPackagesByLastNums(
-                                                deploymentInfo.appid,
-                                                packages,
-                                                _.get(config, 'common.diffNums', 1),
-                                            )
-                                            .catch((e) => {
-                                                logger.error(e);
-                                            });
-                                    });
-                                }
-                                //clear cache if exists.
-                                if (_.get(config, 'common.updateCheckCache', false) !== false) {
-                                    delay(2500).then(() => {
-                                        clientManager.clearUpdateCheckCache(
-                                            deploymentInfo.deployment_key,
-                                            '*',
-                                            '*',
-                                            '*',
-                                        );
-                                    });
-                                }
-                                return null;
-                            });
-                    });
-            })
-            .then(() => {
-                logger.info('release success', {
-                    uid,
-                    appName,
-                    deploymentName,
+                        })
+                        .then((packages) => {
+                            if (packages) {
+                                delay(1000).then(() => {
+                                    packageManager
+                                        .createDiffPackagesByLastNums(
+                                            deploymentInfo.appid,
+                                            packages,
+                                            _.get(config, 'common.diffNums', 1),
+                                        )
+                                        .catch((e) => {
+                                            logger.error(e);
+                                        });
+                                });
+                            }
+                            //clear cache if exists.
+                            if (_.get(config, 'common.updateCheckCache', false) !== false) {
+                                delay(2500).then(() => {
+                                    clientManager.clearUpdateCheckCache(
+                                        deploymentInfo.deployment_key,
+                                        '*',
+                                        '*',
+                                        '*',
+                                    );
+                                });
+                            }
+                            return null;
+                        });
                 });
-
-                res.send('{"msg": "succeed"}');
-            })
-            .catch((e) => {
-                if (e instanceof AppError) {
-                    logger.warn(e.message);
-                    res.status(406).send(e.message);
-                } else {
-                    next(e);
-                }
+        })
+        .then(() => {
+            logger.info('release success', {
+                uid,
+                appName,
+                deploymentName,
             });
-    },
-);
 
-router.patch(
-    '/:appName/deployments/:deploymentName/release',
-    middleware.checkToken,
-    (req, res, next) => {
-        logger.debug('req.body', req.body);
-        var appName = _.trim(req.params.appName);
-        var deploymentName = _.trim(req.params.deploymentName);
-        var uid = req.users.id;
-        var label = _.get(req, 'body.packageInfo.label');
-        accountManager
-            .collaboratorCan(uid, appName)
-            .then((col) => {
-                return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
-                    .then((deploymentInfo) => {
-                        if (_.isEmpty(deploymentInfo)) {
-                            throw new AppError('does not find the deployment');
-                        }
-                        if (label) {
-                            return packageManager
-                                .findPackageInfoByDeploymentIdAndLabel(deploymentInfo.id, label)
-                                .then((data) => {
-                                    return [deploymentInfo, data];
-                                });
-                        } else {
-                            var deploymentVersionId = deploymentInfo.last_deployment_version_id;
-                            return packageManager
-                                .findLatestPackageInfoByDeployVersion(deploymentVersionId)
-                                .then((data) => {
-                                    return [deploymentInfo, data];
-                                });
-                        }
-                    })
-                    .then(([deploymentInfo, packageInfo]) => {
-                        if (!packageInfo) {
-                            throw new AppError('does not find the packageInfo');
-                        }
+            res.send('{"msg": "succeed"}');
+        })
+        .catch((e) => {
+            if (e instanceof AppError) {
+                logger.warn(e.message);
+                res.status(406).send(e.message);
+            } else {
+                next(e);
+            }
+        });
+});
+
+router.patch('/:appName/deployments/:deploymentName/release', checkToken, (req, res, next) => {
+    logger.debug('req.body', req.body);
+    var appName = _.trim(req.params.appName);
+    var deploymentName = _.trim(req.params.deploymentName);
+    var uid = req.users.id;
+    var label = _.get(req, 'body.packageInfo.label');
+    accountManager
+        .collaboratorCan(uid, appName)
+        .then((col) => {
+            return deploymentsManager
+                .findDeloymentByName(deploymentName, col.appid)
+                .then((deploymentInfo) => {
+                    if (_.isEmpty(deploymentInfo)) {
+                        throw new AppError('does not find the deployment');
+                    }
+                    if (label) {
                         return packageManager
-                            .modifyReleasePackage(packageInfo.id, _.get(req, 'body.packageInfo'))
-                            .then(() => {
-                                //clear cache if exists.
-                                if (_.get(config, 'common.updateCheckCache', false) !== false) {
-                                    delay(2500).then(() => {
-                                        clientManager.clearUpdateCheckCache(
-                                            deploymentInfo.deployment_key,
-                                            '*',
-                                            '*',
-                                            '*',
-                                        );
-                                    });
-                                }
+                            .findPackageInfoByDeploymentIdAndLabel(deploymentInfo.id, label)
+                            .then((data) => {
+                                return [deploymentInfo, data];
                             });
-                    });
-            })
-            .then((data) => {
-                res.send('');
-            })
-            .catch((e) => {
-                if (e instanceof AppError) {
-                    res.status(406).send(e.message);
-                } else {
-                    next(e);
-                }
-            });
-    },
-);
+                    } else {
+                        var deploymentVersionId = deploymentInfo.last_deployment_version_id;
+                        return packageManager
+                            .findLatestPackageInfoByDeployVersion(deploymentVersionId)
+                            .then((data) => {
+                                return [deploymentInfo, data];
+                            });
+                    }
+                })
+                .then(([deploymentInfo, packageInfo]) => {
+                    if (!packageInfo) {
+                        throw new AppError('does not find the packageInfo');
+                    }
+                    return packageManager
+                        .modifyReleasePackage(packageInfo.id, _.get(req, 'body.packageInfo'))
+                        .then(() => {
+                            //clear cache if exists.
+                            if (_.get(config, 'common.updateCheckCache', false) !== false) {
+                                delay(2500).then(() => {
+                                    clientManager.clearUpdateCheckCache(
+                                        deploymentInfo.deployment_key,
+                                        '*',
+                                        '*',
+                                        '*',
+                                    );
+                                });
+                            }
+                        });
+                });
+        })
+        .then((data) => {
+            res.send('');
+        })
+        .catch((e) => {
+            if (e instanceof AppError) {
+                res.status(406).send(e.message);
+            } else {
+                next(e);
+            }
+        });
+});
 
 router.post(
     '/:appName/deployments/:sourceDeploymentName/promote/:destDeploymentName',
-    middleware.checkToken,
+    checkToken,
     (req, res, next) => {
         logger.debug('req.body:', req.body);
         var appName = _.trim(req.params.appName);
@@ -595,15 +574,11 @@ var rollbackCb = function (req, res, next) {
         });
 };
 
-router.post('/:appName/deployments/:deploymentName/rollback', middleware.checkToken, rollbackCb);
+router.post('/:appName/deployments/:deploymentName/rollback', checkToken, rollbackCb);
 
-router.post(
-    '/:appName/deployments/:deploymentName/rollback/:label',
-    middleware.checkToken,
-    rollbackCb,
-);
+router.post('/:appName/deployments/:deploymentName/rollback/:label', checkToken, rollbackCb);
 
-router.get('/:appName/collaborators', middleware.checkToken, (req, res, next) => {
+router.get('/:appName/collaborators', checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var uid = req.users.id;
     accountManager
@@ -636,7 +611,7 @@ router.get('/:appName/collaborators', middleware.checkToken, (req, res, next) =>
         });
 });
 
-router.post('/:appName/collaborators/:email', middleware.checkToken, (req, res, next) => {
+router.post('/:appName/collaborators/:email', checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var email = _.trim(req.params.email);
     var uid = req.users.id;
@@ -662,7 +637,7 @@ router.post('/:appName/collaborators/:email', middleware.checkToken, (req, res, 
         });
 });
 
-router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res, next) => {
+router.delete('/:appName/collaborators/:email', checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var email = _.trim(decodeURI(req.params.email));
     var uid = req.users.id;
@@ -692,7 +667,7 @@ router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res
         });
 });
 
-router.delete('/:appName', middleware.checkToken, (req, res, next) => {
+router.delete('/:appName', checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var uid = req.users.id;
     logger.info('try remove app', {
@@ -722,7 +697,7 @@ router.delete('/:appName', middleware.checkToken, (req, res, next) => {
         });
 });
 
-router.patch('/:appName', middleware.checkToken, (req, res, next) => {
+router.patch('/:appName', checkToken, (req, res, next) => {
     var newAppName = _.trim(req.body.name);
     var appName = _.trim(req.params.appName);
     var uid = req.users.id;
@@ -763,7 +738,7 @@ router.patch('/:appName', middleware.checkToken, (req, res, next) => {
     }
 });
 
-router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next) => {
+router.post('/:appName/transfer/:email', checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var email = _.trim(req.params.email);
     var uid = req.users.id;
@@ -792,7 +767,7 @@ router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next)
         });
 });
 
-router.post('/', middleware.checkToken, (req, res, next) => {
+router.post('/', checkToken, (req, res, next) => {
     var uid = req.users.id;
     logger.info('try add app', {
         uid,

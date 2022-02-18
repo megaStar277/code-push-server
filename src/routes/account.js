@@ -1,9 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var middleware = require('../core/middleware');
-var { logger } = require('kv-logger');
+import express from 'express';
+import { logger } from 'kv-logger';
+import { checkToken } from '../core/middleware';
 
-router.get('/', middleware.checkToken, (req, res) => {
+const router = express.Router();
+
+router.get('/', checkToken, (req, res) => {
     var userInfo = {
         email: req.users.email,
         linkedProviders: [],

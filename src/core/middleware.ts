@@ -1,16 +1,15 @@
-import { Op } from 'sequelize';
+import jwt from 'jsonwebtoken';
 import _ from 'lodash';
 import moment from 'moment';
+import { Op } from 'sequelize';
 import { UserTokens } from '../models/user_tokens';
 import { Users } from '../models/users';
-import { config } from '../core/config';
 import { AppError, Unauthorized } from './app-error';
-import { parseToken, md5 } from '../core/utils/security';
+import { config } from './config';
+import { parseToken, md5 } from './utils/security';
 
-var middleware = module.exports;
-
-var checkAuthToken = function (authToken) {
-    var objToken = parseToken(authToken);
+function checkAuthToken(authToken) {
+    const objToken = parseToken(authToken);
     return Users.findOne({
         where: { identical: objToken.identical },
     })
@@ -36,24 +35,25 @@ var checkAuthToken = function (authToken) {
         .then((users) => {
             return users;
         });
-};
+}
 
-var checkAccessToken = function (accessToken) {
+function checkAccessToken(accessToken) {
     return new Promise((resolve, reject) => {
         if (_.isEmpty(accessToken)) {
-            return reject(new Unauthorized());
+            reject(new Unauthorized());
+            return;
         }
-        var tokenSecret = _.get(config, 'jwt.tokenSecret');
-        var jwt = require('jsonwebtoken');
+        let authData;
         try {
-            var authData = jwt.verify(accessToken, tokenSecret);
+            authData = jwt.verify(accessToken, config.jwt.tokenSecret);
         } catch (e) {
-            return reject(new Unauthorized());
+            reject(new Unauthorized());
+            return;
         }
-        var uid = _.get(authData, 'uid', null);
-        var hash = _.get(authData, 'hash', null);
-        if (parseInt(uid) > 0) {
-            return Users.findOne({
+        const uid = _.get(authData, 'uid', null);
+        const hash = _.get(authData, 'hash', null);
+        if (parseInt(uid, 10) > 0) {
+            Users.findOne({
                 where: { id: uid },
             })
                 .then((users) => {
@@ -68,18 +68,18 @@ var checkAccessToken = function (accessToken) {
                 .catch((e) => {
                     reject(e);
                 });
-        } else {
-            reject(new Unauthorized());
+            return;
         }
+        reject(new Unauthorized());
     });
-};
+}
 
-middleware.checkToken = function (req, res, next) {
-    var authArr = _.split(req.get('Authorization'), ' ');
-    var authType = 1;
-    var authToken = null;
+export function checkToken(req, res, next) {
+    const authArr = _.split(req.get('Authorization'), ' ');
+    let authType = 1;
+    let authToken = '';
     if (_.eq(authArr[0], 'Bearer')) {
-        authToken = authArr[1]; //Bearer
+        [, authToken] = authArr; // Bearer
         if (authToken && authToken.length > 64) {
             authType = 2;
         } else {
@@ -87,11 +87,11 @@ middleware.checkToken = function (req, res, next) {
         }
     } else if (_.eq(authArr[0], 'Basic')) {
         authType = 2;
-        var b = Buffer.from(authArr[1], 'base64');
-        var user = _.split(b.toString(), ':');
-        authToken = _.get(user, '1');
+        const b = Buffer.from(authArr[1], 'base64');
+        const user = _.split(b.toString(), ':');
+        [, authToken] = user;
     }
-    if (authToken && authType == 1) {
+    if (authToken && authType === 1) {
         checkAuthToken(authToken)
             .then((users) => {
                 req.users = users;
@@ -105,7 +105,7 @@ middleware.checkToken = function (req, res, next) {
                     next(e);
                 }
             });
-    } else if (authToken && authType == 2) {
+    } else if (authToken && authType === 2) {
         checkAccessToken(authToken)
             .then((users) => {
                 req.users = users;
@@ -122,4 +122,4 @@ middleware.checkToken = function (req, res, next) {
     } else {
         res.send(new Unauthorized(`Auth type not supported.`));
     }
-};
+}

@@ -5,12 +5,11 @@ import { UserTokens } from '../models/user_tokens';
 import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
 import { randToken } from '../core/utils/security';
-
-var middleware = require('../core/middleware');
+import { checkToken } from '../core/middleware';
 
 const router = express.Router();
 
-router.get('/', middleware.checkToken, (req, res, next) => {
+router.get('/', checkToken, (req, res, next) => {
     logger.debug('request get acceesKeys');
     var uid = req.users.id;
     accountManager
@@ -24,7 +23,7 @@ router.get('/', middleware.checkToken, (req, res, next) => {
         });
 });
 
-router.post('/', middleware.checkToken, (req, res, next) => {
+router.post('/', checkToken, (req, res, next) => {
     var uid = req.users.id;
     var identical = req.users.identical;
     var createdBy = _.trim(req.body.createdBy);
@@ -83,7 +82,7 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         });
 });
 
-router.delete('/:name', middleware.checkToken, (req, res, next) => {
+router.delete('/:name', checkToken, (req, res, next) => {
     var name = _.trim(decodeURI(req.params.name));
     var uid = req.users.id;
     return UserTokens.destroy({ where: { name: name, uid: uid } })

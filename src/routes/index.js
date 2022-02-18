@@ -1,11 +1,9 @@
 import express from 'express';
 import _ from 'lodash';
 import { logger } from 'kv-logger';
-
 import { AppError } from '../core/app-error';
 import { clientManager } from '../core/services/client-manager';
-
-var middleware = require('../core/middleware');
+import { checkToken } from '../core/middleware';
 
 const router = express.Router();
 
@@ -86,7 +84,7 @@ router.post('/reportStatus/deploy', (req, res) => {
     res.send('OK');
 });
 
-router.get('/authenticated', middleware.checkToken, (req, res) => {
+router.get('/authenticated', checkToken, (req, res) => {
     return res.send({ authenticated: true });
 });
 

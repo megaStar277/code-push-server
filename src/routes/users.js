@@ -1,16 +1,14 @@
 import express from 'express';
 import { logger } from 'kv-logger';
 import _ from 'lodash';
-
 import { Users } from '../models/users';
 import { AppError } from '../core/app-error';
 import { accountManager } from '../core/services/account-manager';
-
-var middleware = require('../core/middleware');
+import { checkToken } from '../core/middleware';
 
 const router = express.Router();
 
-router.get('/', middleware.checkToken, (req, res) => {
+router.get('/', checkToken, (req, res) => {
     res.send({ title: 'CodePushServer' });
 });
 
@@ -93,7 +91,7 @@ router.get('/registerCode/exists', (req, res, next) => {
 });
 
 //修改密码
-router.patch('/password', middleware.checkToken, (req, res, next) => {
+router.patch('/password', checkToken, (req, res, next) => {
     var oldPassword = _.trim(_.get(req, 'body.oldPassword'));
     var newPassword = _.trim(_.get(req, 'body.newPassword'));
     var uid = req.users.id;
