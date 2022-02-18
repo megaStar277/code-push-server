@@ -1,10 +1,11 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../core/utils/connections';
 
-interface CollaboratorsInterface extends Model {
+export interface CollaboratorsInterface extends Model {
     id: number;
     appid: number;
     uid: number;
+    roles: string;
     created_at: Date;
     updated_at: Date;
 }

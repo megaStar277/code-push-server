@@ -22,10 +22,10 @@ import {
 } from '../core/const';
 import { deleteFolderSync } from '../core/utils/common';
 import { appManager } from '../core/services/app-manager';
+import { collaboratorsManager } from '../core/services/collaborators-manager';
 
 var middleware = require('../core/middleware');
 var Deployments = require('../core/services/deployments');
-var Collaborators = require('../core/services/collaborators');
 
 const router = express.Router();
 
@@ -617,11 +617,10 @@ router.post(
 router.get('/:appName/collaborators', middleware.checkToken, (req, res, next) => {
     var appName = _.trim(req.params.appName);
     var uid = req.users.id;
-    var collaborators = new Collaborators();
     accountManager
         .collaboratorCan(uid, appName)
         .then((col) => {
-            return collaborators.listCollaborators(col.appid);
+            return collaboratorsManager.listCollaborators(col.appid);
         })
         .then((data) => {
             const rs = _.reduce(
@@ -655,12 +654,11 @@ router.post('/:appName/collaborators/:email', middleware.checkToken, (req, res, 
     if (!validator.isEmail(email)) {
         return res.status(406).send('Invalid Email!');
     }
-    var collaborators = new Collaborators();
     accountManager
         .ownerCan(uid, appName)
         .then((col) => {
             return accountManager.findUserByEmail(email).then((data) => {
-                return collaborators.addCollaborator(col.appid, data.id);
+                return collaboratorsManager.addCollaborator(col.appid, data.id);
             });
         })
         .then((data) => {
@@ -682,7 +680,6 @@ router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res
     if (!validator.isEmail(email)) {
         return res.status(406).send('Invalid Email!');
     }
-    var collaborators = new Collaborators();
     accountManager
         .ownerCan(uid, appName)
         .then((col) => {
@@ -690,7 +687,7 @@ router.delete('/:appName/collaborators/:email', middleware.checkToken, (req, res
                 if (_.eq(data.id, uid)) {
                     throw new AppError("can't delete yourself!");
                 } else {
-                    return collaborators.deleteCollaborator(col.appid, data.id);
+                    return collaboratorsManager.deleteCollaborator(col.appid, data.id);
                 }
             });
         })
