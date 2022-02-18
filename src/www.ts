@@ -77,7 +77,7 @@ Versions.findOne({ where: { type: 1 } })
 
         server.on('listening', () => {
             const addr = server.address();
-            logger.info(`server is listening on ${addr}`);
+            logger.info(`server is listening on ${JSON.stringify(addr)}`);
         });
     })
     .catch((e) => {
