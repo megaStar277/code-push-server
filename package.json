@@ -41,7 +41,7 @@
     "aliyun-sdk": "1.12.4",
     "aws-sdk": "2.1072.0",
     "bcryptjs": "2.4.3",
-    "body-parser": "1.19.1",
+    "body-parser": "1.19.2",
     "cookie-parser": "1.4.6",
     "cos-nodejs-sdk-v5": "2.11.6",
     "express": "4.17.3",
