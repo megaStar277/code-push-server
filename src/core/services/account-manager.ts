@@ -2,7 +2,6 @@ import { logger } from 'kv-logger';
 import _ from 'lodash';
 import moment from 'moment';
 import validator from 'validator';
-
 import { findCollaboratorsByAppNameAndUid } from '../../models/collaborators';
 import { UserTokens } from '../../models/user_tokens';
 import { Users } from '../../models/users';
@@ -10,8 +9,7 @@ import { AppError } from '../app-error';
 import { config } from '../config';
 import { redisClient } from '../utils/connections';
 import { passwordVerifySync, randToken, md5, passwordHashSync } from '../utils/security';
-
-const EmailManager = require('./email-manager');
+import { emailManager } from './email-manager';
 
 const loginLimitPre = 'LOGIN_LIMIT_PRE_';
 const registerCode = 'REGISTER_CODE_';
@@ -172,8 +170,7 @@ class AccountManager {
             })
             .then((token) => {
                 // 将token发送到用户邮箱
-                const emailManager = new EmailManager();
-                return emailManager.sendRegisterCode(email, token);
+                return emailManager.sendRegisterCodeMail(email, token);
             });
     }
 

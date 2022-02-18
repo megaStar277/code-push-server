@@ -114,7 +114,7 @@ export const config = {
     // Config for smtp email，register module need validate user email project source https://github.com/nodemailer/nodemailer
     smtpConfig: {
         host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT || 465,
+        port: toNumber(process.env.SMTP_PORT, 465),
         secure: true,
         auth: {
             user: process.env.SMTP_USERNAME,
