@@ -59,9 +59,9 @@ class AccountManager {
             return _.map(tokens, (v) => {
                 return {
                     name: '(hidden)',
-                    createdTime: moment(v.created_at).unix(),
+                    createdTime: moment(v.created_at).valueOf(),
                     createdBy: v.created_by,
-                    expires: moment(v.expires_at).unix(),
+                    expires: moment(v.expires_at).valueOf(),
                     friendlyName: v.name,
                     description: v.description,
                 };

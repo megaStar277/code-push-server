@@ -23,9 +23,9 @@ import {
 import { deleteFolderSync } from '../core/utils/common';
 import { appManager } from '../core/services/app-manager';
 import { collaboratorsManager } from '../core/services/collaborators-manager';
+import { deploymentsManager } from '../core/services/deployments-manager';
 
 var middleware = require('../core/middleware');
-var Deployments = require('../core/services/deployments');
 
 const router = express.Router();
 
@@ -54,11 +54,10 @@ router.get('/', middleware.checkToken, (req, res, next) => {
 router.get('/:appName/deployments', middleware.checkToken, (req, res, next) => {
     var uid = req.users.id;
     var appName = _.trim(req.params.appName);
-    var deployments = new Deployments();
     accountManager
         .collaboratorCan(uid, appName)
         .then((col) => {
-            return deployments.listDeloyments(col.appid);
+            return deploymentsManager.listDeloyments(col.appid);
         })
         .then((data) => {
             res.send({ deployments: data });
@@ -76,17 +75,17 @@ router.get('/:appName/deployments/:deploymentName', middleware.checkToken, (req,
     var uid = req.users.id;
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
-    var deployments = new Deployments();
     accountManager
         .collaboratorCan(uid, appName)
         .then((col) => {
-            return deployments.findDeloymentByName(deploymentName, col.appid);
+            return deploymentsManager.findDeloymentByName(deploymentName, col.appid);
         })
         .then((deploymentInfo) => {
             if (_.isEmpty(deploymentInfo)) {
                 throw new AppError('does not find the deployment');
             }
-            res.send({ deployment: deployments.listDeloyment(deploymentInfo) });
+            // TODO: check if this works as expected
+            res.send({ deployment: deploymentsManager.listDeloyment(deploymentInfo) });
             return true;
         })
         .catch((e) => {
@@ -102,11 +101,10 @@ router.post('/:appName/deployments', middleware.checkToken, (req, res, next) => 
     var uid = req.users.id;
     var appName = _.trim(req.params.appName);
     var name = req.body.name;
-    var deployments = new Deployments();
     accountManager
         .ownerCan(uid, appName)
         .then((col) => {
-            return deployments.addDeloyment(name, col.appid, uid);
+            return deploymentsManager.addDeloyment(name, col.appid, uid);
         })
         .then((data) => {
             res.send({ deployment: { name: data.name, key: data.deployment_key } });
@@ -127,11 +125,10 @@ router.get(
         var uid = req.users.id;
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
-        var deployments = new Deployments();
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
-                return deployments
+                return deploymentsManager
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
@@ -141,7 +138,7 @@ router.get(
                     });
             })
             .then((deploymentInfo) => {
-                return deployments.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
+                return deploymentsManager.getAllPackageIdsByDeploymentsId(deploymentInfo.id);
             })
             .then((packagesInfos) => {
                 return packagesInfos.reduce((prev, v) => {
@@ -180,11 +177,10 @@ router.get(
         var uid = req.users.id;
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
-        var deployments = new Deployments();
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
-                return deployments
+                return deploymentsManager
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
@@ -194,7 +190,7 @@ router.get(
                     });
             })
             .then((deploymentInfo) => {
-                return deployments.getDeploymentHistory(deploymentInfo.id);
+                return deploymentsManager.getDeploymentHistory(deploymentInfo.id);
             })
             .then((rs) => {
                 res.send({ history: _.pullAll(rs, [null, false]) });
@@ -216,11 +212,10 @@ router.delete(
         var uid = req.users.id;
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
-        var deployments = new Deployments();
         accountManager
             .ownerCan(uid, appName)
             .then((col) => {
-                return deployments
+                return deploymentsManager
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
@@ -230,7 +225,7 @@ router.delete(
                     });
             })
             .then((deploymentInfo) => {
-                return deployments.deleteDeploymentHistory(deploymentInfo.id);
+                return deploymentsManager.deleteDeploymentHistory(deploymentInfo.id);
             })
             .then((rs) => {
                 res.send('ok');
@@ -250,11 +245,10 @@ router.patch('/:appName/deployments/:deploymentName', middleware.checkToken, (re
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
     var uid = req.users.id;
-    var deployments = new Deployments();
     accountManager
         .ownerCan(uid, appName)
         .then((col) => {
-            return deployments.renameDeloymentByName(deploymentName, col.appid, name);
+            return deploymentsManager.renameDeloymentByName(deploymentName, col.appid, name);
         })
         .then((data) => {
             res.send({ deployment: data });
@@ -272,11 +266,10 @@ router.delete('/:appName/deployments/:deploymentName', middleware.checkToken, (r
     var appName = _.trim(req.params.appName);
     var deploymentName = _.trim(req.params.deploymentName);
     var uid = req.users.id;
-    var deployments = new Deployments();
     accountManager
         .ownerCan(uid, appName)
         .then((col) => {
-            return deployments.deleteDeloymentByName(deploymentName, col.appid);
+            return deploymentsManager.deleteDeloymentByName(deploymentName, col.appid);
         })
         .then((data) => {
             res.send({ deployment: data });
@@ -303,7 +296,6 @@ router.post(
             appName,
             deploymentName,
         });
-        var deployments = new Deployments();
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
@@ -313,7 +305,7 @@ router.post(
                     deploymentName,
                 });
 
-                return deployments
+                return deploymentsManager
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
@@ -408,12 +400,11 @@ router.patch(
         var appName = _.trim(req.params.appName);
         var deploymentName = _.trim(req.params.deploymentName);
         var uid = req.users.id;
-        var deployments = new Deployments();
         var label = _.get(req, 'body.packageInfo.label');
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
-                return deployments
+                return deploymentsManager
                     .findDeloymentByName(deploymentName, col.appid)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
@@ -477,14 +468,13 @@ router.post(
         var sourceDeploymentName = _.trim(req.params.sourceDeploymentName);
         var destDeploymentName = _.trim(req.params.destDeploymentName);
         var uid = req.users.id;
-        var deployments = new Deployments();
         accountManager
             .collaboratorCan(uid, appName)
             .then((col) => {
                 var appId = col.appid;
                 return Promise.all([
-                    deployments.findDeloymentByName(sourceDeploymentName, appId),
-                    deployments.findDeloymentByName(destDeploymentName, appId),
+                    deploymentsManager.findDeloymentByName(sourceDeploymentName, appId),
+                    deploymentsManager.findDeloymentByName(destDeploymentName, appId),
                 ])
                     .then(([sourceDeploymentInfo, destDeploymentInfo]) => {
                         if (!sourceDeploymentInfo) {
@@ -559,11 +549,10 @@ var rollbackCb = function (req, res, next) {
         deploymentName,
         targetLabel,
     });
-    var deployments = new Deployments();
     accountManager
         .collaboratorCan(uid, appName)
         .then((col) => {
-            return deployments.findDeloymentByName(deploymentName, col.appid);
+            return deploymentsManager.findDeloymentByName(deploymentName, col.appid);
         })
         .then((dep) => {
             return packageManager

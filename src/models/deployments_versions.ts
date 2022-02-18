@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../core/utils/connections';
 
-interface DeploymentsVersionsInterface extends Model {
+export interface DeploymentsVersionsInterface extends Model {
     id: number;
     deployment_id: number;
     app_version: string;
