@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../core/utils/connections';
 
-interface AppsInterface extends Model {
+export interface AppsInterface extends Model {
     id: number;
     name: string;
     uid: number;

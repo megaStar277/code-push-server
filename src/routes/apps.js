@@ -21,11 +21,11 @@ import {
     CORDOVA_NAME,
 } from '../core/const';
 import { deleteFolderSync } from '../core/utils/common';
+import { appManager } from '../core/services/app-manager';
 
 var middleware = require('../core/middleware');
 var Deployments = require('../core/services/deployments');
 var Collaborators = require('../core/services/collaborators');
-var AppManager = require('../core/services/app-manager');
 
 const router = express.Router();
 
@@ -37,7 +37,6 @@ function delay(ms) {
 
 router.get('/', middleware.checkToken, (req, res, next) => {
     var uid = req.users.id;
-    var appManager = new AppManager();
     appManager
         .listApps(uid)
         .then((data) => {
@@ -715,7 +714,6 @@ router.delete('/:appName', middleware.checkToken, (req, res, next) => {
         appName,
     });
 
-    var appManager = new AppManager();
     accountManager
         .ownerCan(uid, appName)
         .then((col) => {
@@ -750,7 +748,6 @@ router.patch('/:appName', middleware.checkToken, (req, res, next) => {
     if (_.isEmpty(newAppName)) {
         return res.status(406).send('Please input name!');
     } else {
-        var appManager = new AppManager();
         return accountManager
             .ownerCan(uid, appName)
             .then((col) => {
@@ -794,7 +791,6 @@ router.post('/:appName/transfer/:email', middleware.checkToken, (req, res, next)
                 if (_.eq(data.id, uid)) {
                     throw new AppError("You can't transfer to yourself!");
                 }
-                var appManager = new AppManager();
                 return appManager.transferApp(col.appid, uid, data.id);
             });
         })
@@ -841,7 +837,6 @@ router.post('/', middleware.checkToken, (req, res, next) => {
         return res.status(406).send('Please input platform [React-Native|Cordova]!');
     }
     var manuallyProvisionDeployments = req.body.manuallyProvisionDeployments;
-    var appManager = new AppManager();
 
     appManager
         .findAppByName(uid, appName)
