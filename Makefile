@@ -7,6 +7,12 @@ test:
 	@mocha tests/api/init --exit
 	@mocha tests/api/users tests/api/auth tests/api/account tests/api/accessKeys tests/api/apps tests/api/index --exit --recursive --timeout 30000
 
+.PHONY: coverage
+coverage:
+	@echo "\nCheck test coverage..."
+	@mocha tests/api/init --exit
+	@nyc mocha tests/api/users tests/api/auth tests/api/account tests/api/accessKeys tests/api/apps tests/api/index --exit --recursive --timeout 30000
+
 .PHONY: release-docker
 release-docker:
 	@echo "\nBuilding docker image..."
