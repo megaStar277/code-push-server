@@ -8,13 +8,13 @@ import { logger } from 'kv-logger';
 import { AppError, NotFound } from './core/app-error';
 import { config } from './core/config';
 import { Req, Res, withLogger } from './core/middleware';
+import routes from './routes/index';
+import indexV1 from './routes/indexV1';
 
 const accessKeys = require('./routes/accessKeys');
 const account = require('./routes/account');
 const apps = require('./routes/apps');
 const auth = require('./routes/auth');
-const routes = require('./routes/index');
-const indexV1 = require('./routes/indexV1');
 const users = require('./routes/users');
 
 export const app = express();

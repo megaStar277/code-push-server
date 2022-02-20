@@ -1,4 +1,4 @@
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import { Op } from 'sequelize';
 import { Deployments } from '../../models/deployments';
@@ -18,12 +18,30 @@ const updateCheck = 'UPDATE_CHECK';
 const chosenMan = 'CHOSEN_MAN';
 const expired = 600;
 
+interface UpdateCheckInfo {
+    packageId: number;
+    downloadURL: string;
+    downloadUrl: string;
+    description: string;
+    isAvailable: boolean;
+    isDisabled: boolean;
+    isMandatory: boolean;
+    appVersion: string;
+    targetBinaryRange: string;
+    packageHash: string;
+    label: string;
+    packageSize: number;
+    updateAppVersion: boolean;
+    shouldRunBinaryVersion: boolean;
+    rollout: number;
+}
+
 class ClientManager {
-    getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash) {
+    private getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash) {
         return [updateCheck, deploymentKey, appVersion, label, packageHash].join(':');
     }
 
-    clearUpdateCheckCache(deploymentKey, appVersion, label, packageHash) {
+    clearUpdateCheckCache(deploymentKey, appVersion, label, packageHash, logger: Logger) {
         logger.debug('clear cache Deployments key:', {
             key: deploymentKey,
         });
@@ -45,10 +63,23 @@ class ClientManager {
         });
     }
 
-    updateCheckFromCache(deploymentKey, appVersion, label, packageHash, clientUniqueId) {
-        const updateCheckCache = _.get(config, 'common.updateCheckCache', false);
-        if (updateCheckCache === false) {
-            return this.updateCheck(deploymentKey, appVersion, label, packageHash, clientUniqueId);
+    updateCheckFromCache(
+        deploymentKey: string,
+        appVersion: string,
+        label: string,
+        packageHash: string,
+        clientUniqueId: string,
+        logger: Logger,
+    ) {
+        if (!config.common.updateCheckCache) {
+            return this.updateCheck(
+                deploymentKey,
+                appVersion,
+                label,
+                packageHash,
+                clientUniqueId,
+                logger,
+            );
         }
         const redisCacheKey = this.getUpdateCheckCacheKey(
             deploymentKey,
@@ -59,8 +90,8 @@ class ClientManager {
         return redisClient.get(redisCacheKey).then((data) => {
             if (data) {
                 try {
-                    logger.debug('updateCheckFromCache read from catch');
-                    const obj = JSON.parse(data);
+                    logger.debug('updateCheckFromCache read from cache');
+                    const obj = JSON.parse(data) as UpdateCheckInfo;
                     return obj;
                 } catch (e) {
                     // do nothing
@@ -72,6 +103,7 @@ class ClientManager {
                 label,
                 packageHash,
                 clientUniqueId,
+                logger,
             ).then((rs) => {
                 try {
                     logger.debug('updateCheckFromCache read from db');
@@ -85,11 +117,11 @@ class ClientManager {
         });
     }
 
-    getChosenManCacheKey(packageId, rollout, clientUniqueId) {
+    private getChosenManCacheKey(packageId, rollout, clientUniqueId) {
         return [chosenMan, packageId, rollout, clientUniqueId].join(':');
     }
 
-    random(rollout) {
+    private random(rollout) {
         const r = Math.ceil(Math.random() * 10000);
         if (r < rollout * 100) {
             return Promise.resolve(true);
@@ -127,9 +159,17 @@ class ClientManager {
         });
     }
 
-    // eslint-disable-next-line max-lines-per-function, @typescript-eslint/no-unused-vars
-    updateCheck(deploymentKey: string, appVersion, label, packageHash, clientUniqueId: string) {
-        const rs = {
+    // eslint-disable-next-line max-lines-per-function
+    private updateCheck(
+        deploymentKey: string,
+        appVersion: string,
+        label: string,
+        packageHash: string,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        clientUniqueId: string,
+        logger: Logger,
+    ) {
+        const rs: UpdateCheckInfo = {
             packageId: 0,
             downloadURL: '',
             downloadUrl: '',
@@ -239,7 +279,7 @@ class ClientManager {
             });
     }
 
-    getPackagesInfo(deploymentKey, label) {
+    private getPackagesInfo(deploymentKey, label) {
         if (_.isEmpty(deploymentKey) || _.isEmpty(label)) {
             return Promise.reject(new AppError('please input deploymentKey and label'));
         }

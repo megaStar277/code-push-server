@@ -14,7 +14,7 @@ import { parseToken, md5 } from './utils/security';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface Req<P = Record<string, string>, B = any, Q = Record<string, string | string[]>>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    extends Request<P, any, B, Q> {
+    extends Request<P, any, B, Partial<Q>> {
     users: UsersInterface;
     logger: Logger;
 }

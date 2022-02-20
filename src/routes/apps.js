@@ -349,6 +349,7 @@ router.post('/:appName/deployments/:deploymentName/release', checkToken, (req, r
                                         '*',
                                         '*',
                                         '*',
+                                        logger,
                                     );
                                 });
                             }
@@ -420,6 +421,7 @@ router.patch('/:appName/deployments/:deploymentName/release', checkToken, (req, 
                                         '*',
                                         '*',
                                         '*',
+                                        logger,
                                     );
                                 });
                             }
@@ -498,6 +500,7 @@ router.post(
                                     '*',
                                     '*',
                                     '*',
+                                    logger,
                                 );
                             });
                         }
@@ -549,7 +552,13 @@ var rollbackCb = function (req, res, next) {
                     //clear cache if exists.
                     if (_.get(config, 'common.updateCheckCache', false) !== false) {
                         delay(2500).then(() => {
-                            clientManager.clearUpdateCheckCache(dep.deployment_key, '*', '*', '*');
+                            clientManager.clearUpdateCheckCache(
+                                dep.deployment_key,
+                                '*',
+                                '*',
+                                '*',
+                                logger,
+                            );
                         });
                     }
                     return packageInfo;
