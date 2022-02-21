@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/shm-open/code-push-server/compare/v2.0.0...v2.0.1) (2022-02-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency aws-sdk to v2.1077.0 ([fd22283](https://github.com/shm-open/code-push-server/commit/fd22283882e2462423bc25efa27c6b707957b41e))
+* **deps:** update dependency body-parser to v1.19.2 ([19d8acd](https://github.com/shm-open/code-push-server/commit/19d8acd994538cb683dc319e0f0aa164c75a882f))
+* **deps:** update dependency express to v4.17.3 ([915fd25](https://github.com/shm-open/code-push-server/commit/915fd25fedff2246d93c051bc7a56db52cbd61b7))
+* **deps:** update dependency kv-logger to v0.5.3 ([e7d2e0f](https://github.com/shm-open/code-push-server/commit/e7d2e0f28e1989227582505397139e0db617424d))
+* **deps:** update dependency sequelize to v6.16.2 ([ceb3e3e](https://github.com/shm-open/code-push-server/commit/ceb3e3ebac22983805d5dfa992c27c03f3da2f1f))
+* **deps:** update kv-logger to 0.5.1 ([6289835](https://github.com/shm-open/code-push-server/commit/6289835990e1ae964378fc28d2037d1ce752107a))
+* **deps:** update kv-logger to 0.5.2 and fix build issue ([cae80fe](https://github.com/shm-open/code-push-server/commit/cae80fe5ba00c920b79df3422fb8c86424a6dc07))
+* put x-request-id to res header ([e9c13a5](https://github.com/shm-open/code-push-server/commit/e9c13a5ea6cb48e8338cb3314312fce51587b631))
+
 ## [2.0.0](https://github.com/shm-open/code-push-server/compare/v1.2.0...v2.0.0) (2022-02-10)
 
 
