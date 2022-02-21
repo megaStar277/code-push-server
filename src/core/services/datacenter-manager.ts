@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import { AppError } from '../app-error';
 import { config } from '../config';
@@ -48,7 +48,7 @@ class DataCenterManager {
         };
     }
 
-    validateStore(providePackageHash: string) {
+    validateStore(providePackageHash: string, logger: Logger) {
         const dataDir = this.getDataDir();
         const packageHashPath = path.join(dataDir, providePackageHash);
         const manifestFile = path.join(packageHashPath, manifestFilename);
@@ -79,14 +79,14 @@ class DataCenterManager {
         });
     }
 
-    storePackage(sourceDst: string, force = false) {
+    storePackage(sourceDst: string, force: boolean, logger: Logger) {
         return calcAllFileSha256(sourceDst).then((manifestJson) => {
             const packageHash = packageHashSync(manifestJson);
             const dataDir = this.getDataDir();
             const packageHashPath = path.join(dataDir, packageHash);
             const manifestFile = path.join(packageHashPath, manifestFilename);
             const contentPath = path.join(packageHashPath, contentsName);
-            return this.validateStore(packageHash).then((isValidate) => {
+            return this.validateStore(packageHash, logger).then((isValidate) => {
                 if (!force && isValidate) {
                     return this.buildPackageInfo(
                         packageHash,

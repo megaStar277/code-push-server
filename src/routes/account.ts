@@ -5,11 +5,11 @@ export const accountRouter = express.Router();
 
 accountRouter.get('/', checkToken, (req: Req, res) => {
     const { logger } = req;
-    const userInfo = {
+    const account = {
         email: req.users.email,
         linkedProviders: [],
         name: req.users.username,
     };
-    logger.info('check account info', userInfo);
-    res.send({ account: userInfo });
+    logger.info('check account info', { account });
+    res.send({ account });
 });

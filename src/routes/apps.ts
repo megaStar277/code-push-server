@@ -64,7 +64,7 @@ appsRouter.get('/:appName/deployments', checkToken, (req: Req<{ appName: string 
         appName,
     });
     accountManager
-        .collaboratorCan(uid, appName)
+        .collaboratorCan(uid, appName, logger)
         .then((col) => {
             return deploymentsManager.listDeloyments(col.appid);
         })
@@ -103,9 +103,9 @@ appsRouter.get(
             deploymentName,
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
-                return deploymentsManager.findDeloymentByName(deploymentName, col.appid);
+                return deploymentsManager.findDeloymentByName(deploymentName, col.appid, logger);
             })
             .then((deploymentInfo) => {
                 if (_.isEmpty(deploymentInfo)) {
@@ -152,7 +152,7 @@ appsRouter.post(
             deploymentName: name,
         });
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager.addDeloyment(name, col.appid, uid);
             })
@@ -195,10 +195,10 @@ appsRouter.get(
             deploymentName,
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
+                    .findDeloymentByName(deploymentName, col.appid, logger)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
                             throw new AppError('does not find the deployment');
@@ -282,10 +282,10 @@ appsRouter.get(
             deploymentName,
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
+                    .findDeloymentByName(deploymentName, col.appid, logger)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
                             throw new AppError('does not find the deployment');
@@ -336,10 +336,10 @@ appsRouter.delete(
             deploymentName,
         });
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
+                    .findDeloymentByName(deploymentName, col.appid, logger)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
                             throw new AppError('does not find the deployment');
@@ -392,7 +392,7 @@ appsRouter.patch(
             newName: name,
         });
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager.renameDeloymentByName(deploymentName, col.appid, name);
             })
@@ -438,7 +438,7 @@ appsRouter.delete(
             deploymentName,
         });
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager.deleteDeloymentByName(deploymentName, col.appid);
             })
@@ -483,7 +483,7 @@ appsRouter.post(
             deploymentName,
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
                 logger.info('release user check ok', {
                     uid,
@@ -492,7 +492,7 @@ appsRouter.post(
                 });
 
                 return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
+                    .findDeloymentByName(deploymentName, col.appid, logger)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
                             throw new AppError('does not find the deployment');
@@ -504,7 +504,7 @@ appsRouter.post(
                         });
 
                         return packageManager
-                            .parseReqFile(req)
+                            .parseReqFile(req, logger)
                             .then((data) => {
                                 if (data.package.mimetype !== 'application/zip') {
                                     throw new AppError(
@@ -524,6 +524,7 @@ appsRouter.post(
                                         data.packageInfo,
                                         data.package.filepath,
                                         uid,
+                                        logger,
                                     )
                                     .finally(() => {
                                         deleteFolderSync(data.package.filepath);
@@ -537,6 +538,7 @@ appsRouter.post(
                                                 deploymentInfo.appid,
                                                 packages,
                                                 config.common.diffNums,
+                                                logger,
                                             )
                                             .catch((e) => {
                                                 logger.error(e);
@@ -605,10 +607,10 @@ appsRouter.patch(
             body: JSON.stringify(body),
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
                 return deploymentsManager
-                    .findDeloymentByName(deploymentName, col.appid)
+                    .findDeloymentByName(deploymentName, col.appid, logger)
                     .then((deploymentInfo) => {
                         if (_.isEmpty(deploymentInfo)) {
                             throw new AppError('does not find the deployment');
@@ -623,7 +625,7 @@ appsRouter.patch(
                         }
                         const deploymentVersionId = deploymentInfo.last_deployment_version_id;
                         return packageManager
-                            .findLatestPackageInfoByDeployVersion(deploymentVersionId)
+                            .findLatestPackageInfoByDeployVersion(deploymentVersionId, logger)
                             .then((data) => {
                                 return [deploymentInfo, data] as const;
                             });
@@ -702,12 +704,12 @@ appsRouter.post(
             body: JSON.stringify(body),
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
                 const appId = col.appid;
                 return Promise.all([
-                    deploymentsManager.findDeloymentByName(sourceDeploymentName, appId),
-                    deploymentsManager.findDeloymentByName(destDeploymentName, appId),
+                    deploymentsManager.findDeloymentByName(sourceDeploymentName, appId, logger),
+                    deploymentsManager.findDeloymentByName(destDeploymentName, appId, logger),
                 ])
                     .then(([sourceDeploymentInfo, destDeploymentInfo]) => {
                         if (!sourceDeploymentInfo) {
@@ -723,7 +725,12 @@ appsRouter.post(
                         // TODO: define packageInfo interface in packageManager
                         _.set(promoteParams as any, 'promoteUid', uid);
                         return packageManager
-                            .promotePackage(sourceDeploymentInfo, destDeploymentInfo, promoteParams)
+                            .promotePackage(
+                                sourceDeploymentInfo,
+                                destDeploymentInfo,
+                                promoteParams,
+                                logger,
+                            )
                             .then((packages) => {
                                 return [packages, destDeploymentInfo] as const;
                             });
@@ -736,6 +743,7 @@ appsRouter.post(
                                         destDeploymentInfo.appid,
                                         packages,
                                         config.common.diffNums,
+                                        logger,
                                     )
                                     .catch((e) => {
                                         logger.error(e);
@@ -802,18 +810,18 @@ function rollbackCb(
         targetLabel,
     });
     accountManager
-        .collaboratorCan(uid, appName)
+        .collaboratorCan(uid, appName, logger)
         .then((col) => {
-            return deploymentsManager.findDeloymentByName(deploymentName, col.appid);
+            return deploymentsManager.findDeloymentByName(deploymentName, col.appid, logger);
         })
         .then((dep) => {
             return packageManager
-                .rollbackPackage(dep.last_deployment_version_id, targetLabel, uid)
+                .rollbackPackage(dep.last_deployment_version_id, targetLabel, uid, logger)
                 .then((packageInfo: PackagesInterface) => {
                     if (packageInfo) {
                         delay(1000).then(() => {
                             packageManager
-                                .createDiffPackagesByLastNums(dep.appid, packageInfo, 1)
+                                .createDiffPackagesByLastNums(dep.appid, packageInfo, 1, logger)
                                 .catch((e) => {
                                     logger.error(e);
                                 });
@@ -878,7 +886,7 @@ appsRouter.get(
             appName,
         });
         accountManager
-            .collaboratorCan(uid, appName)
+            .collaboratorCan(uid, appName, logger)
             .then((col) => {
                 return collaboratorsManager.listCollaborators(col.appid);
             })
@@ -942,7 +950,7 @@ appsRouter.post(
             return;
         }
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return accountManager.findUserByEmail(email).then((data) => {
                     return collaboratorsManager.addCollaborator(col.appid, data.id);
@@ -993,7 +1001,7 @@ appsRouter.delete(
             return;
         }
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return accountManager.findUserByEmail(email).then((data) => {
                     if (_.eq(data.id, uid)) {
@@ -1039,7 +1047,7 @@ appsRouter.delete('/:appName', checkToken, (req: Req<{ appName: string }>, res, 
     });
 
     accountManager
-        .ownerCan(uid, appName)
+        .ownerCan(uid, appName, logger)
         .then((col) => {
             return appManager.deleteApp(col.appid);
         })
@@ -1081,7 +1089,7 @@ appsRouter.patch('/:appName', checkToken, (req: Req<{ appName }, { name }>, res,
         return;
     }
     accountManager
-        .ownerCan(uid, appName)
+        .ownerCan(uid, appName, logger)
         .then((col) => {
             return appManager.findAppByName(uid, newAppName).then((appInfo) => {
                 if (!_.isEmpty(appInfo)) {
@@ -1133,7 +1141,7 @@ appsRouter.post(
             return;
         }
         accountManager
-            .ownerCan(uid, appName)
+            .ownerCan(uid, appName, logger)
             .then((col) => {
                 return accountManager.findUserByEmail(email).then((data) => {
                     if (_.eq(data.id, uid)) {

@@ -1,4 +1,4 @@
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import moment from 'moment';
 import validator from 'validator';
@@ -17,7 +17,7 @@ const expired = 1200;
 const expiredSpeed = 10;
 
 class AccountManager {
-    collaboratorCan(uid: number, appName: string) {
+    collaboratorCan(uid: number, appName: string, logger: Logger) {
         return this.getCollaborator(uid, appName).then((data) => {
             if (!data) {
                 logger.debug(`collaboratorCan App ${appName} not exists.`);
@@ -27,7 +27,7 @@ class AccountManager {
         });
     }
 
-    ownerCan(uid: number, appName: string) {
+    ownerCan(uid: number, appName: string, logger: Logger) {
         return this.getCollaborator(uid, appName).then((data) => {
             if (!data) {
                 logger.debug(`ownerCan App ${appName} not exists.`);

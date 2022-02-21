@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 import { Request } from 'express';
 import formidable from 'formidable';
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import { Op } from 'sequelize';
 import slash from 'slash';
@@ -52,7 +52,7 @@ class PackageManager {
         return Packages.findOne({ where: { deployment_id: deploymentId, label } });
     }
 
-    findLatestPackageInfoByDeployVersion(deploymentsVersionsId) {
+    findLatestPackageInfoByDeployVersion(deploymentsVersionsId, logger: Logger) {
         return DeploymentsVersions.findByPk(deploymentsVersionsId).then((deploymentsVersions) => {
             if (!deploymentsVersions || deploymentsVersions.current_package_id < 0) {
                 const e = new AppError('not found last packages');
@@ -63,7 +63,7 @@ class PackageManager {
         });
     }
 
-    parseReqFile(req: Request) {
+    parseReqFile(req: Request, logger: Logger) {
         logger.debug('parseReqFile');
         return new Promise<{ packageInfo: string; package: formidable.File }>((resolve, reject) => {
             const form = formidable();
@@ -88,7 +88,14 @@ class PackageManager {
         });
     }
 
-    createDeploymentsVersionIfNotExist(deploymentId, appVersion, minVersion, maxVersion, t) {
+    createDeploymentsVersionIfNotExist(
+        deploymentId,
+        appVersion,
+        minVersion,
+        maxVersion,
+        t,
+        logger: Logger,
+    ) {
         return DeploymentsVersions.findOrCreate({
             where: {
                 deployment_id: deploymentId,
@@ -109,7 +116,7 @@ class PackageManager {
         });
     }
 
-    isMatchPackageHash(packageId, packageHash) {
+    isMatchPackageHash(packageId, packageHash, logger: Logger) {
         if (_.lt(packageId, 0)) {
             logger.debug(`isMatchPackageHash packageId is 0`);
             return Promise.resolve(false);
@@ -132,6 +139,7 @@ class PackageManager {
         manifestHash: string,
         blobHash: string,
         params,
+        logger: Logger,
     ) {
         const releaseMethod = params.releaseMethod || RELEASE_METHOD_UPLOAD;
         const releaseUid = params.releaseUid || 0;
@@ -150,6 +158,7 @@ class PackageManager {
                     params.min_version,
                     params.max_version,
                     t,
+                    logger,
                 ).then((deploymentsVersions) => {
                     return Packages.create(
                         {
@@ -190,8 +199,8 @@ class PackageManager {
         });
     }
 
-    downloadPackageAndExtract(workDirectoryPath, packageHash, blobHash) {
-        return dataCenterManager.validateStore(packageHash).then((isValidate) => {
+    downloadPackageAndExtract(workDirectoryPath, packageHash, blobHash, logger: Logger) {
+        return dataCenterManager.validateStore(packageHash, logger).then((isValidate) => {
             if (isValidate) {
                 return dataCenterManager.getPackageInfo(packageHash);
             }
@@ -202,7 +211,7 @@ class PackageManager {
                         path.join(workDirectoryPath, blobHash),
                         path.join(workDirectoryPath, 'current'),
                     ).then((outputPath) => {
-                        return dataCenterManager.storePackage(outputPath, true);
+                        return dataCenterManager.storePackage(outputPath, true, logger);
                     });
                 },
             );
@@ -240,6 +249,7 @@ class PackageManager {
         oldPackageDataCenter,
         diffPackageHash,
         diffManifestBlobHash,
+        logger: Logger,
     ) {
         return PackagesDiff.findOne({
             where: {
@@ -300,7 +310,12 @@ class PackageManager {
         });
     }
 
-    createDiffPackagesByLastNums(appId, originalPackage: PackagesInterface, num: number) {
+    createDiffPackagesByLastNums(
+        appId,
+        originalPackage: PackagesInterface,
+        num: number,
+        logger: Logger,
+    ) {
         const packageId = originalPackage.id;
         return Promise.all([
             Packages.findAll({
@@ -324,11 +339,11 @@ class PackageManager {
                 return _.uniqBy(_.unionBy(lastNumsPackages, basePackages, 'id'), 'package_hash');
             })
             .then((lastNumsPackages) => {
-                return this.createDiffPackages(originalPackage, lastNumsPackages);
+                return this.createDiffPackages(originalPackage, lastNumsPackages, logger);
             });
     }
 
-    createDiffPackages(originalPackage, destPackages) {
+    createDiffPackages(originalPackage, destPackages, logger: Logger) {
         if (!_.isArray(destPackages)) {
             return Promise.reject(new AppError('第二个参数必须是数组'));
         }
@@ -341,7 +356,9 @@ class PackageManager {
         const workDirectoryPath = path.join(os.tmpdir(), `codepush_${randToken(32)}`);
         logger.debug('createDiffPackages using dir', { workDirectoryPath });
         return createEmptyFolder(workDirectoryPath)
-            .then(() => this.downloadPackageAndExtract(workDirectoryPath, packageHash, blobUrl))
+            .then(() =>
+                this.downloadPackageAndExtract(workDirectoryPath, packageHash, blobUrl, logger),
+            )
             .then((originDataCenter) =>
                 Promise.all(
                     destPackages.map((v) => {
@@ -354,6 +371,7 @@ class PackageManager {
                             diffWorkDirectoryPath,
                             _.get(v, 'package_hash'),
                             _.get(v, 'blob_url'),
+                            logger,
                         ).then((oldPackageDataCenter) =>
                             this.generateOneDiffPackage(
                                 diffWorkDirectoryPath,
@@ -362,6 +380,7 @@ class PackageManager {
                                 oldPackageDataCenter,
                                 v.package_hash,
                                 v.manifest_blob_url,
+                                logger,
                             ),
                         );
                     }),
@@ -371,7 +390,14 @@ class PackageManager {
     }
 
     // eslint-disable-next-line max-lines-per-function
-    releasePackage(appId, deploymentId, packageInfo, filePath: string, releaseUid) {
+    releasePackage(
+        appId,
+        deploymentId,
+        packageInfo,
+        filePath: string,
+        releaseUid: number,
+        logger: Logger,
+    ) {
         const { appVersion } = packageInfo;
         const versionInfo = validatorVersion(appVersion);
         if (!versionInfo[0]) {
@@ -411,38 +437,41 @@ class PackageManager {
                 });
             })
             .then((blobHash) => {
-                return dataCenterManager.storePackage(directoryPath).then((dataCenter) => {
-                    const { packageHash } = dataCenter;
-                    const manifestFile = dataCenter.manifestFilePath;
-                    return DeploymentsVersions.findOne({
-                        where: { deployment_id: deploymentId, app_version: appVersion },
-                    })
-                        .then((deploymentsVersions) => {
-                            if (!deploymentsVersions) {
-                                return false;
-                            }
-                            return this.isMatchPackageHash(
-                                deploymentsVersions.get('current_package_id'),
-                                packageHash,
-                            );
+                return dataCenterManager
+                    .storePackage(directoryPath, false, logger)
+                    .then((dataCenter) => {
+                        const { packageHash } = dataCenter;
+                        const manifestFile = dataCenter.manifestFilePath;
+                        return DeploymentsVersions.findOne({
+                            where: { deployment_id: deploymentId, app_version: appVersion },
                         })
-                        .then((isExist) => {
-                            if (isExist) {
-                                const e = new AppError(
-                                    "The uploaded package is identical to the contents of the specified deployment's current release.",
+                            .then((deploymentsVersions) => {
+                                if (!deploymentsVersions) {
+                                    return false;
+                                }
+                                return this.isMatchPackageHash(
+                                    deploymentsVersions.get('current_package_id'),
+                                    packageHash,
+                                    logger,
                                 );
-                                logger.debug(e.message);
-                                throw e;
-                            }
-                            return qetag(manifestFile);
-                        })
-                        .then((manifestHash) => {
-                            return Promise.all([
-                                uploadFileToStorage(manifestHash, manifestFile),
-                                uploadFileToStorage(blobHash, filePath),
-                            ]).then(() => [packageHash, manifestHash, blobHash]);
-                        });
-                });
+                            })
+                            .then((isExist) => {
+                                if (isExist) {
+                                    const e = new AppError(
+                                        "The uploaded package is identical to the contents of the specified deployment's current release.",
+                                    );
+                                    logger.debug(e.message);
+                                    throw e;
+                                }
+                                return qetag(manifestFile);
+                            })
+                            .then((manifestHash) => {
+                                return Promise.all([
+                                    uploadFileToStorage(manifestHash, manifestFile),
+                                    uploadFileToStorage(blobHash, filePath),
+                                ]).then(() => [packageHash, manifestHash, blobHash]);
+                            });
+                    });
             })
             .then(([packageHash, manifestHash, blobHash]) => {
                 const stats = fs.statSync(filePath);
@@ -464,6 +493,7 @@ class PackageManager {
                     manifestHash,
                     blobHash,
                     params,
+                    logger,
                 );
             })
             .finally(() => deleteFolderSync(directoryPathParent));
@@ -534,7 +564,7 @@ class PackageManager {
     }
 
     // eslint-disable-next-line max-lines-per-function
-    promotePackage(sourceDeploymentInfo, destDeploymentInfo, params) {
+    promotePackage(sourceDeploymentInfo, destDeploymentInfo, params, logger: Logger) {
         const appVersion = _.get(params, 'appVersion', null);
         const label = _.get(params, 'label', null);
         return new Promise((resolve, reject) => {
@@ -604,6 +634,7 @@ class PackageManager {
                         return this.isMatchPackageHash(
                             destDeploymentsVersions.get('current_package_id'),
                             sourcePack.package_hash,
+                            logger,
                         );
                     })
                     .then((isExist) => {
@@ -654,6 +685,7 @@ class PackageManager {
                     sourcePack.manifest_blob_url,
                     sourcePack.blob_url,
                     createParams,
+                    logger,
                 );
             });
     }
@@ -662,6 +694,7 @@ class PackageManager {
         deploymentVersionId: number,
         targetLabel: string | undefined,
         rollbackUid: number,
+        logger: Logger,
     ) {
         return DeploymentsVersions.findByPk(deploymentVersionId).then((deploymentsVersions) => {
             if (!deploymentsVersions) {
@@ -720,6 +753,7 @@ class PackageManager {
                         rollbackPackage.manifest_blob_url,
                         rollbackPackage.blob_url,
                         params,
+                        logger,
                     );
                 });
         });

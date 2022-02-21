@@ -1,4 +1,4 @@
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import moment from 'moment';
 import { Deployments } from '../../models/deployments';
@@ -77,7 +77,7 @@ class DeploymentsManager {
         });
     }
 
-    findDeloymentByName(deploymentName: string, appId: number) {
+    findDeloymentByName(deploymentName: string, appId: number, logger: Logger) {
         logger.debug('findDeloymentByName', {
             name: deploymentName,
             appId,

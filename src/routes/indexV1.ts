@@ -25,7 +25,7 @@ indexV1Router.get(
         next,
     ) => {
         const { logger, query } = req;
-        logger.debug('/update_check', {
+        logger.info('try update_check', {
             query: JSON.stringify(query),
         });
         const {
@@ -58,6 +58,8 @@ indexV1Router.get(
                     });
             })
             .then((rs) => {
+                logger.info('update_check success');
+
                 res.send({
                     update_info: {
                         download_url: rs.downloadUrl,
@@ -78,6 +80,9 @@ indexV1Router.get(
             })
             .catch((e) => {
                 if (e instanceof AppError) {
+                    logger.info('update check failed', {
+                        error: e.message,
+                    });
                     res.status(404).send(e.message);
                 } else {
                     next(e);
@@ -101,10 +106,14 @@ indexV1Router.post(
         res,
     ) => {
         const { logger, body } = req;
-        logger.debug('/report_status/download', { body: JSON.stringify(body) });
+        logger.info('report_status/download', { body: JSON.stringify(body) });
         const { client_unique_id: clientUniqueId, label, deployment_key: deploymentKey } = body;
         clientManager.reportStatusDownload(deploymentKey, label, clientUniqueId).catch((err) => {
-            if (!(err instanceof AppError)) {
+            if (err instanceof AppError) {
+                logger.info('report_status/download failed', {
+                    error: err.message,
+                });
+            } else {
                 logger.error(err);
             }
         });
@@ -127,12 +136,16 @@ indexV1Router.post(
         res,
     ) => {
         const { logger, body } = req;
-        logger.debug('/report_status/deploy', { body: JSON.stringify(body) });
+        logger.info('report_status/deploy', { body: JSON.stringify(body) });
         const { client_unique_id: clientUniqueId, label, deployment_key: deploymentKey } = body;
         clientManager
             .reportStatusDeploy(deploymentKey, label, clientUniqueId, req.body)
             .catch((err) => {
-                if (!(err instanceof AppError)) {
+                if (err instanceof AppError) {
+                    logger.info('report_status/deploy failed', {
+                        error: err.message,
+                    });
+                } else {
                     logger.error(err);
                 }
             });
