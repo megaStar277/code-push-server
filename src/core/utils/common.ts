@@ -113,11 +113,7 @@ export function copy(sourceDst: string, targertDst: string) {
     return fsextra.copy(sourceDst, targertDst, { overwrite: true });
 }
 
-export function move(sourceDst: string, targertDst: string) {
-    return fsextra.move(sourceDst, targertDst, { overwrite: true });
-}
-
-export function deleteFolder(folderPath: string) {
+function deleteFolder(folderPath: string) {
     return fsextra.remove(folderPath);
 }
 

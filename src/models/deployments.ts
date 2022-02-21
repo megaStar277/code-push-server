@@ -1,8 +1,7 @@
 import _ from 'lodash';
 import { DataTypes, Model } from 'sequelize';
+import { AppError } from '../core/app-error';
 import { sequelize } from '../core/utils/connections';
-
-const { AppError } = require('../core/app-error');
 
 interface DeploymentsInterface extends Model {
     id: number;
