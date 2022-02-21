@@ -3,17 +3,17 @@ import { AppError } from '../core/app-error';
 import { checkToken, Req } from '../core/middleware';
 import { clientManager } from '../core/services/client-manager';
 
-const router = express.Router();
+export const indexRouter = express.Router();
 
-router.get('/', (req, res) => {
+indexRouter.get('/', (req, res) => {
     res.render('index', { title: 'CodePushServer' });
 });
 
-router.get('/tokens', (req, res) => {
+indexRouter.get('/tokens', (req, res) => {
     res.render('tokens', { title: '获取token' });
 });
 
-router.get(
+indexRouter.get(
     '/updateCheck',
     (
         req: Req<
@@ -74,7 +74,7 @@ router.get(
     },
 );
 
-router.post(
+indexRouter.post(
     '/reportStatus/download',
     (
         req: Req<
@@ -102,7 +102,7 @@ router.post(
     },
 );
 
-router.post(
+indexRouter.post(
     '/reportStatus/deploy',
     (
         req: Req<
@@ -132,9 +132,6 @@ router.post(
     },
 );
 
-router.get('/authenticated', checkToken, (req, res) => {
+indexRouter.get('/authenticated', checkToken, (req, res) => {
     return res.send({ authenticated: true });
 });
-
-// eslint-disable-next-line import/no-default-export
-export default router;

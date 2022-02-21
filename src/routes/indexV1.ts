@@ -4,9 +4,9 @@ import { Req } from '../core/middleware';
 import { clientManager } from '../core/services/client-manager';
 
 // routes for latest code push client
-const router = express.Router();
+export const indexV1Router = express.Router();
 
-router.get(
+indexV1Router.get(
     '/update_check',
     (
         req: Req<
@@ -86,7 +86,7 @@ router.get(
     },
 );
 
-router.post(
+indexV1Router.post(
     '/report_status/download',
     (
         req: Req<
@@ -112,7 +112,7 @@ router.post(
     },
 );
 
-router.post(
+indexV1Router.post(
     '/report_status/deploy',
     (
         req: Req<
@@ -139,6 +139,3 @@ router.post(
         res.send('OK');
     },
 );
-
-// eslint-disable-next-line import/no-default-export
-export default router;

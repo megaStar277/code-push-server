@@ -1,11 +1,11 @@
 import express from 'express';
-import { logger } from 'kv-logger';
-import { checkToken } from '../core/middleware';
+import { checkToken, Req } from '../core/middleware';
 
-const router = express.Router();
+export const accountRouter = express.Router();
 
-router.get('/', checkToken, (req, res) => {
-    var userInfo = {
+accountRouter.get('/', checkToken, (req: Req, res) => {
+    const { logger } = req;
+    const userInfo = {
         email: req.users.email,
         linkedProviders: [],
         name: req.users.username,
@@ -13,5 +13,3 @@ router.get('/', checkToken, (req, res) => {
     logger.info('check account info', userInfo);
     res.send({ account: userInfo });
 });
-
-module.exports = router;

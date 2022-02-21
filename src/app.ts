@@ -8,14 +8,14 @@ import { logger } from 'kv-logger';
 import { AppError, NotFound } from './core/app-error';
 import { config } from './core/config';
 import { Req, Res, withLogger } from './core/middleware';
-import routes from './routes/index';
-import indexV1 from './routes/indexV1';
+import { accountRouter } from './routes/account';
+import { authRouter } from './routes/auth';
+import { indexRouter } from './routes/index';
+import { indexV1Router } from './routes/indexV1';
+import { usersRouter } from './routes/users';
 
 const accessKeys = require('./routes/accessKeys');
-const account = require('./routes/account');
 const apps = require('./routes/apps');
-const auth = require('./routes/auth');
-const users = require('./routes/users');
 
 export const app = express();
 
@@ -74,12 +74,12 @@ if (config.common.storageType === 'local') {
 }
 
 // config routes
-app.use('/', routes);
-app.use('/v0.1/public/codepush', indexV1);
-app.use('/auth', auth);
+app.use('/', indexRouter);
+app.use('/v0.1/public/codepush', indexV1Router);
+app.use('/auth', authRouter);
 app.use('/accessKeys', accessKeys);
-app.use('/account', account);
-app.use('/users', users);
+app.use('/account', accountRouter);
+app.use('/users', usersRouter);
 app.use('/apps', apps);
 
 // 404 handler
