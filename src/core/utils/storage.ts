@@ -5,14 +5,14 @@ import ALY from 'aliyun-sdk';
 import AWS from 'aws-sdk';
 import COS from 'cos-nodejs-sdk-v5';
 import fsextra from 'fs-extra';
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import qiniu from 'qiniu';
 
 import { AppError } from '../app-error';
 import { config } from '../config';
 
-function uploadFileToLocal(key: string, filePath: string): Promise<void> {
+function uploadFileToLocal(key: string, filePath: string, logger: Logger): Promise<void> {
     return new Promise((resolve, reject) => {
         logger.info(`try uploadFileToLocal`, {
             key,
@@ -76,7 +76,7 @@ function uploadFileToLocal(key: string, filePath: string): Promise<void> {
     });
 }
 
-function uploadFileToS3(key: string, filePath: string): Promise<void> {
+function uploadFileToS3(key: string, filePath: string, logger: Logger): Promise<void> {
     return new Promise((resolve, reject) => {
         logger.info('try uploadFileToS3', { key });
         AWS.config.update({
@@ -111,7 +111,7 @@ function uploadFileToS3(key: string, filePath: string): Promise<void> {
     });
 }
 
-function uploadFileToOSS(key: string, filePath: string): Promise<void> {
+function uploadFileToOSS(key: string, filePath: string, logger: Logger): Promise<void> {
     logger.info('try uploadFileToOSS', { key });
     const ossStream = ALYOSSStream(
         new ALY.OSS({
@@ -151,7 +151,7 @@ function getUploadTokenQiniu(mac: qiniu.auth.digest.Mac, bucket: string, key: st
     return putPolicy.uploadToken(mac);
 }
 
-function uploadFileToQiniu(key: string, filePath: string): Promise<void> {
+function uploadFileToQiniu(key: string, filePath: string, logger: Logger): Promise<void> {
     return new Promise((resolve, reject) => {
         logger.info('try uploadFileToQiniu', { key });
         const accessKey = _.get(config, 'qiniu.accessKey');
@@ -202,7 +202,7 @@ function uploadFileToQiniu(key: string, filePath: string): Promise<void> {
     });
 }
 
-function uploadFileToTencentCloud(key: string, filePath: string): Promise<void> {
+function uploadFileToTencentCloud(key: string, filePath: string, logger: Logger): Promise<void> {
     return new Promise((resolve, reject) => {
         logger.info('try uploadFileToTencentCloud', { key });
         const cosIn = new COS({
@@ -228,19 +228,19 @@ function uploadFileToTencentCloud(key: string, filePath: string): Promise<void> 
     });
 }
 
-export function uploadFileToStorage(key: string, filePath: string): Promise<void> {
-    const storageType = _.get(config, 'common.storageType');
+export function uploadFileToStorage(key: string, filePath: string, logger: Logger): Promise<void> {
+    const { storageType } = config.common;
     switch (storageType) {
         case 'local':
-            return uploadFileToLocal(key, filePath);
+            return uploadFileToLocal(key, filePath, logger);
         case 's3':
-            return uploadFileToS3(key, filePath);
+            return uploadFileToS3(key, filePath, logger);
         case 'oss':
-            return uploadFileToOSS(key, filePath);
+            return uploadFileToOSS(key, filePath, logger);
         case 'qiniu':
-            return uploadFileToQiniu(key, filePath);
+            return uploadFileToQiniu(key, filePath, logger);
         case 'tencentcloud':
-            return uploadFileToTencentCloud(key, filePath);
+            return uploadFileToTencentCloud(key, filePath, logger);
         default:
             throw new AppError(`${storageType} storageType does not support.`);
     }

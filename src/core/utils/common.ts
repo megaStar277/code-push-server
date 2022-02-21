@@ -4,7 +4,7 @@ import { pipeline } from 'stream';
 import util from 'util';
 import extract from 'extract-zip';
 import fsextra from 'fs-extra';
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import fetch from 'node-fetch';
 import validator from 'validator';
@@ -87,7 +87,7 @@ export function validatorVersion(versionNo: string) {
     return [flag, min, max];
 }
 
-export async function createFileFromRequest(url, filePath) {
+export async function createFileFromRequest(url: string, filePath: string, logger: Logger) {
     try {
         await fs.promises.stat(filePath);
         return;
@@ -135,13 +135,12 @@ export function createEmptyFolderSync(folderPath: string) {
     fsextra.mkdirsSync(folderPath);
 }
 
-export async function unzipFile(zipFile: string, outputPath: string) {
+export async function unzipFile(zipFile: string, outputPath: string, logger: Logger) {
     try {
         logger.debug(`unzipFile check zipFile ${zipFile} fs.R_OK`);
         fs.accessSync(zipFile, fs.constants.R_OK);
         logger.debug(`Pass unzipFile file ${zipFile}`);
     } catch (err) {
-        logger.error(err);
         throw new AppError(err.message);
     }
 
@@ -149,7 +148,6 @@ export async function unzipFile(zipFile: string, outputPath: string) {
         await extract(zipFile, { dir: outputPath });
         logger.debug(`unzipFile success`);
     } catch (err) {
-        logger.error(err);
         throw new AppError(`it's not a zipFile`);
     }
     return outputPath;
@@ -157,15 +155,13 @@ export async function unzipFile(zipFile: string, outputPath: string) {
 
 export function getBlobDownloadUrl(blobUrl: string): string {
     let fileName = blobUrl;
-    const storageType = _.get(config, 'common.storageType');
-    const downloadUrl = _.get(config, `${storageType}.downloadUrl`);
+    const { storageType } = config.common;
+    const { downloadUrl } = config[storageType];
     if (storageType === 'local') {
         fileName = `${blobUrl.substring(0, 2).toLowerCase()}/${blobUrl}`;
     }
     if (!validator.isURL(downloadUrl)) {
-        const e = new AppError(`Please config ${storageType}.downloadUrl in config.js`);
-        logger.error(e);
-        throw e;
+        throw new AppError(`Please config ${storageType}.downloadUrl in config.js`);
     }
     return `${downloadUrl}/${fileName}`;
 }

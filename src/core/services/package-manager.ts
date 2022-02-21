@@ -205,16 +205,19 @@ class PackageManager {
                 return dataCenterManager.getPackageInfo(packageHash);
             }
             const downloadURL = getBlobDownloadUrl(blobHash);
-            return createFileFromRequest(downloadURL, path.join(workDirectoryPath, blobHash)).then(
-                () => {
-                    return unzipFile(
-                        path.join(workDirectoryPath, blobHash),
-                        path.join(workDirectoryPath, 'current'),
-                    ).then((outputPath) => {
-                        return dataCenterManager.storePackage(outputPath, true, logger);
-                    });
-                },
-            );
+            return createFileFromRequest(
+                downloadURL,
+                path.join(workDirectoryPath, blobHash),
+                logger,
+            ).then(() => {
+                return unzipFile(
+                    path.join(workDirectoryPath, blobHash),
+                    path.join(workDirectoryPath, 'current'),
+                    logger,
+                ).then((outputPath) => {
+                    return dataCenterManager.storePackage(outputPath, true, logger);
+                });
+            });
         });
     }
 
@@ -269,6 +272,7 @@ class PackageManager {
             return createFileFromRequest(
                 downloadURL,
                 path.join(workDirectoryPath, diffManifestBlobHash),
+                logger,
             ).then(() => {
                 const dataCenterContentPath = path.join(workDirectoryPath, 'dataCenter');
                 copySync(originDataCenter.contentPath, dataCenterContentPath);
@@ -294,8 +298,8 @@ class PackageManager {
                     dataCenterContentPath,
                     hotCodePushFile,
                 ).then((data) => {
-                    return qetag(data.path).then((diffHash) => {
-                        return uploadFileToStorage(diffHash, fileName).then(() => {
+                    return qetag(data.path, logger).then((diffHash) => {
+                        return uploadFileToStorage(diffHash, fileName, logger).then(() => {
                             const stats = fs.statSync(fileName);
                             return PackagesDiff.create({
                                 package_id: packageId,
@@ -413,9 +417,9 @@ class PackageManager {
         const directoryPath = path.join(directoryPathParent, 'current');
         logger.debug(`releasePackage generate an random dir path: ${directoryPath}`);
         return Promise.all([
-            qetag(filePath),
+            qetag(filePath, logger),
             createEmptyFolder(directoryPath).then(() => {
-                return unzipFile(filePath, directoryPath);
+                return unzipFile(filePath, directoryPath, logger);
             }),
         ])
             .then(([blobHash]) => {
@@ -463,12 +467,12 @@ class PackageManager {
                                     logger.debug(e.message);
                                     throw e;
                                 }
-                                return qetag(manifestFile);
+                                return qetag(manifestFile, logger);
                             })
                             .then((manifestHash) => {
                                 return Promise.all([
-                                    uploadFileToStorage(manifestHash, manifestFile),
-                                    uploadFileToStorage(blobHash, filePath),
+                                    uploadFileToStorage(manifestHash, manifestFile, logger),
+                                    uploadFileToStorage(blobHash, filePath, logger),
                                 ]).then(() => [packageHash, manifestHash, blobHash]);
                             });
                     });

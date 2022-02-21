@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import fs from 'fs';
 import { Stream, Readable } from 'stream';
-import { logger } from 'kv-logger';
+import { Logger } from 'kv-logger';
 import { AppError } from '../app-error';
 
 // 计算文件的eTag，参数为buffer或者readableStream或者文件路径
@@ -87,7 +87,7 @@ function getEtag(buffer: string | Stream | Buffer, callback: (etag: string) => v
 }
 
 // TODO: support only files (string)?
-export function qetag(buffer: string | Stream | Buffer): Promise<string> {
+export function qetag(buffer: string | Stream | Buffer, logger: Logger): Promise<string> {
     if (typeof buffer === 'string') {
         // it's a file
         try {

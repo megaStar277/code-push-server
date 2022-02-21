@@ -105,7 +105,12 @@ export const config = {
         // data dir for caclulate diff files. it's optimization.
         dataDir: process.env.DATA_DIR || os.tmpdir(),
         // storageType which is your binary package files store. options value is ("local" | "qiniu" | "s3"| "oss" || "tencentcloud")
-        storageType: process.env.STORAGE_TYPE || 'local',
+        storageType: (process.env.STORAGE_TYPE || 'local') as
+            | 'local'
+            | 'qiniu'
+            | 's3'
+            | 'oss'
+            | 'tencentcloud',
         // options value is (true | false), when it's true, it will cache updateCheck results in redis.
         updateCheckCache: toBool(process.env.UPDATE_CHECK_CACHE),
         // options value is (true | false), when it's true, it will cache rollout results in redis
