@@ -10,6 +10,6 @@ accountRouter.get('/', checkToken, (req: Req, res) => {
         linkedProviders: [],
         name: req.users.username,
     };
-    logger.info('check account info', { account });
+    logger.info('check account info', { account: JSON.stringify(account) });
     res.send({ account });
 });
