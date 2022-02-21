@@ -103,7 +103,7 @@ accessKeysRouter.post(
 
 accessKeysRouter.delete('/:name', checkToken, (req: Req<{ name: string }>, res, next) => {
     const { logger, params } = req;
-    const name = _.trim(decodeURI(params.name));
+    const name = _.trim(params.name);
     const uid = req.users.id;
     logger.info('try to delete access key', { uid, name });
     return UserTokens.destroy({ where: { name, uid } })

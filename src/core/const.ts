@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 // supported platforms
+// TODO: refactor to enums and put name mapping into util method
 export const IOS = 1;
 export const IOS_NAME = 'iOS';
 export const ANDROID = 2;

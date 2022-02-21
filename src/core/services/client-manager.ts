@@ -42,7 +42,7 @@ class ClientManager {
     }
 
     clearUpdateCheckCache(deploymentKey, appVersion, label, packageHash, logger: Logger) {
-        logger.debug('clear cache Deployments key:', {
+        logger.info('clear cache Deployments key', {
             key: deploymentKey,
         });
         const redisCacheKey = this.getUpdateCheckCacheKey(

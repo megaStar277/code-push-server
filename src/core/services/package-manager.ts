@@ -2,6 +2,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { Request } from 'express';
 import formidable from 'formidable';
 import { logger } from 'kv-logger';
 import _ from 'lodash';
@@ -62,28 +63,27 @@ class PackageManager {
         });
     }
 
-    parseReqFile(req) {
+    parseReqFile(req: Request) {
         logger.debug('parseReqFile');
-        return new Promise((resolve, reject) => {
+        return new Promise<{ packageInfo: string; package: formidable.File }>((resolve, reject) => {
             const form = formidable();
             form.parse(req, (err, fields, files) => {
                 if (err) {
-                    logger.debug('parseReqFile:', err);
                     reject(new AppError('upload error'));
-                } else {
-                    logger.debug('parseReqFile fields:', fields);
-                    logger.debug('parseReqFile file location:', _.get(files, 'package.filepath'));
-                    if (_.isEmpty(fields.packageInfo) || _.isEmpty(_.get(files, 'package'))) {
-                        logger.debug('parseReqFile upload info lack');
-                        reject(new AppError('upload info lack'));
-                    } else {
-                        logger.debug('parseReqFile is ok');
-                        resolve({
-                            packageInfo: JSON.parse(fields.packageInfo),
-                            package: files.package,
-                        });
-                    }
+                    return;
                 }
+
+                if (_.isEmpty(fields.packageInfo) || _.isEmpty(_.get(files, 'package'))) {
+                    logger.debug('parseReqFile upload info lack');
+                    reject(new AppError('upload info lack'));
+                    return;
+                }
+
+                logger.debug('parseReqFile is ok');
+                resolve({
+                    packageInfo: JSON.parse(fields.packageInfo as string),
+                    package: files.package as formidable.File,
+                });
             });
         });
     }
@@ -300,7 +300,7 @@ class PackageManager {
         });
     }
 
-    createDiffPackagesByLastNums(appId, originalPackage, num) {
+    createDiffPackagesByLastNums(appId, originalPackage: PackagesInterface, num: number) {
         const packageId = originalPackage.id;
         return Promise.all([
             Packages.findAll({
@@ -621,6 +621,7 @@ class PackageManager {
                     logger.debug(`targetBinaryVersion ${appVersion} not support.`);
                     throw new AppError(`targetBinaryVersion ${appVersion} not support.`);
                 }
+
                 const createParams = {
                     releaseMethod: RELEASE_METHOD_PROMOTE,
                     releaseUid: params.promoteUid || 0,
@@ -657,7 +658,11 @@ class PackageManager {
             });
     }
 
-    rollbackPackage(deploymentVersionId, targetLabel, rollbackUid) {
+    rollbackPackage(
+        deploymentVersionId: number,
+        targetLabel: string | undefined,
+        rollbackUid: number,
+    ) {
         return DeploymentsVersions.findByPk(deploymentVersionId).then((deploymentsVersions) => {
             if (!deploymentsVersions) {
                 throw new AppError('您之前还没有发布过版本');

@@ -14,7 +14,7 @@ export interface PackagesInterface extends Model {
     label: string;
     original_label: string;
     original_deployment: string;
-    released_by: string;
+    released_by: number;
     is_mandatory: number;
     is_disabled: number;
     rollout: number;
@@ -42,7 +42,7 @@ export const Packages = sequelize.define<PackagesInterface>(
         label: DataTypes.STRING,
         original_label: DataTypes.STRING,
         original_deployment: DataTypes.STRING,
-        released_by: DataTypes.STRING,
+        released_by: DataTypes.BIGINT({ length: 20 }),
         is_mandatory: DataTypes.INTEGER({ length: 3 }),
         is_disabled: DataTypes.INTEGER({ length: 3 }),
         rollout: DataTypes.INTEGER({ length: 3 }),
