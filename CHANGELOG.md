@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.2](https://github.com/shm-open/code-push-server/compare/v2.0.1...v2.0.2) (2022-02-21)
+
+
+### Bug Fixes
+
+* log stringified account info ([85a09fa](https://github.com/shm-open/code-push-server/commit/85a09fad62bd21808461debba7140e1732851622))
+
 ### [2.0.1](https://github.com/shm-open/code-push-server/compare/v2.0.0...v2.0.1) (2022-02-21)
 
 
