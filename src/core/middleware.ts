@@ -27,11 +27,13 @@ export interface Res<B = any> extends Response<B> {}
  */
 export function withLogger(req: Req, res: Res, next: NextFunction) {
     const { method, path, headers } = req;
+    const requestId = headers['x-request-id'] || randomUUID();
     req.logger = logger.bindContext({
         path,
         method,
-        requestId: headers['x-request-id'] || randomUUID(),
+        requestId,
     });
+    res.header('X-Request-Id', requestId);
     next();
 }
 
