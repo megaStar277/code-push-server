@@ -104,7 +104,6 @@ class DeploymentsManager {
                             return _.reduce(
                                 diffs,
                                 (result, v) => {
-                                    // eslint-disable-next-line no-param-reassign
                                     result[v.diff_against_package_hash] = {
                                         size: v.diff_size,
                                         url: getBlobDownloadUrl(v.diff_blob_url),

@@ -154,7 +154,6 @@ class AppManager {
                                 if (_.eq(u.get('id'), currentUid)) {
                                     isCurrentAccount = true;
                                 }
-                                // eslint-disable-next-line no-param-reassign
                                 allCol[u.get('email')] = {
                                     permission: collaborator.get('roles'),
                                     isCurrentAccount,

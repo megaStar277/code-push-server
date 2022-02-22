@@ -50,7 +50,6 @@ indexRouter.get(
                     .chosenMan(rs.packageId, rs.rollout, clientUniqueId)
                     .then((data) => {
                         if (!data) {
-                            // eslint-disable-next-line no-param-reassign
                             rs.isAvailable = false;
                             return rs;
                         }
@@ -60,9 +59,7 @@ indexRouter.get(
             .then((rs) => {
                 logger.info('updateCheck success');
 
-                // eslint-disable-next-line no-param-reassign
                 delete rs.packageId;
-                // eslint-disable-next-line no-param-reassign
                 delete rs.rollout;
                 res.send({ updateInfo: rs });
             })

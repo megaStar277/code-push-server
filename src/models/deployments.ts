@@ -49,7 +49,6 @@ export function generateDeploymentsLabelId(deploymentId: number) {
             if (_.isEmpty(data)) {
                 throw new AppError('does not find deployment');
             }
-            // eslint-disable-next-line no-param-reassign
             data.label_id += 1;
             return data.save({ transaction: t }).then((d) => {
                 return d.label_id;

@@ -50,7 +50,6 @@ indexV1Router.get(
                     .chosenMan(rs.packageId, rs.rollout, clientUniqueId)
                     .then((data) => {
                         if (!data) {
-                            // eslint-disable-next-line no-param-reassign
                             rs.isAvailable = false;
                             return rs;
                         }

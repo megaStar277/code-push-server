@@ -217,7 +217,6 @@ appsRouter.get(
                                 .getMetricsbyPackageId(v.get('id'))
                                 .then((metrics) => {
                                     if (metrics) {
-                                        // eslint-disable-next-line no-param-reassign
                                         result[v.get('label')] = {
                                             active: metrics.get('active'),
                                             downloaded: metrics.get('downloaded'),
@@ -899,7 +898,6 @@ appsRouter.get(
                             isCurrentAccount = true;
                         }
 
-                        // eslint-disable-next-line no-param-reassign
                         result[key] = {
                             ...value,
                             isCurrentAccount,

@@ -18,7 +18,6 @@ class CollaboratorsManager {
                         data,
                         (result, value) => {
                             result.uids.push(value.uid);
-                            // eslint-disable-next-line no-param-reassign
                             result.colByUid[value.uid] = value;
                             return result;
                         },
@@ -38,7 +37,6 @@ class CollaboratorsManager {
                             if (!_.isEmpty(coInfo.colByUid[value.id])) {
                                 permission = coInfo.colByUid[value.id].roles;
                             }
-                            // eslint-disable-next-line no-param-reassign
                             result[value.email] = { permission };
                             return result;
                         },

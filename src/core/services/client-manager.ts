@@ -165,7 +165,6 @@ class ClientManager {
         appVersion: string,
         label: string,
         packageHash: string,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         clientUniqueId: string,
         logger: Logger,
     ) {
