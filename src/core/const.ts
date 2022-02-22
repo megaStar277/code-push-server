@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 // supported platforms
 // TODO: refactor to enums and put name mapping into util method
 export const IOS = 1;
@@ -15,7 +13,7 @@ export const REACT_NATIVE_NAME = 'React-Native';
 export const CORDOVA = 2;
 export const CORDOVA_NAME = 'Cordova';
 
-// suupported env
+// supported env
 export const PRODUCTION = 'Production';
 export const STAGING = 'Staging';
 

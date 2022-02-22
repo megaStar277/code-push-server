@@ -7,8 +7,8 @@ import { config } from '../config';
 import { createEmptyFolder, copy } from '../utils/common';
 import { calcAllFileSha256, packageHashSync } from '../utils/security';
 
-const manifestFilename = 'manifest.json';
-const contentsName = 'contents';
+const MANIFEST_FILENAME = 'manifest.json';
+const CONTENTS_NAME = 'contents';
 
 class DataCenterManager {
     getDataDir() {
@@ -18,8 +18,8 @@ class DataCenterManager {
     hasPackageStoreSync(packageHash: string) {
         const dataDir = this.getDataDir();
         const packageHashPath = path.join(dataDir, packageHash);
-        const manifestFile = path.join(packageHashPath, manifestFilename);
-        const contentPath = path.join(packageHashPath, contentsName);
+        const manifestFile = path.join(packageHashPath, MANIFEST_FILENAME);
+        const contentPath = path.join(packageHashPath, CONTENTS_NAME);
         return fs.existsSync(manifestFile) && fs.existsSync(contentPath);
     }
 
@@ -27,8 +27,8 @@ class DataCenterManager {
         if (this.hasPackageStoreSync(packageHash)) {
             const dataDir = this.getDataDir();
             const packageHashPath = path.join(dataDir, packageHash);
-            const manifestFile = path.join(packageHashPath, manifestFilename);
-            const contentPath = path.join(packageHashPath, contentsName);
+            const manifestFile = path.join(packageHashPath, MANIFEST_FILENAME);
+            const contentPath = path.join(packageHashPath, CONTENTS_NAME);
             return this.buildPackageInfo(packageHash, packageHashPath, contentPath, manifestFile);
         }
         throw new AppError("can't get PackageInfo");
@@ -51,8 +51,8 @@ class DataCenterManager {
     validateStore(providePackageHash: string, logger: Logger) {
         const dataDir = this.getDataDir();
         const packageHashPath = path.join(dataDir, providePackageHash);
-        const manifestFile = path.join(packageHashPath, manifestFilename);
-        const contentPath = path.join(packageHashPath, contentsName);
+        const manifestFile = path.join(packageHashPath, MANIFEST_FILENAME);
+        const contentPath = path.join(packageHashPath, CONTENTS_NAME);
         if (!this.hasPackageStoreSync(providePackageHash)) {
             logger.debug(`validateStore providePackageHash not exist`);
             return Promise.resolve(false);
@@ -84,8 +84,8 @@ class DataCenterManager {
             const packageHash = packageHashSync(manifestJson);
             const dataDir = this.getDataDir();
             const packageHashPath = path.join(dataDir, packageHash);
-            const manifestFile = path.join(packageHashPath, manifestFilename);
-            const contentPath = path.join(packageHashPath, contentsName);
+            const manifestFile = path.join(packageHashPath, MANIFEST_FILENAME);
+            const contentPath = path.join(packageHashPath, CONTENTS_NAME);
             return this.validateStore(packageHash, logger).then((isValidate) => {
                 if (!force && isValidate) {
                     return this.buildPackageInfo(

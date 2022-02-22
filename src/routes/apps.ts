@@ -4,7 +4,6 @@ import _ from 'lodash';
 import validator from 'validator';
 import { AppError } from '../core/app-error';
 import { config } from '../core/config';
-
 import {
     IOS,
     IOS_NAME,

@@ -14,9 +14,9 @@ import { DEPLOYMENT_FAILED, DEPLOYMENT_SUCCEEDED } from '../const';
 import { parseVersion, getBlobDownloadUrl } from '../utils/common';
 import { redisClient } from '../utils/connections';
 
-const updateCheck = 'UPDATE_CHECK';
-const chosenMan = 'CHOSEN_MAN';
-const expired = 600;
+const UPDATE_CHECK = 'UPDATE_CHECK';
+const CHOSEN_MAN = 'CHOSEN_MAN';
+const EXPIRED = 600;
 
 interface UpdateCheckInfo {
     packageId: number;
@@ -38,7 +38,7 @@ interface UpdateCheckInfo {
 
 class ClientManager {
     private getUpdateCheckCacheKey(deploymentKey, appVersion, label, packageHash) {
-        return [updateCheck, deploymentKey, appVersion, label, packageHash].join(':');
+        return [UPDATE_CHECK, deploymentKey, appVersion, label, packageHash].join(':');
     }
 
     clearUpdateCheckCache(deploymentKey, appVersion, label, packageHash, logger: Logger) {
@@ -108,7 +108,7 @@ class ClientManager {
                 try {
                     logger.debug('updateCheckFromCache read from db');
                     const strRs = JSON.stringify(rs);
-                    redisClient.setEx(redisCacheKey, expired, strRs);
+                    redisClient.setEx(redisCacheKey, EXPIRED, strRs);
                 } catch (e) {
                     // do nothing
                 }
@@ -118,7 +118,7 @@ class ClientManager {
     }
 
     private getChosenManCacheKey(packageId, rollout, clientUniqueId) {
-        return [chosenMan, packageId, rollout, clientUniqueId].join(':');
+        return [CHOSEN_MAN, packageId, rollout, clientUniqueId].join(':');
     }
 
     private random(rollout) {

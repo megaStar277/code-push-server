@@ -11,10 +11,10 @@ import { redisClient } from '../utils/connections';
 import { passwordVerifySync, randToken, md5, passwordHashSync } from '../utils/security';
 import { emailManager } from './email-manager';
 
-const loginLimitPre = 'LOGIN_LIMIT_PRE_';
-const registerCode = 'REGISTER_CODE_';
-const expired = 1200;
-const expiredSpeed = 10;
+const LOGIN_LIMIT_PRE = 'LOGIN_LIMIT_PRE_';
+const REGISTER_CODE = 'REGISTER_CODE_';
+const EXPIRED = 1200;
+const EXPIRED_SPEED = 10;
 
 class AccountManager {
     collaboratorCan(uid: number, appName: string, logger: Logger) {
@@ -119,7 +119,7 @@ class AccountManager {
             })
             .then((users) => {
                 if (tryLoginTimes > 0) {
-                    const loginKey = `${loginLimitPre}${users.id}`;
+                    const loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
                     return redisClient.get(loginKey).then((loginErrorTimes) => {
                         if (Number(loginErrorTimes) > tryLoginTimes) {
                             throw new AppError(`您输入密码错误次数超过限制，帐户已经锁定`);
@@ -132,7 +132,7 @@ class AccountManager {
             .then((users) => {
                 if (!passwordVerifySync(password, users.password)) {
                     if (tryLoginTimes > 0) {
-                        const loginKey = `${loginLimitPre}${users.id}`;
+                        const loginKey = `${LOGIN_LIMIT_PRE}${users.id}`;
                         redisClient.exists(loginKey).then((isExists) => {
                             if (!isExists) {
                                 const expires = moment().endOf('day').unix() - moment().unix();
@@ -163,7 +163,7 @@ class AccountManager {
                 // 将token临时存储到redis
                 const token = randToken(40);
                 return redisClient
-                    .setEx(`${registerCode}${md5(email)}`, expired, token)
+                    .setEx(`${REGISTER_CODE}${md5(email)}`, EXPIRED, token)
                     .then(() => {
                         return token;
                     });
@@ -182,7 +182,7 @@ class AccountManager {
                 }
             })
             .then(() => {
-                const registerKey = `${registerCode}${md5(email)}`;
+                const registerKey = `${REGISTER_CODE}${md5(email)}`;
                 return redisClient.get(registerKey).then((storageToken) => {
                     if (_.isEmpty(storageToken)) {
                         throw new AppError(`验证码已经失效，请您重新获取`);
@@ -190,7 +190,7 @@ class AccountManager {
                     if (!_.eq(token, storageToken)) {
                         redisClient.ttl(registerKey).then((ttl) => {
                             if (ttl > 0) {
-                                redisClient.expire(registerKey, ttl - expiredSpeed);
+                                redisClient.expire(registerKey, ttl - EXPIRED_SPEED);
                             }
                         });
                         throw new AppError(`您输入的验证码不正确，请重新输入`);

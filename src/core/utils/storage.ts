@@ -8,7 +8,6 @@ import fsextra from 'fs-extra';
 import { Logger } from 'kv-logger';
 import _ from 'lodash';
 import qiniu from 'qiniu';
-
 import { AppError } from '../app-error';
 import { config } from '../config';
 
