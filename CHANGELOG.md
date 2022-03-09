@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.3](https://github.com/shm-open/code-push-server/compare/v2.0.2...v2.0.3) (2022-03-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency aws-sdk to v2.1089.0 ([2a40892](https://github.com/shm-open/code-push-server/commit/2a40892edcd945158b9ebb1c5b8f73942fabe4bf))
+* **deps:** update dependency fs-extra to v10.0.1 ([6e20737](https://github.com/shm-open/code-push-server/commit/6e207378305bdc3e9f0258a91a2074cbff0c608a))
+* **deps:** update dependency redis to v4.0.4 ([23e984a](https://github.com/shm-open/code-push-server/commit/23e984a7662a7cc365d3402cba1ee809d4602298))
+* **deps:** update dependency sequelize to v6.17.0 ([dd255d9](https://github.com/shm-open/code-push-server/commit/dd255d976f1e2cd3e3d965580b900cb7f99f738a))
+
 ### [2.0.2](https://github.com/shm-open/code-push-server/compare/v2.0.1...v2.0.2) (2022-02-21)
 
 
