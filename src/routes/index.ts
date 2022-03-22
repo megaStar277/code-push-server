@@ -1,6 +1,6 @@
 import express from 'express';
 import { AppError } from '../core/app-error';
-import { i18n } from "../core/i81n"
+import { i18n } from "../core/i18n"
 import { checkToken, Req } from '../core/middleware';
 import { clientManager } from '../core/services/client-manager';
 

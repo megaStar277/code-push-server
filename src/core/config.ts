@@ -85,7 +85,6 @@ export const config = {
             'http://127.0.0.1:3000/download',
         // public static download spacename.
         public: '/download',
-        locale: process.env.LOCALE || 'cn'
     },
     jwt: {
         // Recommended: 63 random alpha-numeric characters

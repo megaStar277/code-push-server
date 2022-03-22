@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import { logger } from 'kv-logger';
 import { AppError, NotFound } from './core/app-error';
 import { config } from './core/config';
-import { i18n } from "./core/i81n"
+import { i18n } from "./core/i18n"
 import { Req, Res, withLogger } from './core/middleware';
 import { accessKeysRouter } from './routes/accessKeys';
 import { accountRouter } from './routes/account';
@@ -32,18 +32,7 @@ app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
 
 // translations
-
 app.use(i18n.init)
-
-app.use(function(req, res, next) {
-    // express helper for natively supported engines
-    // @ts-ignore
-    res.locals.__ = res.__ = function() {
-        return i18n.__.apply(req, arguments);
-    };
-
-    next();
-});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

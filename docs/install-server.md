@@ -47,7 +47,6 @@ some config items have to be changed:
 
 -   `local`.`storageDir` change to your directory, make sure have read/write permissions.
 -   `local`.`downloadUrl` replace `127.0.0.1` to your machine ip.
--   `local`.`locale` either `cn` or `en`.
 -   `common`.`dataDir` change to your directory,make sure have read/write permissions.
 -   `jwt`.`tokenSecret` get the random string from `https://www.grc.com/passwords.htm`, and replace the value `INSERT_RANDOM_TOKEN_KEY`.
 -   `db` config: `username`,`password`,`host`,`port` change to your own
