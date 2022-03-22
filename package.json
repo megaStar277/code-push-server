@@ -27,7 +27,7 @@
   "scripts": {
     "dev": "npm run build && concurrently npm:dev:tsc npm:dev:run",
     "dev:tsc": "tsc --watch",
-    "dev:run": "LOG_LEVEL=debug supervisor ./bin/www.js",
+    "dev:run": "LOG_LEVEL=debug supervisor -e 'node|js|ts|pug|json' ./bin/www.js",
     "start": "node ./bin/www.js",
     "init": "node ./bin/db.js init",
     "upgrade": "node ./bin/db.js upgrade",
