@@ -3,9 +3,9 @@ block css
   link(rel='stylesheet', href='/stylesheets/index.css')
 
 block content
-  .site-notice react naitve 热更新服务器
+  .site-notice react native / cordova #{__('热更新服务器')}
   h1(style="text-align: center;")= title
   p(style="text-align: center;") Welcome to #{title}
   .site-notice
-    a.btn.btn-primary(href="/auth/login" type="button") 登录
-    a.btn.btn-primary.col-md-offset-1(href="/auth/password" type="button") 修改密码
+    a.btn.btn-primary(href="/auth/login" type="button") #{__('登录')}
+    a.btn.btn-primary.col-md-offset-1(href="/auth/password" type="button") #{__('修改密码')}
