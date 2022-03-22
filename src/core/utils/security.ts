@@ -183,10 +183,6 @@ export function calcAllFileSha256(directoryPath: string): Promise<Record<string,
                         const data: Record<string, string> = {};
                         _.forIn(results, (value, key) => {
                             let relativePath = path.relative(directoryPath, key);
-                            const matchresult = relativePath.match(/(\/|\\).*/);
-                            if (matchresult) {
-                                relativePath = path.join('CodePush', matchresult[0]);
-                            }
                             relativePath = slash(relativePath);
                             data[relativePath] = value;
                         });
