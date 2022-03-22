@@ -16,6 +16,7 @@ services:
       DATA_DIR: '/data/tmp'
       NODE_ENV: 'production'
       REDIS_HOST: 'redis'
+      LOCALE: 'cn'
     ports:
       - '3000:3000'
     depends_on:
