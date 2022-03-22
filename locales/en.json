@@ -1,14 +1,14 @@
 {
-	"请登录": "Please sign in",
-	"邮箱地址": "email address",
-	"用户名": "username",
-	"密码": "password",
-	"记住我": "Remember me",
-	"登录": "Log in",
-	"热更新服务器": "hot update server",
-	"修改密码": "Change Password",
-	"获取": "Obtain",
-	"原密码": "old password",
-	"新密码": "new password",
-	"请重新登录": "please login again"
+	"Please sign in": "Please sign in",
+	"email address": "email address",
+	"username": "username",
+	"password": "password",
+	"Remember me": "Remember me",
+	"Log in": "Log in",
+	"hot update server": "hot update server",
+	"Change Password": "Change Password",
+	"Obtain": "Obtain",
+	"old password": "old password",
+	"new password": "new password",
+	"please login again": "please login again"
 }

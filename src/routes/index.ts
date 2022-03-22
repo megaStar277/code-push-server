@@ -11,7 +11,7 @@ indexRouter.get('/', (req, res) => {
 });
 
 indexRouter.get('/tokens', (req, res) => {
-    res.render('tokens', { title: `${i18n.__('获取')} token` });
+    res.render('tokens', { title: `${i18n.__('Obtain')} token` });
 });
 
 indexRouter.get(
