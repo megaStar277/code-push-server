@@ -41,7 +41,7 @@ check out the [code-push-cli](https://github.com/shm-open/code-push-cli) which w
 
 ## How To Install code-push-server
 
--   [docker](./docs/install-server-by-docker.cn.md) (recommended)
+-   [docker](./docs/install-server-by-docker.md) (recommended)
 -   [manual operation](./docs/install-server.md)
 
 ## Default Account and Password
