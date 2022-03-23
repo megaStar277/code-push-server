@@ -96,6 +96,7 @@
   "files": [
     "bin",
     "docs",
+    "locales",
     "public",
     "sql",
     "views",

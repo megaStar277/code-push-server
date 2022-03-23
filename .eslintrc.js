@@ -9,6 +9,25 @@ module.exports = {
                 leadingUnderscore: 'allowSingleOrDouble',
             },
             {
+                selector: 'variable',
+                modifiers: ['destructured'],
+                format: null,
+            },
+            {
+                selector: [
+                    'classProperty',
+                    'objectLiteralProperty',
+                    'typeProperty',
+                    'classMethod',
+                    'objectLiteralMethod',
+                    'typeMethod',
+                    'accessor',
+                    'enumMember',
+                ],
+                modifiers: ['requiresQuotes'],
+                format: null,
+            },
+            {
                 selector: 'enum',
                 format: ['PascalCase'],
             },
