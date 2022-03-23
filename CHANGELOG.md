@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.1](https://github.com/shm-open/code-push-server/compare/v2.1.0...v2.1.1) (2022-03-23)
+
+
+### Bug Fixes
+
+* zh locale support ([6a55bc5](https://github.com/shm-open/code-push-server/commit/6a55bc57f0b28d9b0000a886dc302e6772719ea0))
+
 ## [2.1.0](https://github.com/shm-open/code-push-server/compare/v2.0.3...v2.1.0) (2022-03-23)
 
 
