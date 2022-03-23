@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/shm-open/code-push-server/compare/v2.0.3...v2.1.0) (2022-03-23)
+
+
+### Features
+
+* **app:** add i18n support ([57a6e98](https://github.com/shm-open/code-push-server/commit/57a6e98df10bfcfc14badd3b4a399815e3c4349a))
+
+
+### Bug Fixes
+
+* **deps:** update dependency aws-sdk to v2.1098.0 ([381f51a](https://github.com/shm-open/code-push-server/commit/381f51a6bc6b5a85945bf2caac1b48e4b875c189))
+* **deps:** update dependency nodemailer to v6.7.3 ([154af3c](https://github.com/shm-open/code-push-server/commit/154af3c526ce000c3678627502c66c54f6bd6883))
+* **deps:** update dependency yargs to v17.4.0 ([763c924](https://github.com/shm-open/code-push-server/commit/763c924ee0a77db170ef307f0726f36da7e5ac0b))
+
 ### [2.0.3](https://github.com/shm-open/code-push-server/compare/v2.0.2...v2.0.3) (2022-03-09)
 
 
