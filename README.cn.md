@@ -39,7 +39,7 @@
 
 ## 如何安装 code-push-server
 
--   [Docker](./docs/install-server-by-docker.md) (推荐)
+-   [Docker](./docs/install-server-by-docker.cn.md) (推荐)
 -   [直接安装](./docs/install-server.md)
 
 ## 默认帐号和密码

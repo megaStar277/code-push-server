@@ -27,7 +27,7 @@
   "scripts": {
     "dev": "npm run build && concurrently npm:dev:tsc npm:dev:run",
     "dev:tsc": "tsc --watch",
-    "dev:run": "LOG_LEVEL=debug supervisor ./bin/www.js",
+    "dev:run": "LOG_LEVEL=debug supervisor -e 'node|js|ts|pug|json' ./bin/www.js",
     "start": "node ./bin/www.js",
     "init": "node ./bin/db.js init",
     "upgrade": "node ./bin/db.js upgrade",
@@ -50,6 +50,7 @@
     "formidable": "2.0.1",
     "fs-extra": "10.0.1",
     "helmet": "5.0.2",
+    "i18n": "0.14.2",
     "jsonwebtoken": "8.5.1",
     "kv-logger": "0.5.3",
     "lodash": "4.17.21",

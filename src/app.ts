@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { logger } from 'kv-logger';
 import { AppError, NotFound } from './core/app-error';
 import { config } from './core/config';
+import { i18n } from "./core/i18n"
 import { Req, Res, withLogger } from './core/middleware';
 import { accessKeysRouter } from './routes/accessKeys';
 import { accountRouter } from './routes/account';
@@ -23,9 +24,15 @@ app.use(
         contentSecurityPolicy: false,
     }),
 );
+
+
+
 // view engine setup
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
+
+// translations
+app.use(i18n.init)
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

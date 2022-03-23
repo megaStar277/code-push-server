@@ -5,7 +5,7 @@ block css
 block content
   h1(style="text-align: center;")= title
   .site-notice
-    a#submitBtn.btn.btn-lg.btn-primary 获取token
+    a#submitBtn.btn.btn-lg.btn-primary #{__('Obtain')} token
   .form-group
     #tipsSuccess(style="display:none")
       h2(style="text-align: center;") Authentication succeeded.
@@ -68,7 +68,7 @@ block js
         error: function(XMLHttpRequest, textStatus, errorThrown) {
           submit = false;
           if (errorThrown == 'Unauthorized') {
-            alert('请重新登录!');
+            alert(`#{__('please login again')}!`);
             location.href = '/auth/login'
           }else {
             alert(errorThrown);
