@@ -1,6 +1,6 @@
 import express from 'express';
 import { AppError } from '../core/app-error';
-import { i18n } from "../core/i18n"
+import { i18n } from '../core/i18n';
 import { checkToken, Req } from '../core/middleware';
 import { clientManager } from '../core/services/client-manager';
 
@@ -11,6 +11,7 @@ indexRouter.get('/', (req, res) => {
 });
 
 indexRouter.get('/tokens', (req, res) => {
+    // eslint-disable-next-line no-underscore-dangle
     res.render('tokens', { title: `${i18n.__('Obtain')} token` });
 });
 
