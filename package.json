@@ -57,7 +57,7 @@
     "moment": "2.29.1",
     "mysql2": "2.3.3",
     "node-fetch": "2.6.7",
-    "nodemailer": "6.7.2",
+    "nodemailer": "6.7.3",
     "pug": "3.0.2",
     "qiniu": "7.4.0",
     "rand-token": "1.0.1",
