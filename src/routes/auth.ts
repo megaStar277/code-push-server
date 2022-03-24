@@ -15,7 +15,11 @@ authRouter.get('/password', (req: Req, res) => {
 });
 
 authRouter.get('/login', (req: Req<void, void, { email: string }>, res) => {
-    res.render('auth/login', { title: 'CodePushServer', email: req.query.email || '' });
+    res.render('auth/login', {
+        title: 'CodePushServer',
+        email: req.query.email || '',
+        showRegister: config.common.allowRegistration,
+    });
 });
 
 authRouter.get('/link', (req: Req, res) => {

@@ -11,5 +11,6 @@
   "old password": "原密码",
   "new password": "新密码",
   "please login again": "请重新登录",
-  "change success": "修改成功"
+  "change success": "修改成功",
+  "Logout": "登出"
 }
